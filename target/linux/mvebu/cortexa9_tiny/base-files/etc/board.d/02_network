@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+# Copyright (C) 2014-2016 OpenWrt.org
+# Copyright (C) 2016 LEDE-Project.org
+#
+
+. /lib/functions.sh
+. /lib/functions/uci-defaults.sh
+. /lib/functions/system.sh
+
+mvebu_setup_interfaces()
+{
+	local board="$1"
+
+	case "$board" in
+	linksys,wrt1900ac-v1|\
+	linksys,wrt32x)
+		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" "wan"
+		;;
+	*)
+		ucidef_set_interface_lan "eth0"
+		;;
+	esac
+}
+
+mvebu_setup_macs()
+{
+	local board="$1"
+	local lan_mac=""
+	local wan_mac=""
+	local label_mac=""
+
+	case "$board" in
+	linksys,wrt32x)
+		label_mac=$(mtd_get_mac_ascii devinfo hw_mac_addr)
+		wan_mac=$(macaddr_setbit_la $label_mac)
+		;;
+	linksys,wrt1900ac-v1)
+		label_mac=$(mtd_get_mac_ascii devinfo hw_mac_addr)
+		lan_mac=$label_mac
+		wan_mac=$label_mac
+		;;
+	esac
+
+	[ -n "$lan_mac" ] && ucidef_set_interface_macaddr "lan" $lan_mac
+	[ -n "$wan_mac" ] && ucidef_set_interface_macaddr "wan" $wan_mac
+	[ -n "$label_mac" ] && ucidef_set_label_macaddr $label_mac
+}
+
+board_config_update
+board=$(board_name)
+mvebu_setup_interfaces $board
+mvebu_setup_macs $board
+board_config_flush
+
+exit 0

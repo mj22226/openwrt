@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Copyright (C) 2014-2016 OpenWrt.org
+# Copyright (C) 2016 LEDE-Project.org
+#
+
+. /lib/functions/uci-defaults.sh
+
+board_config_update
+
+board=$(board_name)
+boardname="${board##*,}"
+
+case "$board" in
+linksys,wrt1900ac-v1)
+	ucidef_set_led_netdev "wan" "WAN" "mamba:white:wan" "wan"
+	ucidef_set_led_usbport "usb1" "USB 1" "mamba:white:usb2" "usb1-port1"
+	ucidef_set_led_usbport "usb2" "USB 2" "mamba:white:usb3_1" "usb2-port1" "usb3-port1"
+	ucidef_set_led_usbport "usb2_ss" "USB 2 SS" "mamba:white:usb3_2" "usb3-port2"
+	;;
+linksys,wrt32x)
+	ucidef_set_led_netdev "wan" "WAN" "pca963x:venom:blue:wan" "wan"
+	ucidef_set_led_usbport "usb1" "USB 1" "pca963x:venom:blue:usb2" "usb1-port1"
+	ucidef_set_led_usbport "usb2" "USB 2" "pca963x:venom:blue:usb3_1" "usb2-port1" "usb3-port1"
+	ucidef_set_led_usbport "usb2_ss" "USB 2 SS" "pca963x:venom:blue:usb3_2" "usb3-port1"
+	;;
+esac
+
+board_config_flush
+
+exit 0

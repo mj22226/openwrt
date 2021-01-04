@@ -5,9 +5,9 @@
 include $(TOPDIR)/rules.mk
 
 BOARD:=mvebu
-BOARDNAME:=Marvell EBU Armada
+BOARDNAME:=Marvell EBU Armada Linksys
 FEATURES:=fpu usb pci pcie gpio nand squashfs ramdisk boot-part rootfs-part
-SUBTARGETS:=cortexa9 cortexa53 cortexa72
+SUBTARGETS:=cortexa9 cortexa9_tiny cortexa53 cortexa72
 
 KERNEL_PATCHVER:=5.4
 KERNEL_TESTING_PATCHVER:=5.11
