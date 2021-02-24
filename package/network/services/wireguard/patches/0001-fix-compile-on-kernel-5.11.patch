@@ -1,0 +1,96 @@
+From 25a50d6c11100ca7fecacac744d92565e05838cc Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Tue, 9 Feb 2021 11:59:10 -0500
+Subject: [PATCH] fix compile on kernel 5.11
+
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ src/compat/compat.h |  5 +++--
+ src/device.c        |  2 +-
+ src/socket.c        | 12 ++++++------
+ 3 files changed, 10 insertions(+), 9 deletions(-)
+
+--- a/src/compat/compat.h
++++ b/src/compat/compat.h
+@@ -31,6 +31,7 @@
+ #elif LINUX_VERSION_CODE < KERNEL_VERSION(5, 1, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
+ #define ISUBUNTU1904
+ #elif LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(5, 3, 0)
++#elif LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+ #define ISUBUNTU1910
+ #endif
+ #endif
+@@ -39,8 +40,8 @@
+ #error "WireGuard requires Linux >= 3.10"
+ #endif
+ 
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 6, 0)
+-#error "WireGuard has been merged into Linux >= 5.6 and therefore this compatibility module is no longer required."
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 12, 0)
++#error "WireGuard has been merged into Linux >= 5.12 and therefore this compatibility module is no longer required."
+ #endif
+ 
+ #if defined(ISRHEL7)
+--- a/src/device.c
++++ b/src/device.c
+@@ -223,7 +223,7 @@ static const struct net_device_ops netde
+ 	.ndo_open		= wg_open,
+ 	.ndo_stop		= wg_stop,
+ 	.ndo_start_xmit		= wg_xmit,
+-	.ndo_get_stats64	= ip_tunnel_get_stats64
++	.ndo_get_stats64	= dev_get_tstats64
+ };
+ 
+ static void wg_destruct(struct net_device *dev)
+--- a/src/socket.c
++++ b/src/socket.c
+@@ -49,11 +49,11 @@ static int send4(struct wg_device *wg, s
+ 		rt = dst_cache_get_ip4(cache, &fl.saddr);
+ 
+ 	if (!rt) {
+-		security_sk_classify_flow(sock, flowi4_to_flowi(&fl));
++		security_sk_classify_flow(sock, flowi4_to_flowi_common(&fl));
+ 		if (unlikely(!inet_confirm_addr(sock_net(sock), NULL, 0,
+ 						fl.saddr, RT_SCOPE_HOST))) {
+ 			endpoint->src4.s_addr = 0;
+-			endpoint->src_if4 = 0;
++			*(__force __be32 *)&endpoint->src_if4 = 0;
+ 			fl.saddr = 0;
+ 			if (cache)
+ 				dst_cache_reset(cache);
+@@ -63,7 +63,7 @@ static int send4(struct wg_device *wg, s
+ 			     PTR_ERR(rt) == -EINVAL) || (!IS_ERR(rt) &&
+ 			     rt->dst.dev->ifindex != endpoint->src_if4)))) {
+ 			endpoint->src4.s_addr = 0;
+-			endpoint->src_if4 = 0;
++			*(__force __be32 *)&endpoint->src_if4 = 0;
+ 			fl.saddr = 0;
+ 			if (cache)
+ 				dst_cache_reset(cache);
+@@ -71,7 +71,7 @@ static int send4(struct wg_device *wg, s
+ 				ip_rt_put(rt);
+ 			rt = ip_route_output_flow(sock_net(sock), &fl, sock);
+ 		}
+-		if (IS_ERR(rt)) {
++		if (unlikely(IS_ERR(rt))) {
+ 			ret = PTR_ERR(rt);
+ 			net_dbg_ratelimited("%s: No route to %pISpfsc, error %d\n",
+ 					    wg->dev->name, &endpoint->addr, ret);
+@@ -129,7 +129,7 @@ static int send6(struct wg_device *wg, s
+ 		dst = dst_cache_get_ip6(cache, &fl.saddr);
+ 
+ 	if (!dst) {
+-		security_sk_classify_flow(sock, flowi6_to_flowi(&fl));
++		security_sk_classify_flow(sock, flowi6_to_flowi_common(&fl));
+ 		if (unlikely(!ipv6_addr_any(&fl.saddr) &&
+ 			     !ipv6_chk_addr(sock_net(sock), &fl.saddr, NULL, 0))) {
+ 			endpoint->src6 = fl.saddr = in6addr_any;
+@@ -138,7 +138,7 @@ static int send6(struct wg_device *wg, s
+ 		}
+ 		dst = ipv6_stub->ipv6_dst_lookup_flow(sock_net(sock), sock, &fl,
+ 						      NULL);
+-		if (IS_ERR(dst)) {
++		if (unlikely(IS_ERR(dst))) {
+ 			ret = PTR_ERR(dst);
+ 			net_dbg_ratelimited("%s: No route to %pISpfsc, error %d\n",
+ 					    wg->dev->name, &endpoint->addr, ret);
