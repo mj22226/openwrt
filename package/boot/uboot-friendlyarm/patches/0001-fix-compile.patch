@@ -1,0 +1,21 @@
+From b5c9c5f36d21e99d7d0c34f166ed5d377716287c Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Fri, 1 Jan 2021 16:00:22 -0500
+Subject: [PATCH] fix compile
+
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm/dts/Makefile | 1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/arch/arm/dts/Makefile
++++ b/arch/arm/dts/Makefile
+@@ -131,7 +131,6 @@ dtb-$(CONFIG_ROCKCHIP_RK3399) += \
+ 	rk3399-nanopi-m4.dtb \
+ 	rk3399-nanopi-m4-2gb.dtb \
+ 	rk3399-nanopi-neo4.dtb \
+-	rk3399-nanopi-r4s-4gb.dtb \
+ 	rk3399-nanopi-r4s.dtb \
+ 	rk3399-orangepi.dtb \
+ 	rk3399-pinebook-pro.dtb \
+
