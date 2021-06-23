@@ -1,0 +1,293 @@
+From f63b5a953a0f7e5c43f2812304705ce152655318 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Sun, 3 Jan 2021 17:12:42 -0500
+Subject: [PATCH] fix kernel 5.13
+
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ core/rtw_btcoex.c         |  7 +++++-
+ core/rtw_wlan_util.c      | 10 ++++----
+ os_dep/linux/os_intfs.c   | 19 +++++++++++----
+ os_dep/linux/recv_linux.c |  4 ++++
+ os_dep/osdep_service.c    | 49 +++++++++++++++++++++++++--------------
+ 5 files changed, 61 insertions(+), 28 deletions(-)
+
+--- a/core/rtw_btcoex.c
++++ b/core/rtw_btcoex.c
+@@ -1443,7 +1443,9 @@ u8 rtw_btcoex_sendmsgbysocket(_adapter *
+ {
+ 	u8 error;
+ 	struct msghdr	udpmsg;
++#ifdef set_fs
+ 	mm_segment_t	oldfs;
++#endif
+ 	struct iovec	iov;
+ 	struct bt_coex_info *pcoex_info = &padapter->coex_info;
+ 
+@@ -1473,15 +1475,18 @@ u8 rtw_btcoex_sendmsgbysocket(_adapter *
+ 	udpmsg.msg_control	= NULL;
+ 	udpmsg.msg_controllen = 0;
+ 	udpmsg.msg_flags	= MSG_DONTWAIT | MSG_NOSIGNAL;
++#ifdef set_fs
+ 	oldfs = get_fs();
+ 	set_fs(KERNEL_DS);
+-
++#endif
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
+ 	error = sock_sendmsg(pcoex_info->udpsock, &udpmsg);
+ #else
+ 	error = sock_sendmsg(pcoex_info->udpsock, &udpmsg, msg_size);
+ #endif
++#ifdef set_fs
+ 	set_fs(oldfs);
++#endif
+ 	if (error < 0) {
+ 		RTW_INFO("Error when sendimg msg, error:%d\n", error);
+ 		return _FAIL;
+--- a/core/rtw_wlan_util.c
++++ b/core/rtw_wlan_util.c
+@@ -4744,7 +4744,9 @@ int rtw_dev_nlo_info_set(struct pno_nlo_
+ 
+ 	int i = 0;
+ 	struct file *fp;
++#ifdef set_fs
+ 	mm_segment_t fs;
++#endif
+ 	loff_t pos = 0;
+ 	u8 *source = NULL;
+ 	long len = 0;
+@@ -4780,10 +4782,10 @@ int rtw_dev_nlo_info_set(struct pno_nlo_
+ 		RTW_INFO("Error, cipher array using default value.\n");
+ 		return 0;
+ 	}
+-
++#ifdef set_fs
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
+-
++#endif
+ 	source = rtw_zmalloc(2048);
+ 
+ 	if (source != NULL) {
+@@ -4791,10 +4793,10 @@ int rtw_dev_nlo_info_set(struct pno_nlo_
+ 		rtw_parse_cipher_list(nlo_info, source);
+ 		rtw_mfree(source, 2048);
+ 	}
+-
++#ifdef set_fs
+ 	set_fs(fs);
+ 	filp_close(fp, NULL);
+-
++#endif
+ 	RTW_INFO("-%s-\n", __func__);
+ 	return 0;
+ }
+--- a/os_dep/linux/os_intfs.c
++++ b/os_dep/linux/os_intfs.c
+@@ -4029,7 +4029,9 @@ static int route_dump(u32 *gw_addr , int
+ 	struct msghdr msg;
+ 	struct iovec iov;
+ 	struct sockaddr_nl nladdr;
++#ifdef set_fs
+ 	mm_segment_t oldfs;
++#endif
+ 	char *pg;
+ 	int size = 0;
+ 
+@@ -4067,16 +4069,18 @@ static int route_dump(u32 *gw_addr , int
+ 	msg.msg_control = NULL;
+ 	msg.msg_controllen = 0;
+ 	msg.msg_flags = MSG_DONTWAIT;
+-
++#ifdef set_fs
+ 	oldfs = get_fs();
+ 	set_fs(KERNEL_DS);
++#endif
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
+ 	err = sock_sendmsg(sock, &msg);
+ #else
+ 	err = sock_sendmsg(sock, &msg, sizeof(req));
+ #endif
++#ifdef set_fs
+ 	set_fs(oldfs);
+-
++#endif
+ 	if (err < 0)
+ 		goto out_sock;
+ 
+@@ -4099,16 +4103,18 @@ restart:
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0))
+ 		iov_iter_init(&msg.msg_iter, READ, &iov, 1, PAGE_SIZE);
+ #endif
+-
++#ifdef set_fs
+ 		oldfs = get_fs();
+ 		set_fs(KERNEL_DS);
++#endif
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 7, 0))
+ 		err = sock_recvmsg(sock, &msg, MSG_DONTWAIT);
+ #else
+ 		err = sock_recvmsg(sock, &msg, PAGE_SIZE, MSG_DONTWAIT);
+ #endif
++#ifdef set_fs
+ 		set_fs(oldfs);
+-
++#endif
+ 		if (err < 0)
+ 			goto out_sock_pg;
+ 
+@@ -4178,15 +4184,18 @@ done:
+ 		msg.msg_controllen = 0;
+ 		msg.msg_flags = MSG_DONTWAIT;
+ 
++#ifdef set_fs
+ 		oldfs = get_fs();
+ 		set_fs(KERNEL_DS);
++#endif
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
+ 		err = sock_sendmsg(sock, &msg);
+ #else
+ 		err = sock_sendmsg(sock, &msg, sizeof(req));
+ #endif
++#ifdef set_fs
+ 		set_fs(oldfs);
+-
++#endif
+ 		if (err > 0)
+ 			goto restart;
+ 	}
+--- a/os_dep/linux/recv_linux.c
++++ b/os_dep/linux/recv_linux.c
+@@ -355,8 +355,12 @@ static int napi_recv(_adapter *padapter,
+ 
+ #ifdef CONFIG_RTW_GRO
+ 		if (pregistrypriv->en_gro) {
++#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 13, 0)
+ 			if (rtw_napi_gro_receive(&padapter->napi, pskb) != GRO_DROP)
+ 				rx_ok = _TRUE;
++#else
++			rx_ok = _TRUE;
++#endif
+ 			goto next;
+ 		}
+ #endif /* CONFIG_RTW_GRO */
+--- a/os_dep/osdep_service.c
++++ b/os_dep/osdep_service.c
+@@ -2164,11 +2164,21 @@ static int writeFile(struct file *fp, ch
+ {
+ 	int wlen = 0, sum = 0;
+ 
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
++	if (!(fp->f_mode & FMODE_CAN_WRITE))
++#else
+ 	if (!fp->f_op || !fp->f_op->write)
++#endif
+ 		return -EPERM;
+ 
+ 	while (sum < len) {
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
++		wlen = kernel_write(fp, buf + sum, len - sum, &fp->f_pos);
++#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
++		wlen = __vfs_write(fp, buf + sum, len - sum, &fp->f_pos);
++#else
+ 		wlen = fp->f_op->write(fp, buf + sum, len - sum, &fp->f_pos);
++#endif
+ 		if (wlen > 0)
+ 			sum += wlen;
+ 		else if (0 != wlen)
+@@ -2191,19 +2201,19 @@ static int isFileReadable(const char *pa
+ {
+ 	struct file *fp;
+ 	int ret = 0;
++#ifdef set_fs
+ 	mm_segment_t oldfs;
++#endif
+ 	char buf;
+ 
+ 	fp = filp_open(path, O_RDONLY, 0);
+ 	if (IS_ERR(fp))
+ 		ret = PTR_ERR(fp);
+ 	else {
++#ifdef set_fs
+ 		oldfs = get_fs();
+-		#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0))
+-		set_fs(KERNEL_DS);
+-		#else
+-		set_fs(get_ds());
+-		#endif
++		set_fs(KERNFS_NS);
++#endif
+ 
+ 		if (1 != readFile(fp, &buf, 1))
+ 			ret = PTR_ERR(fp);
+@@ -2215,8 +2225,9 @@ static int isFileReadable(const char *pa
+ 			*sz = i_size_read(fp->f_dentry->d_inode);
+ 			#endif
+ 		}
+-
++#ifdef set_fs
+ 		set_fs(oldfs);
++#endif
+ 		filp_close(fp, NULL);
+ 	}
+ 	return ret;
+@@ -2232,22 +2243,23 @@ static int isFileReadable(const char *pa
+ static int retriveFromFile(const char *path, u8 *buf, u32 sz)
+ {
+ 	int ret = -1;
++#ifdef set_fs
+ 	mm_segment_t oldfs;
++#endif
+ 	struct file *fp;
+ 
+ 	if (path && buf) {
+ 		ret = openFile(&fp, path, O_RDONLY, 0);
+ 		if (0 == ret) {
+ 			RTW_INFO("%s openFile path:%s fp=%p\n", __FUNCTION__, path , fp);
+-
++#ifdef set_fs
+ 			oldfs = get_fs();
+-			#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0))
+-			set_fs(KERNEL_DS);
+-			#else
+-			set_fs(get_ds());
+-			#endif
++			set_fs(KERNFS_NS);
+ 			ret = readFile(fp, buf, sz);
+ 			set_fs(oldfs);
++#else
++			ret = readFile(fp, buf, sz);
++#endif
+ 			closeFile(fp);
+ 
+ 			RTW_INFO("%s readFile, ret:%d\n", __FUNCTION__, ret);
+@@ -2271,22 +2283,23 @@ static int retriveFromFile(const char *p
+ static int storeToFile(const char *path, u8 *buf, u32 sz)
+ {
+ 	int ret = 0;
++#ifdef set_fs
+ 	mm_segment_t oldfs;
++#endif
+ 	struct file *fp;
+ 
+ 	if (path && buf) {
+ 		ret = openFile(&fp, path, O_CREAT | O_WRONLY, 0666);
+ 		if (0 == ret) {
+ 			RTW_INFO("%s openFile path:%s fp=%p\n", __FUNCTION__, path , fp);
+-
++#ifdef set_fs
+ 			oldfs = get_fs();
+-			#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 1, 0))
+-			set_fs(KERNEL_DS);
+-			#else
+-			set_fs(get_ds());
+-			#endif
++			set_fs(KERNFS_NS);
+ 			ret = writeFile(fp, buf, sz);
+ 			set_fs(oldfs);
++#else
++			ret = writeFile(fp, buf, sz);
++#endif
+ 			closeFile(fp);
+ 
+ 			RTW_INFO("%s writeFile, ret:%d\n", __FUNCTION__, ret);
