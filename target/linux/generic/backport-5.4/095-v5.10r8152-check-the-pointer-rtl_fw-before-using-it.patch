@@ -1,0 +1,75 @@
+From 8e484ebb1edc8329e1f7c527d556038a395f654e Mon Sep 17 00:00:00 2001
+From: Hayes Wang <hayeswang@realtek.com>
+Date: Wed, 23 Oct 2019 21:24:44 +0800
+Subject: r8152: check the pointer rtl_fw->fw before using it
+
+Fix the pointer rtl_fw->fw would be used before checking in
+rtl8152_apply_firmware() that causes the following kernel oops.
+
+Unable to handle kernel NULL pointer dereference at virtual address 00000002
+pgd = (ptrval)
+[00000002] *pgd=00000000
+Internal error: Oops: 5 [#1] PREEMPT SMP ARM
+Modules linked in:
+CPU: 0 PID: 131 Comm: kworker/0:2 Not tainted
+5.4.0-rc1-00539-g9370f2d05a2a #6788
+Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+Workqueue: events_long rtl_hw_phy_work_func_t
+PC is at rtl8152_apply_firmware+0x14/0x464
+LR is at r8153_hw_phy_cfg+0x24/0x17c
+pc : [<c064f4e4>]    lr : [<c064fa18>]    psr: a0000013
+sp : e75c9e60  ip : 60000013  fp : c11b7614
+r10: e883b91c  r9 : 00000000  r8 : fffffffe
+r7 : e883b640  r6 : fffffffe  r5 : fffffffe  r4 : e883b640
+r3 : 736cfe7c  r2 : 736cfe7c  r1 : 000052f8  r0 : e883b640
+Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
+Control: 10c5387d  Table: 6640006a  DAC: 00000051
+Process kworker/0:2 (pid: 131, stack limit = 0x(ptrval))
+Stack: (0xe75c9e60 to 0xe75ca000)
+...
+[<c064f4e4>] (rtl8152_apply_firmware) from [<c064fa18>]
+(r8153_hw_phy_cfg+0x24/0x17c)
+[<c064fa18>] (r8153_hw_phy_cfg) from [<c064e784>]
+(rtl_hw_phy_work_func_t+0x220/0x3e4)
+[<c064e784>] (rtl_hw_phy_work_func_t) from [<c0148a74>]
+(process_one_work+0x22c/0x7c8)
+[<c0148a74>] (process_one_work) from [<c0149054>] (worker_thread+0x44/0x520)
+[<c0149054>] (worker_thread) from [<c0150548>] (kthread+0x130/0x164)
+[<c0150548>] (kthread) from [<c01010b4>] (ret_from_fork+0x14/0x20)
+Exception stack(0xe75c9fb0 to 0xe75c9ff8)
+...
+
+Fixes: 9370f2d05a2a ("r8152: support request_firmware for RTL8153")
+Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Hayes Wang <hayeswang@realtek.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/usb/r8152.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+(limited to 'drivers/net/usb/r8152.c')
+
+--- a/drivers/net/usb/r8152.c
++++ b/drivers/net/usb/r8152.c
+@@ -3990,8 +3990,8 @@ static void rtl8152_fw_mac_apply(struct
+ static void rtl8152_apply_firmware(struct r8152 *tp)
+ {
+ 	struct rtl_fw *rtl_fw = &tp->rtl_fw;
+-	const struct firmware *fw = rtl_fw->fw;
+-	struct fw_header *fw_hdr = (struct fw_header *)fw->data;
++	const struct firmware *fw;
++	struct fw_header *fw_hdr;
+ 	struct fw_phy_patch_key *key;
+ 	u16 key_addr = 0;
+ 	int i;
+@@ -3999,6 +3999,9 @@ static void rtl8152_apply_firmware(struc
+ 	if (IS_ERR_OR_NULL(rtl_fw->fw))
+ 		return;
+ 
++	fw = rtl_fw->fw;
++	fw_hdr = (struct fw_header *)fw->data;
++
+ 	if (rtl_fw->pre_fw)
+ 		rtl_fw->pre_fw(tp);
+ 

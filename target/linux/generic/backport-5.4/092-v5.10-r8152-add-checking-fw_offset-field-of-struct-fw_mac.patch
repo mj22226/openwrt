@@ -1,0 +1,49 @@
+From 5a16a3d9f9b9714508d6c9ab69897576a3709566 Mon Sep 17 00:00:00 2001
+From: Hayes Wang <hayeswang@realtek.com>
+Date: Mon, 21 Oct 2019 11:41:11 +0800
+Subject: r8152: add checking fw_offset field of struct fw_mac
+
+Make sure @fw_offset field of struct fw_mac is more than the size
+of struct fw_mac.
+
+Signed-off-by: Hayes Wang <hayeswang@realtek.com>
+Signed-off-by: Jakub Kicinski <jakub.kicinski@netronome.com>
+---
+ drivers/net/usb/r8152.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+(limited to 'drivers/net/usb/r8152.c')
+
+--- a/drivers/net/usb/r8152.c
++++ b/drivers/net/usb/r8152.c
+@@ -3389,7 +3389,7 @@ static void rtl_clear_bp(struct r8152 *t
+ 
+ static bool rtl8152_is_fw_mac_ok(struct r8152 *tp, struct fw_mac *mac)
+ {
+-	u16 fw_reg, bp_ba_addr, bp_en_addr, bp_start;
++	u16 fw_reg, bp_ba_addr, bp_en_addr, bp_start, fw_offset;
+ 	bool rc = false;
+ 	u32 length, type;
+ 	int i, max_bp;
+@@ -3451,13 +3451,19 @@ static bool rtl8152_is_fw_mac_ok(struct
+ 		goto out;
+ 	}
+ 
++	fw_offset = __le16_to_cpu(mac->fw_offset);
++	if (fw_offset < sizeof(*mac)) {
++		dev_err(&tp->intf->dev, "fw_offset too small\n");
++		goto out;
++	}
++
+ 	length = __le32_to_cpu(mac->blk_hdr.length);
+-	if (length < __le16_to_cpu(mac->fw_offset)) {
++	if (length < fw_offset) {
+ 		dev_err(&tp->intf->dev, "invalid fw_offset\n");
+ 		goto out;
+ 	}
+ 
+-	length -= __le16_to_cpu(mac->fw_offset);
++	length -= fw_offset;
+ 	if (length < 4 || (length & 3)) {
+ 		dev_err(&tp->intf->dev, "invalid block length\n");
+ 		goto out;
