@@ -19,6 +19,9 @@ friendlyarm,nanopi-r4s)
 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth0"
 	ucidef_set_led_netdev "lan" "LAN" "green:lan" "eth1"
 	;;
+pine64,quartz64-a)
+	ucidef_set_led_netdev "lan" "LAN" "work-led" "br-lan"
+	;;
 esac
 
 board_config_flush
