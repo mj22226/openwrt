@@ -1,0 +1,58 @@
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/kernel.mk
+
+PKG_VERSION:=2022.07-rc2
+PKG_RELEASE:=$(AUTORELEASE)
+
+PKG_HASH:=de4819a6d83c557efe3cf65ad17ec111008baa400ea2a8d13e04ddd43eca3a81
+
+
+
+include $(INCLUDE_DIR)/u-boot.mk
+include $(INCLUDE_DIR)/package.mk
+
+define U-Boot/Default
+  BUILD_TARGET:=rockchip
+  UENV:=default
+  HIDDEN:=1
+endef
+
+
+# RK35xx boards
+
+define U-Boot/quartz64-a-rk3566
+  BUILD_SUBTARGET:=armv8
+  NAME:=QUARTZ64
+  BUILD_DEVICES:= \
+    pine64_quartz64-a
+  DEPENDS:=+PACKAGE_u-boot-quartz64-a-rk3566:arm-trusted-firmware-rk356x
+endef
+
+UBOOT_TARGETS :=quartz64-a-rk3566
+
+UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
+
+
+
+define Build/Configure
+	$(call Build/Configure/U-Boot)
+	$(SED) 's#CONFIG_MKIMAGE_DTC_PATH=.*#CONFIG_MKIMAGE_DTC_PATH="$(PKG_BUILD_DIR)/scripts/dtc/dtc"#g' $(PKG_BUILD_DIR)/.config
+	echo 'CONFIG_IDENT_STRING=" OpenWrt"' >> $(PKG_BUILD_DIR)/.config
+	$(CP) $(STAGING_DIR_IMAGE)/bl31.elf $(PKG_BUILD_DIR)/bl31.elf
+	$(CP) $(STAGING_DIR_IMAGE)/ram_init.bin $(PKG_BUILD_DIR)/ram_init.bin
+endef
+
+define Build/InstallDev
+	$(INSTALL_DIR) $(STAGING_DIR_IMAGE)
+	$(CP) $(PKG_BUILD_DIR)/idbloader.img $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-idbloader.img
+	$(CP) $(PKG_BUILD_DIR)/u-boot.itb $(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-u-boot.itb
+endef
+
+define Package/u-boot/install/default
+endef
+
+$(eval $(call BuildPackage/U-Boot))
