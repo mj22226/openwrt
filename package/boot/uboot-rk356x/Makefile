@@ -32,7 +32,19 @@ define U-Boot/quartz64-a-rk3566
   DEPENDS:=+PACKAGE_u-boot-quartz64-a-rk3566:arm-trusted-firmware-rk356x
 endef
 
-UBOOT_TARGETS :=quartz64-a-rk3566
+define U-Boot/evb-rk3568
+  BUILD_SUBTARGET:=armv8
+  NAME:=EVB1
+  BUILD_DEVICES:= \
+    rockchip_evb
+  DEPENDS:=+PACKAGE_u-boot-evb-rk3568:arm-trusted-firmware-rk356x
+  DEFAULT := y
+endef
+
+UBOOT_TARGETS := \
+  evb-rk3568 \
+  quartz64-a-rk3566
+
 
 UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
 
