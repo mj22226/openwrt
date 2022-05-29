@@ -49,10 +49,19 @@ define U-Boot/evb-rk3568
   DEFAULT := y
 endef
 
+define U-Boot/rock-3a-rk3568
+  BUILD_SUBTARGET:=armv8
+  NAME:=ROCK-3A
+  BUILD_DEVICES:= \
+    radxa_rock-3a
+  DEPENDS:=+PACKAGE_u-boot-rock-3a-rk3568:arm-trusted-firmware-rk356x
+endef
+
 UBOOT_TARGETS := \
   bpi-r2-pro-rk3568 \
   evb-rk3568 \
-  quartz64-a-rk3566
+  quartz64-a-rk3566 \
+  rock-3a-rk3568
 
 
 UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
