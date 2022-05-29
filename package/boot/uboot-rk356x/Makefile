@@ -24,6 +24,14 @@ endef
 
 # RK35xx boards
 
+define U-Boot/bpi-r2-pro-rk3568
+  BUILD_SUBTARGET:=armv8
+  NAME:=BPI-R2-PRO
+  BUILD_DEVICES:= \
+    rockchip_bpi-r2-pro
+  DEPENDS:=+PACKAGE_u-boot-bpi-r2-pro-rk3568:arm-trusted-firmware-rk356x
+endef
+
 define U-Boot/quartz64-a-rk3566
   BUILD_SUBTARGET:=armv8
   NAME:=QUARTZ64
@@ -42,6 +50,7 @@ define U-Boot/evb-rk3568
 endef
 
 UBOOT_TARGETS := \
+  bpi-r2-pro-rk3568 \
   evb-rk3568 \
   quartz64-a-rk3566
 
