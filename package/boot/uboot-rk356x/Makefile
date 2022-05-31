@@ -49,6 +49,14 @@ define U-Boot/evb-rk3568
   DEFAULT := y
 endef
 
+define U-Boot/nanopi-r5s-rk3568
+  BUILD_SUBTARGET:=armv8
+  NAME:=NANOPI-R5S
+  BUILD_DEVICES:= \
+    friendlyelec_nanopi-r5s
+  DEPENDS:=+PACKAGE_u-boot-nanopi-r5s-rk3568:arm-trusted-firmware-rk356x
+endef
+
 define U-Boot/rock-3a-rk3568
   BUILD_SUBTARGET:=armv8
   NAME:=ROCK-3A
@@ -60,6 +68,7 @@ endef
 UBOOT_TARGETS := \
   bpi-r2-pro-rk3568 \
   evb-rk3568 \
+  nanopi-r5s-rk3568 \
   quartz64-a-rk3566 \
   rock-3a-rk3568
 
