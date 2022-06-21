@@ -1206,7 +1206,8 @@ $(eval $(call KernelPackage,keys-encrypted))
 define KernelPackage/keys-trusted
   SUBMENU:=$(OTHER_MENU)
   TITLE:=TPM trusted keys on kernel keyring
-  DEPENDS:=@KERNEL_KEYS +kmod-crypto-hash +kmod-crypto-hmac +kmod-crypto-sha1 +kmod-tpm
+  DEPENDS:=@KERNEL_KEYS +kmod-crypto-hash +kmod-crypto-hmac +kmod-crypto-sha1 +kmod-tpm \
+             +kmod-asn1-decoder +kmod-asn1-encoder +kmod-oid-registry
   KCONFIG:=CONFIG_TRUSTED_KEYS
   FILES:= $(LINUX_DIR)/security/keys/trusted-keys/trusted.ko
   AUTOLOAD:=$(call AutoLoad,01,trusted-keys,1)
