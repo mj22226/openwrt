@@ -78,3 +78,13 @@ define Device/radxa_rock-pi-4
 	kmod-brcmfmac wpad-openssl
 endef
 TARGET_DEVICES += radxa_rock-pi-4
+
+define Device/rockchip_bpi-r2-pro
+  DEVICE_VENDOR := Rockchip
+  DEVICE_MODEL := Bananapi-R2 Pro
+  SOC := rk3568
+  SUPPORTED_DEVICES := rockchip,rk3568-bpi-r2pro
+  UBOOT_DEVICE_NAME := bpi-r2-pro-rk3568
+  IMAGE/sysupgrade.img.gz := boot-common | boot-script quartz64-a | pine64-img | gzip | append-metadata
+endef
+TARGET_DEVICES += rockchip_bpi-r2-pro
