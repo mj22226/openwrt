@@ -1,0 +1,219 @@
+name: Build rockchip-5.20
+on: [push]
+
+jobs:
+    build:
+        name: Prepare and build rockchip-5.20 images
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Setup Ubuntu
+              run: |
+                sudo apt update
+                sudo apt install build-essential ccache ecj fastjar file g++ gawk \
+                gettext git java-propose-classpath libelf-dev libncurses5-dev \
+                libncursesw5-dev libssl-dev python2.7-dev python3 unzip wget \
+                python3-setuptools python3-dev rsync subversion \
+                swig time xsltproc zlib1g-dev
+
+
+            - name: Checkout
+              uses: actions/checkout@v2
+
+            - name: Update and install feeds
+              run: |
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a
+                sed -i "70s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "83s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "193s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "209s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+
+            - name: Generate config for rockchip-5.20
+              run: |
+                echo "CONFIG_TARGET_rockchip=y" > .config
+                echo "CONFIG_TARGET_rockchip_armv8=y" >> .config
+                echo "CONFIG_TARGET_MULTI_PROFILE=y" >> .config
+                echo "CONFIG_TARGET_PER_DEVICE_ROOTFS=y" >> .config
+                echo "CONFIG_OPENSSL_ENGINE=y" >> .config
+                echo "CONFIG_OPENSSL_ENGINE_BUILTIN=y" >> .config
+                echo "CONFIG_OPENSSL_ENGINE_BUILTIN_DEVCRYPTO=y" >> .config
+                echo "CONFIG_OPENSSL_OPTIMIZE_SPEED=y" >> .config
+                echo "CONFIG_OPENSSL_WITH_ASM=y" >> .config
+                echo "CONFIG_OPENSSL_WITH_CHACHA_POLY1305=y" >> .config
+                echo "CONFIG_OPENSSL_WITH_CMS=y" >> .config
+                echo "CONFIG_OPENSSL_WITH_DEPRECATED=y" >> .config
+                echo "CONFIG_OPENSSL_WITH_ERROR_MESSAGES=y" >> .config
+                echo "CONFIG_OPENSSL_WITH_PSK=y" >> .config
+                echo "CONFIG_OPENSSL_WITH_SRP=y" >> .config
+                echo "CONFIG_OPENSSL_WITH_TLS13=y" >> .config
+                echo "CONFIG_OPENVPN_openssl_ENABLE_DEF_AUTH=y" >> .config
+                echo "CONFIG_OPENVPN_openssl_ENABLE_FRAGMENT=y" >> .config
+                echo "CONFIG_OPENVPN_openssl_ENABLE_LZ4=y" >> .config
+                echo "CONFIG_OPENVPN_openssl_ENABLE_LZO=y" >> .config
+                echo "CONFIG_OPENVPN_openssl_ENABLE_MULTIHOME=y" >> .config
+                echo "CONFIG_OPENVPN_openssl_ENABLE_PF=y" >> .config
+                echo "CONFIG_OPENVPN_openssl_ENABLE_PORT_SHARE=y" >> .config
+                echo "CONFIG_PACKAGE_adb=y" >> .config
+                echo "CONFIG_PACKAGE_block-mount=y" >> .config
+                echo "CONFIG_PACKAGE_blockd=y" >> .config
+                echo "CONFIG_PACKAGE_cgi-io=y" >> .config
+                echo "CONFIG_PACKAGE_collectd=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-conntrack=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-cpu=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-cpufreq=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-interface=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-iwinfo=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-load=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-memory=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-network=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-rrdtool=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-sensors=y" >> .config
+                echo "CONFIG_PACKAGE_collectd-mod-thermal=y" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq=m" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq-full=y" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq_full_auth=y" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq_full_conntrack=y" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq_full_dhcp=y" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq_full_dhcpv6=y" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq_full_dnssec=y" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq_full_ipset=y" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq_full_noid=y" >> .config
+                echo "CONFIG_PACKAGE_dnsmasq_full_tftp=y" >> .config
+                echo "CONFIG_PACKAGE_ethtool-full=y" >> .config
+                echo "CONFIG_PACKAGE_iperf3-ssl=y" >> .config
+                echo "CONFIG_PACKAGE_ipset=y" >> .config
+                echo "CONFIG_PACKAGE_iptables-mod-ipopt=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-aead=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-arc4=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-authenc=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-ecb=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-hash=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-lib-blake2s=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-lib-chacha20=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-lib-chacha20poly1305=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-lib-curve25519=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-lib-poly1305=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-manager=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-null=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-crypto-sha1=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-cryptodev=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-fs-autofs4=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-gre=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-ifb=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-ipt-ipopt=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-ipt-ipset=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-iptunnel=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-l2tp=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-mppe=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-nf-conntrack-netlink=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-nfnetlink=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-pppol2tp=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-pptp=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-usb-net-rtl8152=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-r8169=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-sched-cake=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-sched-core=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-tun=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-udptunnel4=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-udptunnel6=y" >> .config
+                echo "CONFIG_PACKAGE_kmod-wireguard=y" >> .config
+                echo "CONFIG_PACKAGE_lua=y" >> .config
+                echo "CONFIG_PACKAGE_luci=y" >> .config
+                echo "CONFIG_PACKAGE_luci-app-firewall=y" >> .config
+                echo "CONFIG_PACKAGE_luci-app-nlbwmon=y" >> .config
+                echo "CONFIG_PACKAGE_luci-app-openvpn=y" >> .config
+                echo "CONFIG_PACKAGE_luci-app-opkg=y" >> .config
+                echo "CONFIG_PACKAGE_luci-app-sqm=y" >> .config
+                echo "CONFIG_PACKAGE_luci-app-statistics=y" >> .config
+                echo "CONFIG_PACKAGE_luci-app-ttyd=y" >> .config
+                echo "CONFIG_PACKAGE_luci-app-vpnbypass=y" >> .config
+                echo "CONFIG_PACKAGE_luci-app-wireguard=y" >> .config
+                echo "CONFIG_PACKAGE_nano=y" >> .config
+                echo "CONFIG_PACKAGE_nlbwmon=y" >> .config
+                echo "CONFIG_PACKAGE_openssl-util=y" >> .config
+                echo "CONFIG_PACKAGE_openvpn-easy-rsa=y" >> .config
+                echo "CONFIG_PACKAGE_openvpn-openssl=y" >> .config
+                echo "CONFIG_PACKAGE_ppp-mod-pppol2tp=y" >> .config
+                echo "CONFIG_PACKAGE_ppp-mod-pptp=y" >> .config
+                echo "CONFIG_PACKAGE_pptpd=y" >> .config
+                echo "CONFIG_PACKAGE_resolveip=y" >> .config
+                echo "CONFIG_PACKAGE_rpcd=y" >> .config
+                echo "CONFIG_PACKAGE_rpcd-mod-file=y" >> .config
+                echo "CONFIG_PACKAGE_rpcd-mod-iwinfo=y" >> .config
+                echo "CONFIG_PACKAGE_rpcd-mod-luci=y" >> .config
+                echo "CONFIG_PACKAGE_rpcd-mod-rrdns=y" >> .config
+                echo "CONFIG_PACKAGE_rrdtool1=y" >> .config
+                echo "CONFIG_PACKAGE_sqm-scripts=y" >> .config
+                echo "CONFIG_PACKAGE_sysfsutils=y" >> .config
+                echo "CONFIG_PACKAGE_tc-tiny=y" >> .config
+                echo "CONFIG_PACKAGE_tcpdump-mini=y" >> .config
+                echo "CONFIG_PACKAGE_terminfo=y" >> .config
+                echo "CONFIG_PACKAGE_ttyd=y" >> .config
+                echo "CONFIG_PACKAGE_uhttpd=y" >> .config
+                echo "CONFIG_PACKAGE_uhttpd-mod-ubus=y" >> .config
+                echo "CONFIG_PACKAGE_usb-modeswitch=y" >> .config
+                echo "CONFIG_PACKAGE_usbutils=y" >> .config
+                echo "CONFIG_PACKAGE_vpnbypass=y" >> .config
+                echo "CONFIG_PACKAGE_wireguard-tools=y" >> .config
+                echo "CONFIG_PACKAGE_xl2tpd=y" >> .config
+                echo "CONFIG_PACKAGE_zlib=y" >> .config
+                echo "CONFIG_TARGET_ALL_PROFILES=y" >> .config
+                echo "# CONFIG_OPENVPN_openssl_ENABLE_SMALL is not set" >> .config
+                echo "# CONFIG_PACKAGE_kmod-crypto-kpp is not set" >> .config
+                make defconfig
+
+            - name: Download linux next custom kernel
+              run: |
+                mkdir dl
+                wget https://github.com/mj22226/linux/archive/refs/tags/5.20-rc20220728.tar.gz -O dl/linux-5.20-rc20220728.tar.gz
+
+            - name: Download package sources
+              run: make download V=s
+
+            - name: Build tools
+              run: |
+                make tools/install -j$(nproc) V=s || \
+                make tools/install V=s
+
+            - name: Build toolchain
+              run: |
+                make toolchain/install -j$(nproc) V=s || \
+                make toolchain/install V=s
+
+            - name: Build target images
+              run: |
+                make -j$(nproc) V=s 'IGNORE_ERRORS=n m' || \
+                make V=s 'IGNORE_ERRORS=n m'
+
+            - name: TAR output
+              run: tar -cvf rockchip-images.tar bin/targets/rockchip/armv8
+
+            - name: Upload artifacts
+              uses: actions/upload-artifact@v2
+              with:
+                name: rockchip-images
+                path: rockchip-images.tar
+
+    release:
+          name: Make a release
+          runs-on: ubuntu-latest
+          needs: build
+
+          steps:
+            - name: Download the image artifacts
+              uses: actions/download-artifact@v2
+              with:
+                name: rockchip-images
+
+            - name: Extract the image artifacts
+              run: tar xf rockchip-images.tar
+
+            - name: Create a release
+              uses: "marvinpinto/action-automatic-releases@latest"
+              with:
+                repo_token: "${{ secrets.GITHUB_TOKEN }}"
+                prerelease: true
+                title: "Rockchip v5.20 Images"
+                automatic_release_tag: "rockchip-5.20"
+                files: bin/targets/rockchip/armv8/*
