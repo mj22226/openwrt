@@ -22,6 +22,9 @@ friendlyarm,nanopi-r4s)
 pine64,quartz64-a)
 	ucidef_set_led_netdev "lan" "LAN" "work-led" "br-lan"
 	;;
+radxa,rock3a)
+	ucidef_set_led_netdev "lan" "LAN" "user-led" "br-lan"
+	;;
 esac
 
 board_config_flush
