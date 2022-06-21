@@ -64,6 +64,16 @@ define Device/pine64_quartz64-a
 endef
 TARGET_DEVICES += pine64_quartz64-a
 
+define Device/radxa_rock-3a
+  DEVICE_VENDOR := Radxa
+  DEVICE_MODEL := ROCK3 Model A
+  SOC := rk3568
+  SUPPORTED_DEVICES := radxa,rock3a
+  UBOOT_DEVICE_NAME := rock-3a-rk3568
+  IMAGE/sysupgrade.img.gz := boot-common | boot-script rock-3a | pine64-img | gzip | append-metadata
+endef
+TARGET_DEVICES += radxa_rock-3a
+
 define Device/radxa_rock-pi-4
   DEVICE_VENDOR := Radxa
   DEVICE_MODEL := ROCK Pi 4
