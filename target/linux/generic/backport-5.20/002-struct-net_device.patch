@@ -32,7 +32,7 @@
  #endif
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -8006,9 +8006,7 @@ int cfg80211_register_netdevice(struct n
+@@ -8166,9 +8166,7 @@ int cfg80211_register_netdevice(struct n
   */
  static inline void cfg80211_unregister_netdevice(struct net_device *dev)
  {
@@ -76,7 +76,7 @@
  }
 --- a/net/core/net-sysfs.c
 +++ b/net/core/net-sysfs.c
-@@ -746,6 +746,7 @@ static const struct attribute_group nets
+@@ -747,6 +747,7 @@ static const struct attribute_group nets
  	.attrs  = netstat_attrs,
  };
  
@@ -84,7 +84,7 @@
  static struct attribute *wireless_attrs[] = {
  	NULL
  };
-@@ -754,19 +755,7 @@ static const struct attribute_group wire
+@@ -755,19 +756,7 @@ static const struct attribute_group wire
  	.name = "wireless",
  	.attrs = wireless_attrs,
  };
@@ -104,7 +104,7 @@
  
  #else /* CONFIG_SYSFS */
  #define net_class_groups	NULL
-@@ -2007,8 +1996,14 @@ int netdev_register_kobject(struct net_d
+@@ -2008,8 +1997,14 @@ int netdev_register_kobject(struct net_d
  
  	*groups++ = &netstat_group;
  
