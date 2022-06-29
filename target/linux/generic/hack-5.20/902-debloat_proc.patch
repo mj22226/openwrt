@@ -235,7 +235,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (!pe)
 --- a/mm/vmalloc.c
 +++ b/mm/vmalloc.c
-@@ -4159,6 +4159,8 @@ static const struct seq_operations vmall
+@@ -4160,6 +4160,8 @@ static const struct seq_operations vmall
  
  static int __init proc_vmalloc_init(void)
  {

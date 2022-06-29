@@ -16,7 +16,7 @@ Signed-off-by: Thibaut VARÈNE <hacks@slashdirt.org>
 
 --- a/drivers/platform/Kconfig
 +++ b/drivers/platform/Kconfig
-@@ -12,6 +12,8 @@ source "drivers/platform/chrome/Kconfig"
+@@ -9,6 +9,8 @@ source "drivers/platform/chrome/Kconfig"
  
  source "drivers/platform/mellanox/Kconfig"
  
