@@ -148,7 +148,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	buf_printf(b, "\n");
  	buf_printf(b, "__visible struct module __this_module\n");
  	buf_printf(b, "__section(\".gnu.linkonce.this_module\") = {\n");
-@@ -2296,11 +2300,13 @@ static void add_depends(struct buffer *b
+@@ -2299,11 +2303,13 @@ static void add_depends(struct buffer *b
  
  static void add_srcversion(struct buffer *b, struct module *mod)
  {
@@ -162,7 +162,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  }
  
  static void write_buf(struct buffer *b, const char *fname)
-@@ -2386,7 +2392,9 @@ static void write_mod_c_file(struct modu
+@@ -2389,7 +2395,9 @@ static void write_mod_c_file(struct modu
  	add_exported_symbols(&buf, mod);
  	add_versions(&buf, mod);
  	add_depends(&buf, mod);
