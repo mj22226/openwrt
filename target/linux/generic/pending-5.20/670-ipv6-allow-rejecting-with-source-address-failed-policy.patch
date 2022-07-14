@@ -99,7 +99,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
  	tb_id = fib_rule_get_table(rule, arg);
 --- a/net/ipv6/ip6mr.c
 +++ b/net/ipv6/ip6mr.c
-@@ -168,6 +168,8 @@ static int ip6mr_rule_action(struct fib_
+@@ -170,6 +170,8 @@ static int ip6mr_rule_action(struct fib_
  		return -ENETUNREACH;
  	case FR_ACT_PROHIBIT:
  		return -EACCES;

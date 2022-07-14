@@ -14,20 +14,41 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/Makefile
 +++ b/Makefile
-@@ -818,13 +818,13 @@ KBUILD_CFLAGS	+= $(call cc-disable-warni
+@@ -818,10 +818,12 @@ KBUILD_CFLAGS	+= $(call cc-disable-warni
  KBUILD_CFLAGS	+= $(call cc-disable-warning, address-of-packed-member)
  
  ifdef CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE
 -KBUILD_CFLAGS += -O2
 +KBUILD_CFLAGS += -O2 $(EXTRA_OPTIMIZATION)
  KBUILD_RUSTFLAGS_OPT_LEVEL_MAP := 2
- else ifdef CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3
--KBUILD_CFLAGS += -O3
++else ifdef CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3
 +KBUILD_CFLAGS += -O3 $(EXTRA_OPTIMIZATION)
- KBUILD_RUSTFLAGS_OPT_LEVEL_MAP := 3
  else ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 -KBUILD_CFLAGS += -Os
 +KBUILD_CFLAGS += -Os -fno-reorder-blocks -fno-tree-ch $(EXTRA_OPTIMIZATION)
  KBUILD_RUSTFLAGS_OPT_LEVEL_MAP := s
  endif
  
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -1409,6 +1409,20 @@ config CC_OPTIMIZE_FOR_PERFORMANCE
+ 	  with the "-O2" compiler flag for best performance and most
+ 	  helpful compile-time warnings.
+ 
++config CC_OPTIMIZE_FOR_PERFORMANCE_O3
++	bool "Optimize more for performance (-O3)"
++	depends on ARC
++	help
++	  Choosing this option will pass "-O3" to your compiler to optimize
++	  the kernel yet more for performance.
++
++config CC_OPTIMIZE_FOR_PERFORMANCE_O3
++	bool "Optimize more for performance (-O3)"
++	depends on ARC
++	help
++	  Choosing this option will pass "-O3" to your compiler to optimize
++	  the kernel yet more for performance.
++
+ config CC_OPTIMIZE_FOR_SIZE
+ 	bool "Optimize for size (-Os)"
+ 	help
