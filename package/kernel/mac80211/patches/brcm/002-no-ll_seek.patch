@@ -1,0 +1,10 @@
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/core.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/core.c
+@@ -1213,7 +1213,6 @@ static ssize_t bus_reset_write(struct fi
+ 
+ static const struct file_operations bus_reset_fops = {
+ 	.open	= simple_open,
+-	.llseek	= no_llseek,
+ 	.write	= bus_reset_write,
+ };
+ 
