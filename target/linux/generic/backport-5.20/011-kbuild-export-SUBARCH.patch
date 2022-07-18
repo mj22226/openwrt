@@ -10,7 +10,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/Makefile
 +++ b/Makefile
-@@ -595,7 +595,7 @@ endif
+@@ -598,7 +598,7 @@ endif
  
  export RUSTC_BOOTSTRAP := 1
  

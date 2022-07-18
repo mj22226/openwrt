@@ -10,7 +10,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
 
 --- a/arch/mips/Kconfig
 +++ b/arch/mips/Kconfig
-@@ -1111,6 +1111,10 @@ config MIPS_MSC
+@@ -1112,6 +1112,10 @@ config MIPS_MSC
  config SYNC_R4K
  	bool
  
