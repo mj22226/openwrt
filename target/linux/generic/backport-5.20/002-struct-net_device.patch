@@ -32,7 +32,7 @@
  #endif
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -8271,9 +8271,7 @@ int cfg80211_register_netdevice(struct n
+@@ -8379,9 +8379,7 @@ int cfg80211_register_netdevice(struct n
   */
  static inline void cfg80211_unregister_netdevice(struct net_device *dev)
  {

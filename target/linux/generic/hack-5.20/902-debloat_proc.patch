@@ -246,7 +246,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  				&vmalloc_op,
 --- a/mm/vmstat.c
 +++ b/mm/vmstat.c
-@@ -2116,10 +2116,12 @@ void __init init_mm_internals(void)
+@@ -2120,10 +2120,12 @@ void __init init_mm_internals(void)
  #endif
  	migrate_on_reclaim_init();
  #ifdef CONFIG_PROC_FS
@@ -341,7 +341,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/net/ipv4/fib_trie.c
 +++ b/net/ipv4/fib_trie.c
-@@ -3026,11 +3026,13 @@ static const struct seq_operations fib_r
+@@ -3029,11 +3029,13 @@ static const struct seq_operations fib_r
  
  int __net_init fib_proc_init(struct net *net)
  {
@@ -357,7 +357,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  			fib_triestat_seq_show, NULL))
  		goto out2;
  
-@@ -3041,17 +3043,21 @@ int __net_init fib_proc_init(struct net
+@@ -3044,17 +3046,21 @@ int __net_init fib_proc_init(struct net
  	return 0;
  
  out3:
