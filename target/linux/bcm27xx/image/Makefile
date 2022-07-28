@@ -123,6 +123,7 @@ define Device/rpi-2
 	raspberrypi,400 raspberrypi,4-compute-module raspberrypi,4-model-b \
 	raspberrypi,model-zero-2 raspberrypi,model-zero-2-w
   DEVICE_PACKAGES := \
+	brcmfmac-sdio-firmware-4345-bt \
 	cypress-firmware-43430-sdio \
 	brcmfmac-nvram-43430-sdio \
 	cypress-firmware-43455-sdio \
@@ -180,6 +181,7 @@ define Device/rpi-4
 	raspberrypi,4-compute-module \
 	raspberrypi,4-model-b
   DEVICE_PACKAGES := \
+	brcmfmac-sdio-firmware-4345-bt \
 	cypress-firmware-43455-sdio \
 	brcmfmac-nvram-43455-sdio \
 	kmod-brcmfmac wpad-basic-mbedtls \
