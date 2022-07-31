@@ -19,6 +19,11 @@ friendlyarm,nanopi-r4s)
 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth0"
 	ucidef_set_led_netdev "lan" "LAN" "green:lan" "eth1"
 	;;
+friendlyelec,nanopi-r5s)
+	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth0"
+	ucidef_set_led_netdev "lan1" "LAN1" "green:lan1" "eth1"
+	ucidef_set_led_netdev "lan2" "LAN2" "green:lan2" "eth2"
+	;;
 pine64,quartz64-a)
 	ucidef_set_led_netdev "lan" "LAN" "work-led" "br-lan"
 	;;
