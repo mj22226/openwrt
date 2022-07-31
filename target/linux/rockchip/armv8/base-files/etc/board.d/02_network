@@ -11,6 +11,9 @@ rockchip_setup_interfaces()
 	friendlyarm,nanopi-r4s)
 		ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
 		;;
+	friendlyelec,nanopi-r5s)
+		ucidef_set_interfaces_lan_wan 'eth1 eth2' 'eth0'
+		;;
 	pine64,rockpro64|\
 	pine64,rockpro64-v2.1|\
 	pine64,quartz64-a|\
