@@ -17,7 +17,7 @@ rockchip_setup_interfaces()
 		ucidef_set_interfaces_lan_wan 'eth0' 'eth1'
 		;;
 	rockchip,rk3568-bpi-r2pro)
-		ucidef_set_interfaces_lan_wan 'lan1 lan2 lan3 lan4' 'cpu'
+		ucidef_set_interfaces_lan_wan 'lan0 lan1 lan2 lan3' 'eth0'
 		;;
 	*)
 		ucidef_set_interface_lan 'eth0'
