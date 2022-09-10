@@ -42,5 +42,9 @@ friendlyelec,nanopi-r5s)
 	set_interface_core 4 "eth1"
 	set_interface_core 8 "eth2"
 	;;
+rockchip,rk3568-bpi-r2pro)
+	set_interface_core 1 "eth0"
+	set_interface_core 3 "eth1"
+	;;
 esac
 

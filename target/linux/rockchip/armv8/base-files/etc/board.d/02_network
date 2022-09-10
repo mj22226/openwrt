@@ -29,6 +29,13 @@ rockchip_setup_interfaces()
 	esac
 }
 
+bpi_r2pro_generate_mac()
+{
+	local emmc_hash=$(sha256sum /sys/class/block/mmcblk*/device/cid)
+	local mac_base=$(macaddr_canonicalize "$(echo "${emmc_hash}" | dd bs=1 count=12 2>/dev/null)")
+	echo "$(macaddr_unsetbit_mc "$(macaddr_setbit_la "${mac_base}")")"
+}
+
 nanopi_r4s_get_mac()
 {
 	local interface=$1
@@ -65,6 +72,11 @@ rockchip_setup_macs()
 	friendlyarm,nanopi-r4s)
 		wan_mac=$(nanopi_r4s_get_mac wan)
 		lan_mac=$(nanopi_r4s_get_mac lan)
+		;;
+	friendlyelec,nanopi-r5s|\
+	rockchip,rk3568-bpi-r2pro)
+		wan_mac=$(bpi_r2pro_generate_mac)
+		lan_mac=$(macaddr_add "$wan_mac" 1)
 		;;
 	esac
 
