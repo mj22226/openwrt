@@ -1,0 +1,25 @@
+From 0a38971e811573c65ab586aff19a5129b0d74479 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Fri, 18 Nov 2022 14:50:16 -0500
+Subject: [PATCH 46/52] iwinfo: add hardware id for MT7922 devices
+
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ devices.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/devices.txt b/devices.txt
+index 82d8421..04b21e7 100644
+--- a/devices.txt
++++ b/devices.txt
+@@ -189,6 +189,7 @@
+ 0x14c3 0x7650 0x14c3 0x7650    0      0  "MediaTek" "MT7610E"
+ 0x14c3 0x7662 0x14c3 0x7662    0      0  "MediaTek" "MT76x2E"
+ 0x14c3 0x7915 0x14c3 0x7915    0      0  "MediaTek" "MT7915E"
++0x14c3 0x7922 0x1A3B 0x5300    0      0  "MediaTek" "MT7922"
+ 0x14e4 0xaa52 0x14e4 0xaa52    0      0  "Broadcom" "BCM43602"
+ 0x02d0 0xa9a6 0x0000 0x0000    0      0  "Cypress"  "CYW43455"
+ 0x1ae9 0x0310 0x1ae9 0x0000    0      0  "Wilocity" "Wil6210"
+-- 
+2.38.1
+
