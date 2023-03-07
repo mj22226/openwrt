@@ -1,0 +1,29 @@
+From 5466ee9a7c63e18d3daea0bf80152944648218d2 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 3 Feb 2023 14:49:07 +0800
+Subject: [PATCH 145/149] wifi: rtw89: 8852b: correct register mask name of TX
+ power offset
+
+For a packet with 1SS rate, it can also transmit via 2 antenna, called
+2T mode. For 2T TX power offset, mask should be 2T as well. Fortunately,
+the mask of 2T and 1T are the same, so it can still work well without
+this fix.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230203064907.8046-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -1720,7 +1720,7 @@ void rtw8852b_set_txpwr_ul_tb_offset(str
+ 
+ 	pw_ofst = max_t(s8, pw_ofst - 3, -16);
+ 	reg = rtw89_mac_reg_by_idx(R_AX_PWR_UL_TB_2T, mac_idx);
+-	rtw89_write32_mask(rtwdev, reg, B_AX_PWR_UL_TB_1T_MASK, pw_ofst);
++	rtw89_write32_mask(rtwdev, reg, B_AX_PWR_UL_TB_2T_MASK, pw_ofst);
+ }
+ 
+ static int

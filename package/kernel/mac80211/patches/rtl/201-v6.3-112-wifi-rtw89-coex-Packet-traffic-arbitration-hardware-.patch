@@ -1,0 +1,63 @@
+From ae4e1adbb1be65cadde793239a39fa947a3ff828 Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Fri, 6 Jan 2023 20:08:42 +0800
+Subject: [PATCH 112/149] wifi: rtw89: coex: Packet traffic arbitration
+ hardware owner monitor
+
+Because the difference of the hardware design, RTL8852C can not get the
+PTA owner by the same method with RTL8852B, RTL8852A. Modify the get owner
+API and related logic.
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230106120844.17441-6-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/coex.c |  7 ++-----
+ drivers/net/wireless/realtek/rtw89/mac.c  | 11 +++++++++--
+ 2 files changed, 11 insertions(+), 7 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/coex.c
++++ b/drivers/net/wireless/realtek/rtw89/coex.c
+@@ -4873,7 +4873,7 @@ void rtw89_btc_ntfy_init(struct rtw89_de
+ 	_write_scbd(rtwdev,
+ 		    BTC_WSCB_ACTIVE | BTC_WSCB_ON | BTC_WSCB_BTLOG, true);
+ 	_update_bt_scbd(rtwdev, true);
+-	if (rtw89_mac_get_ctrl_path(rtwdev) && chip->chip_id == RTL8852A) {
++	if (rtw89_mac_get_ctrl_path(rtwdev)) {
+ 		rtw89_debug(rtwdev, RTW89_DBG_BTC,
+ 			    "[BTC], %s(): PTA owner warning!!\n",
+ 			    __func__);
+@@ -7082,10 +7082,7 @@ static void _show_mreg(struct rtw89_dev
+ 
+ 	/* To avoid I/O if WL LPS or power-off  */
+ 	if (!wl->status.map.lps && !wl->status.map.rf_off) {
+-		if (chip->chip_id == RTL8852A)
+-			btc->dm.pta_owner = rtw89_mac_get_ctrl_path(rtwdev);
+-		else if (chip->chip_id == RTL8852C)
+-			btc->dm.pta_owner = 0;
++		btc->dm.pta_owner = rtw89_mac_get_ctrl_path(rtwdev);
+ 
+ 		_get_gnt(rtwdev, &gnt_cfg);
+ 		gnt = gnt_cfg.band[0];
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -4865,9 +4865,16 @@ EXPORT_SYMBOL(rtw89_mac_cfg_ctrl_path_v1
+ 
+ bool rtw89_mac_get_ctrl_path(struct rtw89_dev *rtwdev)
+ {
+-	u8 val = rtw89_read8(rtwdev, R_AX_SYS_SDIO_CTRL + 3);
++	const struct rtw89_chip_info *chip = rtwdev->chip;
++	u8 val = 0;
+ 
+-	return FIELD_GET(B_AX_LTE_MUX_CTRL_PATH >> 24, val);
++	if (chip->chip_id == RTL8852C)
++		return false;
++	else if (chip->chip_id == RTL8852A || chip->chip_id == RTL8852B)
++		val = rtw89_read8_mask(rtwdev, R_AX_SYS_SDIO_CTRL + 3,
++				       B_AX_LTE_MUX_CTRL_PATH >> 24);
++
++	return !!val;
+ }
+ 
+ u16 rtw89_mac_get_plt_cnt(struct rtw89_dev *rtwdev, u8 band)

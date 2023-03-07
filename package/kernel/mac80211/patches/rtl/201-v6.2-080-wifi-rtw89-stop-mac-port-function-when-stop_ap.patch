@@ -1,0 +1,80 @@
+From d592b9f742643f07db53ac34baf6bbd3ce9478dc Mon Sep 17 00:00:00 2001
+From: Po-Hao Huang <phhuang@realtek.com>
+Date: Fri, 2 Dec 2022 14:15:25 +0800
+Subject: [PATCH 080/149] wifi: rtw89: stop mac port function when stop_ap()
+
+Disable hardware beacon related functions when ap stops. So hardware won't
+transmit beacons while interface is already removed.
+
+Signed-off-by: Po-Hao Huang <phhuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221202061527.505668-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/mac.c      | 16 +++++++++++++---
+ drivers/net/wireless/realtek/rtw89/mac.h      |  1 +
+ drivers/net/wireless/realtek/rtw89/mac80211.c |  1 +
+ 3 files changed, 15 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -3877,11 +3877,16 @@ static void rtw89_mac_port_cfg_hiq_drop(
+ }
+ 
+ static void rtw89_mac_port_cfg_func_en(struct rtw89_dev *rtwdev,
+-				       struct rtw89_vif *rtwvif)
++				       struct rtw89_vif *rtwvif, bool enable)
+ {
+ 	const struct rtw89_port_reg *p = &rtw_port_base;
+ 
+-	rtw89_write32_port_set(rtwdev, rtwvif, p->port_cfg, B_AX_PORT_FUNC_EN);
++	if (enable)
++		rtw89_write32_port_set(rtwdev, rtwvif, p->port_cfg,
++				       B_AX_PORT_FUNC_EN);
++	else
++		rtw89_write32_port_clr(rtwdev, rtwvif, p->port_cfg,
++				       B_AX_PORT_FUNC_EN);
+ }
+ 
+ static void rtw89_mac_port_cfg_bcn_early(struct rtw89_dev *rtwdev,
+@@ -4033,7 +4038,7 @@ int rtw89_mac_port_update(struct rtw89_d
+ 	rtw89_mac_port_cfg_tbtt_shift(rtwdev, rtwvif);
+ 	rtw89_mac_port_cfg_bss_color(rtwdev, rtwvif);
+ 	rtw89_mac_port_cfg_mbssid(rtwdev, rtwvif);
+-	rtw89_mac_port_cfg_func_en(rtwdev, rtwvif);
++	rtw89_mac_port_cfg_func_en(rtwdev, rtwvif, true);
+ 	rtw89_mac_port_tsf_resync_all(rtwdev);
+ 	fsleep(BCN_ERLY_SET_DLY);
+ 	rtw89_mac_port_cfg_bcn_early(rtwdev, rtwvif);
+@@ -4085,6 +4090,11 @@ void rtw89_mac_set_he_obss_narrow_bw_ru(
+ 		rtw89_write32_set(rtwdev, reg, B_AX_RXTRIG_RU26_DIS);
+ }
+ 
++void rtw89_mac_stop_ap(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif)
++{
++	rtw89_mac_port_cfg_func_en(rtwdev, rtwvif, false);
++}
++
+ int rtw89_mac_add_vif(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif)
+ {
+ 	int ret;
+--- a/drivers/net/wireless/realtek/rtw89/mac.h
++++ b/drivers/net/wireless/realtek/rtw89/mac.h
+@@ -908,6 +908,7 @@ int rtw89_mac_add_vif(struct rtw89_dev *
+ int rtw89_mac_port_update(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif);
+ void rtw89_mac_set_he_obss_narrow_bw_ru(struct rtw89_dev *rtwdev,
+ 					struct ieee80211_vif *vif);
++void rtw89_mac_stop_ap(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif);
+ int rtw89_mac_remove_vif(struct rtw89_dev *rtwdev, struct rtw89_vif *vif);
+ void rtw89_mac_disable_cpu(struct rtw89_dev *rtwdev);
+ int rtw89_mac_enable_cpu(struct rtw89_dev *rtwdev, u8 boot_reason, bool dlfw);
+--- a/drivers/net/wireless/realtek/rtw89/mac80211.c
++++ b/drivers/net/wireless/realtek/rtw89/mac80211.c
+@@ -454,6 +454,7 @@ void rtw89_ops_stop_ap(struct ieee80211_
+ 	struct rtw89_vif *rtwvif = (struct rtw89_vif *)vif->drv_priv;
+ 
+ 	mutex_lock(&rtwdev->mutex);
++	rtw89_mac_stop_ap(rtwdev, rtwvif);
+ 	rtw89_fw_h2c_assoc_cmac_tbl(rtwdev, vif, NULL);
+ 	rtw89_fw_h2c_join_info(rtwdev, rtwvif, NULL, true);
+ 	mutex_unlock(&rtwdev->mutex);

@@ -1,0 +1,85 @@
+From 24d72944d79e6795ba4330c114de0387386bf3aa Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Thu, 19 Jan 2023 14:43:41 +0800
+Subject: [PATCH 134/149] wifi: rtw89: fix parsing offset for MCC C2H
+
+A 8-byte offset is missed during parsing C2Hs (chip to host packets)
+of MCC (multi-channel concurrent) series.
+So, we fix it.
+
+Fixes: ef9dff4cb491 ("wifi: rtw89: mac: process MCC related C2H")
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230119064342.65391-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.h | 34 ++++++++++++-------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -3219,16 +3219,16 @@ static inline struct rtw89_fw_c2h_attr *
+ 	le32_get_bits(*((const __le32 *)(c2h) + 5), GENMASK(25, 24))
+ 
+ #define RTW89_GET_MAC_C2H_MCC_RCV_ACK_GROUP(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(1, 0))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(1, 0))
+ #define RTW89_GET_MAC_C2H_MCC_RCV_ACK_H2C_FUNC(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(15, 8))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(15, 8))
+ 
+ #define RTW89_GET_MAC_C2H_MCC_REQ_ACK_GROUP(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(1, 0))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(1, 0))
+ #define RTW89_GET_MAC_C2H_MCC_REQ_ACK_H2C_RETURN(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(7, 2))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(7, 2))
+ #define RTW89_GET_MAC_C2H_MCC_REQ_ACK_H2C_FUNC(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(15, 8))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(15, 8))
+ 
+ struct rtw89_mac_mcc_tsf_rpt {
+ 	u32 macid_x;
+@@ -3242,30 +3242,30 @@ struct rtw89_mac_mcc_tsf_rpt {
+ static_assert(sizeof(struct rtw89_mac_mcc_tsf_rpt) <= RTW89_COMPLETION_BUF_SIZE);
+ 
+ #define RTW89_GET_MAC_C2H_MCC_TSF_RPT_MACID_X(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(7, 0))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(7, 0))
+ #define RTW89_GET_MAC_C2H_MCC_TSF_RPT_MACID_Y(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(15, 8))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(15, 8))
+ #define RTW89_GET_MAC_C2H_MCC_TSF_RPT_GROUP(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(17, 16))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(17, 16))
+ #define RTW89_GET_MAC_C2H_MCC_TSF_RPT_TSF_LOW_X(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h) + 1), GENMASK(31, 0))
++	le32_get_bits(*((const __le32 *)(c2h) + 3), GENMASK(31, 0))
+ #define RTW89_GET_MAC_C2H_MCC_TSF_RPT_TSF_HIGH_X(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(31, 0))
++	le32_get_bits(*((const __le32 *)(c2h) + 4), GENMASK(31, 0))
+ #define RTW89_GET_MAC_C2H_MCC_TSF_RPT_TSF_LOW_Y(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h) + 3), GENMASK(31, 0))
++	le32_get_bits(*((const __le32 *)(c2h) + 5), GENMASK(31, 0))
+ #define RTW89_GET_MAC_C2H_MCC_TSF_RPT_TSF_HIGH_Y(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h) + 4), GENMASK(31, 0))
++	le32_get_bits(*((const __le32 *)(c2h) + 6), GENMASK(31, 0))
+ 
+ #define RTW89_GET_MAC_C2H_MCC_STATUS_RPT_STATUS(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(5, 0))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(5, 0))
+ #define RTW89_GET_MAC_C2H_MCC_STATUS_RPT_GROUP(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(7, 6))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(7, 6))
+ #define RTW89_GET_MAC_C2H_MCC_STATUS_RPT_MACID(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h)), GENMASK(15, 8))
++	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(15, 8))
+ #define RTW89_GET_MAC_C2H_MCC_STATUS_RPT_TSF_LOW(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h) + 1), GENMASK(31, 0))
++	le32_get_bits(*((const __le32 *)(c2h) + 3), GENMASK(31, 0))
+ #define RTW89_GET_MAC_C2H_MCC_STATUS_RPT_TSF_HIGH(c2h) \
+-	le32_get_bits(*((const __le32 *)(c2h) + 2), GENMASK(31, 0))
++	le32_get_bits(*((const __le32 *)(c2h) + 4), GENMASK(31, 0))
+ 
+ #define RTW89_FW_HDR_SIZE 32
+ #define RTW89_FW_SECTION_HDR_SIZE 16

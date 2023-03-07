@@ -1,0 +1,98 @@
+From a48f4fd05d5ea20c55afb212240972c1bd2c6ad3 Mon Sep 17 00:00:00 2001
+From: Eric Huang <echuang@realtek.com>
+Date: Wed, 14 Dec 2022 17:18:03 +0800
+Subject: [PATCH 095/149] wifi: rtw89: 8852b: update BSS color mapping register
+
+BSS color mapping register is different per IC, therefore, move this
+register to chip_info and update the setting function. Without this patch,
+wrong BSS color causes behavior abnormal, especially DL-OFDMA.
+
+Signed-off-by: Eric Huang <echuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221214091803.41293-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h     | 1 +
+ drivers/net/wireless/realtek/rtw89/phy.c      | 9 +++++----
+ drivers/net/wireless/realtek/rtw89/reg.h      | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 1 +
+ 6 files changed, 10 insertions(+), 4 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -2811,6 +2811,7 @@ struct rtw89_chip_info {
+ 	u8 dcfo_comp_sft;
+ 	const struct rtw89_imr_info *imr_info;
+ 	const struct rtw89_rrsr_cfgs *rrsr_cfgs;
++	u32 bss_clr_map_reg;
+ 	u32 dma_ch_mask;
+ 	const struct wiphy_wowlan_support *wowlan_stub;
+ };
+--- a/drivers/net/wireless/realtek/rtw89/phy.c
++++ b/drivers/net/wireless/realtek/rtw89/phy.c
+@@ -4117,6 +4117,7 @@ void rtw89_phy_dm_init(struct rtw89_dev
+ 
+ void rtw89_phy_set_bss_color(struct rtw89_dev *rtwdev, struct ieee80211_vif *vif)
+ {
++	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	enum rtw89_phy_idx phy_idx = RTW89_PHY_0;
+ 	u8 bss_color;
+ 
+@@ -4125,11 +4126,11 @@ void rtw89_phy_set_bss_color(struct rtw8
+ 
+ 	bss_color = vif->bss_conf.he_bss_color.color;
+ 
+-	rtw89_phy_write32_idx(rtwdev, R_BSS_CLR_MAP, B_BSS_CLR_MAP_VLD0, 0x1,
++	rtw89_phy_write32_idx(rtwdev, chip->bss_clr_map_reg, B_BSS_CLR_MAP_VLD0, 0x1,
+ 			      phy_idx);
+-	rtw89_phy_write32_idx(rtwdev, R_BSS_CLR_MAP, B_BSS_CLR_MAP_TGT, bss_color,
+-			      phy_idx);
+-	rtw89_phy_write32_idx(rtwdev, R_BSS_CLR_MAP, B_BSS_CLR_MAP_STAID,
++	rtw89_phy_write32_idx(rtwdev, chip->bss_clr_map_reg, B_BSS_CLR_MAP_TGT,
++			      bss_color, phy_idx);
++	rtw89_phy_write32_idx(rtwdev, chip->bss_clr_map_reg, B_BSS_CLR_MAP_STAID,
+ 			      vif->cfg.aid, phy_idx);
+ }
+ 
+--- a/drivers/net/wireless/realtek/rtw89/reg.h
++++ b/drivers/net/wireless/realtek/rtw89/reg.h
+@@ -4108,6 +4108,7 @@
+ #define R_SEG0CSI_EN 0x42C4
+ #define B_SEG0CSI_EN BIT(23)
+ #define R_BSS_CLR_MAP 0x43ac
++#define R_BSS_CLR_MAP_V1 0x43B0
+ #define B_BSS_CLR_MAP_VLD0 BIT(28)
+ #define B_BSS_CLR_MAP_TGT GENMASK(27, 22)
+ #define B_BSS_CLR_MAP_STAID GENMASK(21, 11)
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -2135,6 +2135,7 @@ const struct rtw89_chip_info rtw8852a_ch
+ 	.dcfo_comp_sft		= 3,
+ 	.imr_info		= &rtw8852a_imr_info,
+ 	.rrsr_cfgs		= &rtw8852a_rrsr_cfgs,
++	.bss_clr_map_reg	= R_BSS_CLR_MAP,
+ 	.dma_ch_mask		= 0,
+ #ifdef CONFIG_PM
+ 	.wowlan_stub		= &rtw_wowlan_stub_8852a,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2512,6 +2512,7 @@ const struct rtw89_chip_info rtw8852b_ch
+ 	.dcfo_comp_sft		= 3,
+ 	.imr_info		= &rtw8852b_imr_info,
+ 	.rrsr_cfgs		= &rtw8852b_rrsr_cfgs,
++	.bss_clr_map_reg	= R_BSS_CLR_MAP_V1,
+ 	.dma_ch_mask		= BIT(RTW89_DMA_ACH4) | BIT(RTW89_DMA_ACH5) |
+ 				  BIT(RTW89_DMA_ACH6) | BIT(RTW89_DMA_ACH7) |
+ 				  BIT(RTW89_DMA_B1MG) | BIT(RTW89_DMA_B1HI),
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2945,6 +2945,7 @@ const struct rtw89_chip_info rtw8852c_ch
+ 	.dcfo_comp_sft		= 5,
+ 	.imr_info		= &rtw8852c_imr_info,
+ 	.rrsr_cfgs		= &rtw8852c_rrsr_cfgs,
++	.bss_clr_map_reg	= R_BSS_CLR_MAP,
+ 	.dma_ch_mask		= 0,
+ #ifdef CONFIG_PM
+ 	.wowlan_stub		= &rtw_wowlan_stub_8852c,

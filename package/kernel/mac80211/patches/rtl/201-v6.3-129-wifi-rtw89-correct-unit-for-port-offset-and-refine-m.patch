@@ -1,0 +1,46 @@
+From 1120e6a6c5cd1144694209d6aa6a225af064950a Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Thu, 19 Jan 2023 14:24:51 +0800
+Subject: [PATCH 129/149] wifi: rtw89: correct unit for port offset and refine
+ macro
+
+Strictly speaking, the unit of the offset should be TU instead of ms.
+So, correct it and the macro for calculation. Then, to make the macro
+generic, the factor n is moved outside.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230119062453.58341-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/mac.c | 4 +++-
+ drivers/net/wireless/realtek/rtw89/mac.h | 2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -3930,10 +3930,12 @@ static void rtw89_mac_port_tsf_sync(stru
+ 
+ 	/* adjust offset randomly to avoid beacon conflict */
+ 	offset = offset - offset / 4 + get_random_u32() % (offset / 2);
+-	val = RTW89_PORT_OFFSET_MS_TO_32US((*n_offset)++, offset);
++	val = (*n_offset) * RTW89_PORT_OFFSET_TU_TO_32US(offset);
+ 	reg = rtw89_mac_reg_by_idx(R_AX_PORT0_TSF_SYNC + rtwvif->port * 4,
+ 				   rtwvif->mac_idx);
+ 
++	(*n_offset)++;
++
+ 	rtw89_write32_mask(rtwdev, reg, B_AX_SYNC_PORT_SRC, rtwvif_src->port);
+ 	rtw89_write32_mask(rtwdev, reg, B_AX_SYNC_PORT_OFFSET_VAL, val);
+ 	rtw89_write32_set(rtwdev, reg, B_AX_SYNC_NOW);
+--- a/drivers/net/wireless/realtek/rtw89/mac.h
++++ b/drivers/net/wireless/realtek/rtw89/mac.h
+@@ -168,7 +168,7 @@ enum rtw89_mac_ax_l0_to_l1_event {
+ 	MAC_AX_L0_TO_L1_EVENT_MAX = 15,
+ };
+ 
+-#define RTW89_PORT_OFFSET_MS_TO_32US(n, shift_ms) ((n) * (shift_ms) * 1000 / 32)
++#define RTW89_PORT_OFFSET_TU_TO_32US(shift_tu) ((shift_tu) * 1024 / 32)
+ 
+ enum rtw89_mac_dbg_port_sel {
+ 	/* CMAC 0 related */

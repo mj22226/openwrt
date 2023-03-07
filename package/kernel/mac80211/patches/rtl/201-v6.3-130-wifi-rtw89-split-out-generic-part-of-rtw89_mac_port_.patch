@@ -1,0 +1,95 @@
+From 42db7edd5c0523b43a004779caf36e1ebac80b40 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Thu, 19 Jan 2023 14:24:52 +0800
+Subject: [PATCH 130/149] wifi: rtw89: split out generic part of
+ rtw89_mac_port_tsf_sync()
+
+Originally, rtw89_mac_port_tsf_sync() contains randomization logic
+internally. However, not all situation, we need the randomization.
+So, split out the generic part from it. And, make the full logic of
+original one contained in rtw89_mac_port_tsf_sync_rand(). It will
+still be used by its original caller as before. Then, the generic
+one will be used in MCC (multi-channel concurrency) management flow.
+MCC will implement its logic to decide the offset for TSF sync.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230119062453.58341-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/mac.c | 33 +++++++++++++++---------
+ drivers/net/wireless/realtek/rtw89/mac.h |  4 +++
+ 2 files changed, 25 insertions(+), 12 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -3918,27 +3918,36 @@ static void rtw89_mac_port_cfg_tbtt_shif
+ 				B_AX_TBTT_SHIFT_OFST_MASK, val);
+ }
+ 
+-static void rtw89_mac_port_tsf_sync(struct rtw89_dev *rtwdev,
+-				    struct rtw89_vif *rtwvif,
+-				    struct rtw89_vif *rtwvif_src, u8 offset,
+-				    int *n_offset)
++void rtw89_mac_port_tsf_sync(struct rtw89_dev *rtwdev,
++			     struct rtw89_vif *rtwvif,
++			     struct rtw89_vif *rtwvif_src,
++			     u16 offset_tu)
+ {
+ 	u32 val, reg;
+ 
++	val = RTW89_PORT_OFFSET_TU_TO_32US(offset_tu);
++	reg = rtw89_mac_reg_by_idx(R_AX_PORT0_TSF_SYNC + rtwvif->port * 4,
++				   rtwvif->mac_idx);
++
++	rtw89_write32_mask(rtwdev, reg, B_AX_SYNC_PORT_SRC, rtwvif_src->port);
++	rtw89_write32_mask(rtwdev, reg, B_AX_SYNC_PORT_OFFSET_VAL, val);
++	rtw89_write32_set(rtwdev, reg, B_AX_SYNC_NOW);
++}
++
++static void rtw89_mac_port_tsf_sync_rand(struct rtw89_dev *rtwdev,
++					 struct rtw89_vif *rtwvif,
++					 struct rtw89_vif *rtwvif_src,
++					 u8 offset, int *n_offset)
++{
+ 	if (rtwvif->net_type != RTW89_NET_TYPE_AP_MODE || rtwvif == rtwvif_src)
+ 		return;
+ 
+ 	/* adjust offset randomly to avoid beacon conflict */
+ 	offset = offset - offset / 4 + get_random_u32() % (offset / 2);
+-	val = (*n_offset) * RTW89_PORT_OFFSET_TU_TO_32US(offset);
+-	reg = rtw89_mac_reg_by_idx(R_AX_PORT0_TSF_SYNC + rtwvif->port * 4,
+-				   rtwvif->mac_idx);
++	rtw89_mac_port_tsf_sync(rtwdev, rtwvif, rtwvif_src,
++				(*n_offset) * offset);
+ 
+ 	(*n_offset)++;
+-
+-	rtw89_write32_mask(rtwdev, reg, B_AX_SYNC_PORT_SRC, rtwvif_src->port);
+-	rtw89_write32_mask(rtwdev, reg, B_AX_SYNC_PORT_OFFSET_VAL, val);
+-	rtw89_write32_set(rtwdev, reg, B_AX_SYNC_NOW);
+ }
+ 
+ static void rtw89_mac_port_tsf_resync_all(struct rtw89_dev *rtwdev)
+@@ -3960,7 +3969,7 @@ static void rtw89_mac_port_tsf_resync_al
+ 	offset /= (vif_aps + 1);
+ 
+ 	rtw89_for_each_rtwvif(rtwdev, tmp)
+-		rtw89_mac_port_tsf_sync(rtwdev, tmp, src, offset, &n_offset);
++		rtw89_mac_port_tsf_sync_rand(rtwdev, tmp, src, offset, &n_offset);
+ }
+ 
+ int rtw89_mac_vif_init(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif)
+--- a/drivers/net/wireless/realtek/rtw89/mac.h
++++ b/drivers/net/wireless/realtek/rtw89/mac.h
+@@ -906,6 +906,10 @@ int rtw89_mac_write_lte(struct rtw89_dev
+ int rtw89_mac_read_lte(struct rtw89_dev *rtwdev, const u32 offset, u32 *val);
+ int rtw89_mac_add_vif(struct rtw89_dev *rtwdev, struct rtw89_vif *vif);
+ int rtw89_mac_port_update(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif);
++void rtw89_mac_port_tsf_sync(struct rtw89_dev *rtwdev,
++			     struct rtw89_vif *rtwvif,
++			     struct rtw89_vif *rtwvif_src,
++			     u16 offset_tu);
+ void rtw89_mac_set_he_obss_narrow_bw_ru(struct rtw89_dev *rtwdev,
+ 					struct ieee80211_vif *vif);
+ void rtw89_mac_stop_ap(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif);

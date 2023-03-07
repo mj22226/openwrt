@@ -1,0 +1,34 @@
+From 891b6a3f9407965436136319ad81f03bbf97310d Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Tue, 3 Jan 2023 22:02:37 +0800
+Subject: [PATCH 104/149] wifi: rtw89: coex: only read Bluetooth counter of
+ report version 1 for RTL8852A
+
+Only when firmware control report version is 1, need to get the counter by
+reading the register. The other version will monitor the counter at
+firmware. And upstream branch only RTL8852A has this old version.
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230103140238.15601-7-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -1878,9 +1878,13 @@ static
+ void rtw8852a_btc_update_bt_cnt(struct rtw89_dev *rtwdev)
+ {
+ 	struct rtw89_btc *btc = &rtwdev->btc;
++	const struct rtw89_btc_ver *ver = btc->ver;
+ 	struct rtw89_btc_cx *cx = &btc->cx;
+ 	u32 val;
+ 
++	if (ver->fcxbtcrpt != 1)
++		return;
++
+ 	val = rtw89_read32(rtwdev, R_AX_BT_STAST_HIGH);
+ 	cx->cnt_bt[BTC_BCNT_HIPRI_TX] = FIELD_GET(B_AX_STATIS_BT_HI_TX_MASK, val);
+ 	cx->cnt_bt[BTC_BCNT_HIPRI_RX] = FIELD_GET(B_AX_STATIS_BT_HI_RX_MASK, val);

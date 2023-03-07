@@ -1,0 +1,50 @@
+From 3b66519b023b9de3239576b938bbdf43f95bc862 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 14 Oct 2022 14:02:36 +0800
+Subject: [PATCH 042/149] wifi: rtw89: phy: add dummy C2H handler to avoid
+ warning message
+
+The C2H class 2 function 3 is to report retry count of low rate, but driver
+doesn't implement yet, so add a dummy case to avoid message:
+
+  rtw89_8852be 0000:03:00.0: c2h class 2 not support
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221014060237.29050-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/phy.c | 4 ++++
+ drivers/net/wireless/realtek/rtw89/phy.h | 9 +++++++++
+ 2 files changed, 13 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/phy.c
++++ b/drivers/net/wireless/realtek/rtw89/phy.c
+@@ -2276,6 +2276,10 @@ void rtw89_phy_c2h_handle(struct rtw89_d
+ 		if (func < RTW89_PHY_C2H_FUNC_RA_MAX)
+ 			handler = rtw89_phy_c2h_ra_handler[func];
+ 		break;
++	case RTW89_PHY_C2H_CLASS_DM:
++		if (func == RTW89_PHY_C2H_DM_FUNC_LOWRT_RTY)
++			return;
++		fallthrough;
+ 	default:
+ 		rtw89_info(rtwdev, "c2h class %d not support\n", class);
+ 		return;
+--- a/drivers/net/wireless/realtek/rtw89/phy.h
++++ b/drivers/net/wireless/realtek/rtw89/phy.h
+@@ -114,6 +114,15 @@ enum rtw89_phy_c2h_ra_func {
+ 	RTW89_PHY_C2H_FUNC_RA_MAX,
+ };
+ 
++enum rtw89_phy_c2h_dm_func {
++	RTW89_PHY_C2H_DM_FUNC_FW_TEST,
++	RTW89_PHY_C2H_DM_FUNC_FW_TRIG_TX_RPT,
++	RTW89_PHY_C2H_DM_FUNC_SIGB,
++	RTW89_PHY_C2H_DM_FUNC_LOWRT_RTY,
++	RTW89_PHY_C2H_DM_FUNC_MCC_DIG,
++	RTW89_PHY_C2H_DM_FUNC_NUM,
++};
++
+ enum rtw89_phy_c2h_class {
+ 	RTW89_PHY_C2H_CLASS_RUA,
+ 	RTW89_PHY_C2H_CLASS_RA,

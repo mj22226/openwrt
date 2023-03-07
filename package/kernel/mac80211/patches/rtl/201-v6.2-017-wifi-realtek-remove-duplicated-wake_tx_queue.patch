@@ -1,0 +1,25 @@
+From 53d0ce0c56d9330f137936b8850d4a5f2f70907d Mon Sep 17 00:00:00 2001
+From: Johannes Berg <johannes.berg@intel.com>
+Date: Mon, 10 Oct 2022 19:17:46 +0200
+Subject: [PATCH 017/149] wifi: realtek: remove duplicated wake_tx_queue
+
+By accident, the previous patch duplicated the initialization
+of the wake_tx_queue callback. Fix that by removing the new
+initializations.
+
+Fixes: a790cc3a4fad ("wifi: mac80211: add wake_tx_queue callback to drivers")
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+---
+ drivers/net/wireless/realtek/rtw89/mac80211.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac80211.c
++++ b/drivers/net/wireless/realtek/rtw89/mac80211.c
+@@ -918,7 +918,6 @@ static int rtw89_ops_set_tid_config(stru
+ 
+ const struct ieee80211_ops rtw89_ops = {
+ 	.tx			= rtw89_ops_tx,
+-	.wake_tx_queue		= ieee80211_handle_wake_tx_queue,
+ 	.wake_tx_queue		= rtw89_ops_wake_tx_queue,
+ 	.start			= rtw89_ops_start,
+ 	.stop			= rtw89_ops_stop,

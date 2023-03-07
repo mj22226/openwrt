@@ -1,0 +1,138 @@
+From 7410bd727584ea9b3e1050c56fdf60d883398956 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Mon, 23 Jan 2023 14:54:01 +0800
+Subject: [PATCH 142/149] wifi: rtw89: 8852b: try to use NORMAL_CE type
+ firmware first
+
+New firmware type NORMAL_CE is introduced to support P2P-PS and hardware
+scan, but no LPS-PG mode. After this patch, old firmware with NORMAL type
+can still work well.
+
+The use of this new type is the same as before, so we add new type to
+avoid taking wrong firmware. Then, driver log can also give clear
+information about this change:
+
+  rtw89_8852be 0000:03:00.0: Firmware version 0.29.26.0, cmd version 0, type 5
+  rtw89_8852be 0000:03:00.0: Firmware version 0.29.26.0, cmd version 0, type 3
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230123065401.14174-7-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h     |  2 ++
+ drivers/net/wireless/realtek/rtw89/fw.c       | 22 ++++++++++++++-----
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c |  1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c |  1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c |  1 +
+ 5 files changed, 21 insertions(+), 6 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -2848,6 +2848,7 @@ struct rtw89_chip_info {
+ 	enum rtw89_core_chip_id chip_id;
+ 	const struct rtw89_chip_ops *ops;
+ 	const char *fw_name;
++	bool try_ce_fw;
+ 	u32 fifo_size;
+ 	u32 dle_scc_rsvd_size;
+ 	u16 max_amsdu_limit;
+@@ -3014,6 +3015,7 @@ static inline void rtw89_init_wait(struc
+ enum rtw89_fw_type {
+ 	RTW89_FW_NORMAL = 1,
+ 	RTW89_FW_WOWLAN = 3,
++	RTW89_FW_NORMAL_CE = 5,
+ };
+ 
+ enum rtw89_fw_feature {
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -152,7 +152,7 @@ static int rtw89_fw_hdr_parser(struct rt
+ 
+ static
+ int rtw89_mfw_recognize(struct rtw89_dev *rtwdev, enum rtw89_fw_type type,
+-			struct rtw89_fw_suit *fw_suit)
++			struct rtw89_fw_suit *fw_suit, bool nowarn)
+ {
+ 	struct rtw89_fw_info *fw_info = &rtwdev->fw;
+ 	const u8 *mfw = fw_info->firmware->data;
+@@ -183,7 +183,8 @@ int rtw89_mfw_recognize(struct rtw89_dev
+ 		return 0;
+ 	}
+ 
+-	rtw89_err(rtwdev, "no suitable firmware found\n");
++	if (!nowarn)
++		rtw89_err(rtwdev, "no suitable firmware found\n");
+ 	return -ENOENT;
+ }
+ 
+@@ -211,12 +212,13 @@ static void rtw89_fw_update_ver(struct r
+ }
+ 
+ static
+-int __rtw89_fw_recognize(struct rtw89_dev *rtwdev, enum rtw89_fw_type type)
++int __rtw89_fw_recognize(struct rtw89_dev *rtwdev, enum rtw89_fw_type type,
++			 bool nowarn)
+ {
+ 	struct rtw89_fw_suit *fw_suit = rtw89_fw_suit_get(rtwdev, type);
+ 	int ret;
+ 
+-	ret = rtw89_mfw_recognize(rtwdev, type, fw_suit);
++	ret = rtw89_mfw_recognize(rtwdev, type, fw_suit, nowarn);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -343,14 +345,22 @@ out:
+ 
+ int rtw89_fw_recognize(struct rtw89_dev *rtwdev)
+ {
++	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	int ret;
+ 
+-	ret = __rtw89_fw_recognize(rtwdev, RTW89_FW_NORMAL);
++	if (chip->try_ce_fw) {
++		ret = __rtw89_fw_recognize(rtwdev, RTW89_FW_NORMAL_CE, true);
++		if (!ret)
++			goto normal_done;
++	}
++
++	ret = __rtw89_fw_recognize(rtwdev, RTW89_FW_NORMAL, false);
+ 	if (ret)
+ 		return ret;
+ 
++normal_done:
+ 	/* It still works if wowlan firmware isn't existing. */
+-	__rtw89_fw_recognize(rtwdev, RTW89_FW_WOWLAN);
++	__rtw89_fw_recognize(rtwdev, RTW89_FW_WOWLAN, false);
+ 
+ 	rtw89_fw_recognize_features(rtwdev);
+ 
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -2055,6 +2055,7 @@ const struct rtw89_chip_info rtw8852a_ch
+ 	.chip_id		= RTL8852A,
+ 	.ops			= &rtw8852a_chip_ops,
+ 	.fw_name		= "rtw89/rtw8852a_fw.bin",
++	.try_ce_fw		= false,
+ 	.fifo_size		= 458752,
+ 	.dle_scc_rsvd_size	= 0,
+ 	.max_amsdu_limit	= 3500,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2430,6 +2430,7 @@ const struct rtw89_chip_info rtw8852b_ch
+ 	.chip_id		= RTL8852B,
+ 	.ops			= &rtw8852b_chip_ops,
+ 	.fw_name		= "rtw89/rtw8852b_fw.bin",
++	.try_ce_fw		= true,
+ 	.fifo_size		= 196608,
+ 	.dle_scc_rsvd_size	= 98304,
+ 	.max_amsdu_limit	= 3500,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2857,6 +2857,7 @@ const struct rtw89_chip_info rtw8852c_ch
+ 	.chip_id		= RTL8852C,
+ 	.ops			= &rtw8852c_chip_ops,
+ 	.fw_name		= "rtw89/rtw8852c_fw.bin",
++	.try_ce_fw		= false,
+ 	.fifo_size		= 458752,
+ 	.dle_scc_rsvd_size	= 0,
+ 	.max_amsdu_limit	= 8000,

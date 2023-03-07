@@ -1,0 +1,29 @@
+From a3edb20146f000dfd5aba1f17e2dc0f363ff9446 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Fri, 13 Jan 2023 17:06:32 +0800
+Subject: [PATCH 120/149] wifi: rtw89: 8852b: fill the missing configuration
+ about queue empty checking
+
+The configurations, wde_qempty_acq_num and wde_qempty_mgq_sel, are used
+when MAC checks if TX queues are empty. Fill the corresponding setting
+for 8852B.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230113090632.60957-5-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2437,6 +2437,8 @@ const struct rtw89_chip_info rtw8852b_ch
+ 	.rsvd_ple_ofst		= 0x2f800,
+ 	.hfc_param_ini		= rtw8852b_hfc_param_ini_pcie,
+ 	.dle_mem		= rtw8852b_dle_mem_pcie,
++	.wde_qempty_acq_num	= 4,
++	.wde_qempty_mgq_sel	= 4,
+ 	.rf_base_addr		= {0xe000, 0xf000},
+ 	.pwr_on_seq		= NULL,
+ 	.pwr_off_seq		= NULL,

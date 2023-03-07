@@ -1,0 +1,297 @@
+From 5c12bb66b79d08b0f7aae99fc2677cab1141d4d2 Mon Sep 17 00:00:00 2001
+From: Chin-Yen Lee <timlee@realtek.com>
+Date: Mon, 23 Jan 2023 14:53:57 +0800
+Subject: [PATCH 138/149] wifi: rtw89: refine packet offload flow
+
+For upcoming firmware, driver needs to do packet offload to firmware to
+ensure LPS protocol work properly, so we update current connection and
+disconnect flow to maintain packet offload flow, and integrate with
+current WoWLAN flow which also needs packet offload.
+
+Signed-off-by: Chin-Yen Lee <timlee@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230123065401.14174-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c     | 17 +++---
+ drivers/net/wireless/realtek/rtw89/core.h     |  2 +-
+ drivers/net/wireless/realtek/rtw89/fw.c       | 54 +++++++++++++++----
+ drivers/net/wireless/realtek/rtw89/fw.h       |  6 ++-
+ drivers/net/wireless/realtek/rtw89/mac80211.c |  1 +
+ drivers/net/wireless/realtek/rtw89/ser.c      |  1 +
+ drivers/net/wireless/realtek/rtw89/wow.c      | 26 ++++-----
+ 7 files changed, 71 insertions(+), 36 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -2495,8 +2495,10 @@ int rtw89_core_sta_disconnect(struct rtw
+ 	if (sta->tdls)
+ 		rtw89_cam_deinit_bssid_cam(rtwdev, &rtwsta->bssid_cam);
+ 
+-	if (vif->type == NL80211_IFTYPE_STATION && !sta->tdls)
++	if (vif->type == NL80211_IFTYPE_STATION && !sta->tdls) {
+ 		rtw89_vif_type_mapping(vif, false);
++		rtw89_fw_release_general_pkt_list_vif(rtwdev, rtwvif, true);
++	}
+ 
+ 	ret = rtw89_fw_h2c_assoc_cmac_tbl(rtwdev, vif, sta);
+ 	if (ret) {
+@@ -2584,12 +2586,6 @@ int rtw89_core_sta_assoc(struct rtw89_de
+ 		return ret;
+ 	}
+ 
+-	ret = rtw89_fw_h2c_general_pkt(rtwdev, rtwsta->mac_id);
+-	if (ret) {
+-		rtw89_warn(rtwdev, "failed to send h2c general packet\n");
+-		return ret;
+-	}
+-
+ 	rtwdev->total_sta_assoc++;
+ 	if (sta->tdls)
+ 		rtwvif->tdls_peer++;
+@@ -2608,6 +2604,12 @@ int rtw89_core_sta_assoc(struct rtw89_de
+ 					 BTC_ROLE_MSTS_STA_CONN_END);
+ 		rtw89_core_get_no_ul_ofdma_htc(rtwdev, &rtwsta->htc_template);
+ 		rtw89_phy_ul_tb_assoc(rtwdev, rtwvif);
++
++		ret = rtw89_fw_h2c_general_pkt(rtwdev, rtwvif, rtwsta->mac_id);
++		if (ret) {
++			rtw89_warn(rtwdev, "failed to send h2c general packet\n");
++			return ret;
++		}
+ 	}
+ 
+ 	return ret;
+@@ -3132,7 +3134,6 @@ int rtw89_core_init(struct rtw89_dev *rt
+ 			continue;
+ 		INIT_LIST_HEAD(&rtwdev->scan_info.pkt_list[band]);
+ 	}
+-	INIT_LIST_HEAD(&rtwdev->wow.pkt_list);
+ 	INIT_WORK(&rtwdev->ba_work, rtw89_core_ba_work);
+ 	INIT_WORK(&rtwdev->txq_work, rtw89_core_txq_work);
+ 	INIT_DELAYED_WORK(&rtwdev->txq_reinvoke_work, rtw89_core_txq_reinvoke_work);
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -2461,6 +2461,7 @@ struct rtw89_vif {
+ 	struct rtw89_phy_rate_pattern rate_pattern;
+ 	struct cfg80211_scan_request *scan_req;
+ 	struct ieee80211_scan_ies *scan_ies;
++	struct list_head general_pkt_list;
+ };
+ 
+ enum rtw89_lv1_rcvy_step {
+@@ -3724,7 +3725,6 @@ struct rtw89_wow_param {
+ 	DECLARE_BITMAP(flags, RTW89_WOW_FLAG_NUM);
+ 	struct rtw89_wow_cam_info patterns[RTW89_MAX_PATTERN_NUM];
+ 	u8 pattern_cnt;
+-	struct list_head pkt_list;
+ };
+ 
+ struct rtw89_mcc_info {
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -10,6 +10,7 @@
+ #include "mac.h"
+ #include "phy.h"
+ #include "reg.h"
++#include "util.h"
+ 
+ static void rtw89_fw_c2h_cmd_handle(struct rtw89_dev *rtwdev,
+ 				    struct sk_buff *skb);
+@@ -913,13 +914,12 @@ fail:
+ 	return ret;
+ }
+ 
+-static int rtw89_fw_h2c_add_wow_fw_ofld(struct rtw89_dev *rtwdev,
++static int rtw89_fw_h2c_add_general_pkt(struct rtw89_dev *rtwdev,
+ 					struct rtw89_vif *rtwvif,
+ 					enum rtw89_fw_pkt_ofld_type type,
+ 					u8 *id)
+ {
+ 	struct ieee80211_vif *vif = rtwvif_to_vif(rtwvif);
+-	struct rtw89_wow_param *rtw_wow = &rtwdev->wow;
+ 	struct rtw89_pktofld_info *info;
+ 	struct sk_buff *skb;
+ 	int ret;
+@@ -954,7 +954,7 @@ static int rtw89_fw_h2c_add_wow_fw_ofld(
+ 	if (ret)
+ 		goto err;
+ 
+-	list_add_tail(&info->list, &rtw_wow->pkt_list);
++	list_add_tail(&info->list, &rtwvif->general_pkt_list);
+ 	*id = info->id;
+ 	return 0;
+ 
+@@ -963,13 +963,48 @@ err:
+ 	return -ENOMEM;
+ }
+ 
++void rtw89_fw_release_general_pkt_list_vif(struct rtw89_dev *rtwdev,
++					   struct rtw89_vif *rtwvif, bool notify_fw)
++{
++	struct list_head *pkt_list = &rtwvif->general_pkt_list;
++	struct rtw89_pktofld_info *info, *tmp;
++
++	list_for_each_entry_safe(info, tmp, pkt_list, list) {
++		if (notify_fw)
++			rtw89_fw_h2c_del_pkt_offload(rtwdev, info->id);
++		rtw89_core_release_bit_map(rtwdev->pkt_offload,
++					   info->id);
++		list_del(&info->list);
++		kfree(info);
++	}
++}
++
++void rtw89_fw_release_general_pkt_list(struct rtw89_dev *rtwdev, bool notify_fw)
++{
++	struct rtw89_vif *rtwvif;
++
++	rtw89_for_each_rtwvif(rtwdev, rtwvif)
++		rtw89_fw_release_general_pkt_list_vif(rtwdev, rtwvif, notify_fw);
++}
++
+ #define H2C_GENERAL_PKT_LEN 6
+ #define H2C_GENERAL_PKT_ID_UND 0xff
+-int rtw89_fw_h2c_general_pkt(struct rtw89_dev *rtwdev, u8 macid)
++int rtw89_fw_h2c_general_pkt(struct rtw89_dev *rtwdev,
++			     struct rtw89_vif *rtwvif, u8 macid)
+ {
++	u8 pkt_id_ps_poll = H2C_GENERAL_PKT_ID_UND;
++	u8 pkt_id_null = H2C_GENERAL_PKT_ID_UND;
++	u8 pkt_id_qos_null = H2C_GENERAL_PKT_ID_UND;
+ 	struct sk_buff *skb;
+ 	int ret;
+ 
++	rtw89_fw_h2c_add_general_pkt(rtwdev, rtwvif,
++				     RTW89_PKT_OFLD_TYPE_PS_POLL, &pkt_id_ps_poll);
++	rtw89_fw_h2c_add_general_pkt(rtwdev, rtwvif,
++				     RTW89_PKT_OFLD_TYPE_NULL_DATA, &pkt_id_null);
++	rtw89_fw_h2c_add_general_pkt(rtwdev, rtwvif,
++				     RTW89_PKT_OFLD_TYPE_QOS_NULL, &pkt_id_qos_null);
++
+ 	skb = rtw89_fw_h2c_alloc_skb_with_hdr(rtwdev, H2C_GENERAL_PKT_LEN);
+ 	if (!skb) {
+ 		rtw89_err(rtwdev, "failed to alloc skb for fw dl\n");
+@@ -978,9 +1013,9 @@ int rtw89_fw_h2c_general_pkt(struct rtw8
+ 	skb_put(skb, H2C_GENERAL_PKT_LEN);
+ 	SET_GENERAL_PKT_MACID(skb->data, macid);
+ 	SET_GENERAL_PKT_PROBRSP_ID(skb->data, H2C_GENERAL_PKT_ID_UND);
+-	SET_GENERAL_PKT_PSPOLL_ID(skb->data, H2C_GENERAL_PKT_ID_UND);
+-	SET_GENERAL_PKT_NULL_ID(skb->data, H2C_GENERAL_PKT_ID_UND);
+-	SET_GENERAL_PKT_QOS_NULL_ID(skb->data, H2C_GENERAL_PKT_ID_UND);
++	SET_GENERAL_PKT_PSPOLL_ID(skb->data, pkt_id_ps_poll);
++	SET_GENERAL_PKT_NULL_ID(skb->data, pkt_id_null);
++	SET_GENERAL_PKT_QOS_NULL_ID(skb->data, pkt_id_qos_null);
+ 	SET_GENERAL_PKT_CTS2SELF_ID(skb->data, H2C_GENERAL_PKT_ID_UND);
+ 
+ 	rtw89_h2c_pkt_set_hdr(rtwdev, skb, FWCMD_TYPE_H2C,
+@@ -3099,8 +3134,9 @@ int rtw89_fw_h2c_keep_alive(struct rtw89
+ 	int ret;
+ 
+ 	if (enable) {
+-		ret = rtw89_fw_h2c_add_wow_fw_ofld(rtwdev, rtwvif,
+-						   RTW89_PKT_OFLD_TYPE_NULL_DATA, &pkt_id);
++		ret = rtw89_fw_h2c_add_general_pkt(rtwdev, rtwvif,
++						   RTW89_PKT_OFLD_TYPE_NULL_DATA,
++						   &pkt_id);
+ 		if (ret)
+ 			return -EPERM;
+ 	}
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -3518,7 +3518,11 @@ int rtw89_fw_h2c_raw_with_hdr(struct rtw
+ int rtw89_fw_h2c_raw(struct rtw89_dev *rtwdev, const u8 *buf, u16 len);
+ void rtw89_fw_send_all_early_h2c(struct rtw89_dev *rtwdev);
+ void rtw89_fw_free_all_early_h2c(struct rtw89_dev *rtwdev);
+-int rtw89_fw_h2c_general_pkt(struct rtw89_dev *rtwdev, u8 macid);
++int rtw89_fw_h2c_general_pkt(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif,
++			     u8 macid);
++void rtw89_fw_release_general_pkt_list_vif(struct rtw89_dev *rtwdev,
++					   struct rtw89_vif *rtwvif, bool notify_fw);
++void rtw89_fw_release_general_pkt_list(struct rtw89_dev *rtwdev, bool notify_fw);
+ int rtw89_fw_h2c_ba_cam(struct rtw89_dev *rtwdev, struct rtw89_sta *rtwsta,
+ 			bool valid, struct ieee80211_ampdu_params *params);
+ void rtw89_fw_h2c_init_ba_cam_v1(struct rtw89_dev *rtwdev);
+--- a/drivers/net/wireless/realtek/rtw89/mac80211.c
++++ b/drivers/net/wireless/realtek/rtw89/mac80211.c
+@@ -135,6 +135,7 @@ static int rtw89_ops_add_interface(struc
+ 	rtwvif->sub_entity_idx = RTW89_SUB_ENTITY_0;
+ 	rtwvif->hit_rule = 0;
+ 	ether_addr_copy(rtwvif->mac_addr, vif->addr);
++	INIT_LIST_HEAD(&rtwvif->general_pkt_list);
+ 
+ 	ret = rtw89_mac_add_vif(rtwdev, rtwvif);
+ 	if (ret) {
+--- a/drivers/net/wireless/realtek/rtw89/ser.c
++++ b/drivers/net/wireless/realtek/rtw89/ser.c
+@@ -611,6 +611,7 @@ bottom:
+ 	ser_reset_mac_binding(rtwdev);
+ 	rtw89_core_stop(rtwdev);
+ 	rtw89_entity_init(rtwdev);
++	rtw89_fw_release_general_pkt_list(rtwdev, false);
+ 	INIT_LIST_HEAD(&rtwdev->rtwvifs_list);
+ }
+ 
+--- a/drivers/net/wireless/realtek/rtw89/wow.c
++++ b/drivers/net/wireless/realtek/rtw89/wow.c
+@@ -490,21 +490,6 @@ static int rtw89_wow_check_fw_status(str
+ 	return ret;
+ }
+ 
+-static void rtw89_wow_release_pkt_list(struct rtw89_dev *rtwdev)
+-{
+-	struct rtw89_wow_param *rtw_wow = &rtwdev->wow;
+-	struct list_head *pkt_list = &rtw_wow->pkt_list;
+-	struct rtw89_pktofld_info *info, *tmp;
+-
+-	list_for_each_entry_safe(info, tmp, pkt_list, list) {
+-		rtw89_fw_h2c_del_pkt_offload(rtwdev, info->id);
+-		rtw89_core_release_bit_map(rtwdev->pkt_offload,
+-					   info->id);
+-		list_del(&info->list);
+-		kfree(info);
+-	}
+-}
+-
+ static int rtw89_wow_swap_fw(struct rtw89_dev *rtwdev, bool wow)
+ {
+ 	enum rtw89_fw_type fw_type = wow ? RTW89_FW_WOWLAN : RTW89_FW_NORMAL;
+@@ -561,6 +546,11 @@ static int rtw89_wow_swap_fw(struct rtw8
+ 	}
+ 
+ 	if (is_conn) {
++		ret = rtw89_fw_h2c_general_pkt(rtwdev, rtwvif, rtwsta->mac_id);
++		if (ret) {
++			rtw89_warn(rtwdev, "failed to send h2c general packet\n");
++			return ret;
++		}
+ 		rtw89_phy_ra_assoc(rtwdev, wow_sta);
+ 		rtw89_phy_set_bss_color(rtwdev, wow_vif);
+ 		rtw89_chip_cfg_txpwr_ul_tb_offset(rtwdev, wow_vif);
+@@ -708,8 +698,6 @@ static int rtw89_wow_fw_stop(struct rtw8
+ 		goto out;
+ 	}
+ 
+-	rtw89_wow_release_pkt_list(rtwdev);
+-
+ 	ret = rtw89_fw_h2c_disconnect_detect(rtwdev, rtwvif, false);
+ 	if (ret) {
+ 		rtw89_err(rtwdev, "wow: failed to disable disconnect detect\n");
+@@ -744,6 +732,8 @@ static int rtw89_wow_enable(struct rtw89
+ 		goto out;
+ 	}
+ 
++	rtw89_fw_release_general_pkt_list(rtwdev, true);
++
+ 	ret = rtw89_wow_swap_fw(rtwdev, true);
+ 	if (ret) {
+ 		rtw89_err(rtwdev, "wow: failed to swap to wow fw\n");
+@@ -789,6 +779,8 @@ static int rtw89_wow_disable(struct rtw8
+ 		goto out;
+ 	}
+ 
++	rtw89_fw_release_general_pkt_list(rtwdev, true);
++
+ 	ret = rtw89_wow_swap_fw(rtwdev, false);
+ 	if (ret) {
+ 		rtw89_err(rtwdev, "wow: failed to disable trx_post\n");

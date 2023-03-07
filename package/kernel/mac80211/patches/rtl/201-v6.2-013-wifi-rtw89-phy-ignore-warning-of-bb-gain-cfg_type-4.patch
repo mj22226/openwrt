@@ -1,0 +1,39 @@
+From c6a9d360874a41dc972c44c0949916da55199f85 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 30 Sep 2022 21:36:59 +0800
+Subject: [PATCH 013/149] wifi: rtw89: phy: ignore warning of bb gain cfg_type
+ 4
+
+The new BB parameters add new cfg_tpe 4 to improve performance of eFEM
+modules (rfe_type >= 50), but we are using iFEM modules for now, so this
+warning can be ignored.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20220930133659.7789-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/phy.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/phy.c
++++ b/drivers/net/wireless/realtek/rtw89/phy.c
+@@ -1036,6 +1036,7 @@ static void rtw89_phy_config_bb_gain(str
+ {
+ 	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	union rtw89_phy_bb_gain_arg arg = { .addr = reg->addr };
++	struct rtw89_efuse *efuse = &rtwdev->efuse;
+ 
+ 	if (arg.gain_band >= RTW89_BB_GAIN_BAND_NR)
+ 		return;
+@@ -1061,6 +1062,11 @@ static void rtw89_phy_config_bb_gain(str
+ 	case 3:
+ 		rtw89_phy_cfg_bb_gain_op1db(rtwdev, arg, reg->data);
+ 		break;
++	case 4:
++		/* This cfg_type is only used by rfe_type >= 50 with eFEM */
++		if (efuse->rfe_type < 50)
++			break;
++		fallthrough;
+ 	default:
+ 		rtw89_warn(rtwdev,
+ 			   "bb gain {0x%x:0x%x} with unknown cfg type: %d\n",

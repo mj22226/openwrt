@@ -1,0 +1,162 @@
+From e0097ac51e84243f0d0c065cbede1138f5e3aa9f Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Sat, 17 Dec 2022 22:17:45 +0800
+Subject: [PATCH 094/149] wifi: rtw89: coex: Change TDMA related logic to
+ version separate
+
+In order to make different version of TDMA and coming update in the future
+can all work well, use BTC format version to replace chip_id, because
+format could change for specific chip_id.
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221217141745.43291-8-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/coex.c | 47 ++++++++++++-----------
+ drivers/net/wireless/realtek/rtw89/core.h | 12 +++---
+ 2 files changed, 32 insertions(+), 27 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/coex.c
++++ b/drivers/net/wireless/realtek/rtw89/coex.c
+@@ -1045,12 +1045,14 @@ static u32 _chk_btc_report(struct rtw89_
+ 		break;
+ 	case BTC_RPT_TYPE_TDMA:
+ 		pcinfo = &pfwinfo->rpt_fbtc_tdma.cinfo;
+-		if (chip->chip_id == RTL8852A) {
+-			pfinfo = &pfwinfo->rpt_fbtc_tdma.finfo;
+-			pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_tdma.finfo);
++		if (ver->fcxtdma == 1) {
++			pfinfo = &pfwinfo->rpt_fbtc_tdma.finfo.v1;
++			pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_tdma.finfo.v1);
++		} else if (ver->fcxtdma == 3) {
++			pfinfo = &pfwinfo->rpt_fbtc_tdma.finfo.v3;
++			pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_tdma.finfo.v3);
+ 		} else {
+-			pfinfo = &pfwinfo->rpt_fbtc_tdma.finfo_v1;
+-			pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_tdma.finfo_v1);
++			goto err;
+ 		}
+ 		pcinfo->req_fver = ver->fcxtdma;
+ 		break;
+@@ -1232,16 +1234,18 @@ static u32 _chk_btc_report(struct rtw89_
+ 			    "[BTC], %s(): check %d %zu\n", __func__,
+ 			    BTC_DCNT_TDMA_NONSYNC,
+ 			    sizeof(dm->tdma_now));
+-		if (chip->chip_id == RTL8852A)
++		if (ver->fcxtdma == 1)
+ 			_chk_btc_err(rtwdev, BTC_DCNT_TDMA_NONSYNC,
+ 				     memcmp(&dm->tdma_now,
+-					    &pfwinfo->rpt_fbtc_tdma.finfo_v1,
++					    &pfwinfo->rpt_fbtc_tdma.finfo.v1,
+ 					    sizeof(dm->tdma_now)));
+-		else
++		else if (ver->fcxtdma == 3)
+ 			_chk_btc_err(rtwdev, BTC_DCNT_TDMA_NONSYNC,
+ 				     memcmp(&dm->tdma_now,
+-					    &pfwinfo->rpt_fbtc_tdma.finfo,
++					    &pfwinfo->rpt_fbtc_tdma.finfo.v3.tdma,
+ 					    sizeof(dm->tdma_now)));
++		else
++			goto err;
+ 		break;
+ 	case BTC_RPT_TYPE_SLOT:
+ 		rtw89_debug(rtwdev, RTW89_DBG_BTC,
+@@ -1375,13 +1379,12 @@ static void _parse_btc_report(struct rtw
+ 
+ static void _append_tdma(struct rtw89_dev *rtwdev)
+ {
+-	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	struct rtw89_btc *btc = &rtwdev->btc;
+ 	const struct rtw89_btc_ver *ver = btc->ver;
+ 	struct rtw89_btc_dm *dm = &btc->dm;
+ 	struct rtw89_btc_btf_tlv *tlv;
+ 	struct rtw89_btc_fbtc_tdma *v;
+-	struct rtw89_btc_fbtc_tdma_v1 *v1;
++	struct rtw89_btc_fbtc_tdma_v3 *v3;
+ 	u16 len = btc->policy_len;
+ 
+ 	if (!btc->update_policy_force &&
+@@ -1394,17 +1397,17 @@ static void _append_tdma(struct rtw89_de
+ 
+ 	tlv = (struct rtw89_btc_btf_tlv *)&btc->policy[len];
+ 	tlv->type = CXPOLICY_TDMA;
+-	if (chip->chip_id == RTL8852A) {
++	if (ver->fcxtdma == 1) {
+ 		v = (struct rtw89_btc_fbtc_tdma *)&tlv->val[0];
+ 		tlv->len = sizeof(*v);
+ 		memcpy(v, &dm->tdma, sizeof(*v));
+-		btc->policy_len += BTC_TLV_HDR_LEN  + sizeof(*v);
++		btc->policy_len += BTC_TLV_HDR_LEN + sizeof(*v);
+ 	} else {
+-		tlv->len = sizeof(*v1);
+-		v1 = (struct rtw89_btc_fbtc_tdma_v1 *)&tlv->val[0];
+-		v1->fver = ver->fcxtdma;
+-		v1->tdma = dm->tdma;
+-		btc->policy_len += BTC_TLV_HDR_LEN  + sizeof(*v1);
++		tlv->len = sizeof(*v3);
++		v3 = (struct rtw89_btc_fbtc_tdma_v3 *)&tlv->val[0];
++		v3->fver = ver->fcxtdma;
++		memcpy(&v3->tdma, &dm->tdma, sizeof(v3->tdma));
++		btc->policy_len += BTC_TLV_HDR_LEN + sizeof(*v3);
+ 	}
+ 
+ 	rtw89_debug(rtwdev, RTW89_DBG_BTC,
+@@ -6281,8 +6284,8 @@ static void _show_error(struct rtw89_dev
+ 
+ static void _show_fbtc_tdma(struct rtw89_dev *rtwdev, struct seq_file *m)
+ {
+-	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	struct rtw89_btc *btc = &rtwdev->btc;
++	const struct rtw89_btc_ver *ver = btc->ver;
+ 	struct rtw89_btc_btf_fwinfo *pfwinfo = &btc->fwinfo;
+ 	struct rtw89_btc_rpt_cmn_info *pcinfo = NULL;
+ 	struct rtw89_btc_fbtc_tdma *t = NULL;
+@@ -6294,10 +6297,10 @@ static void _show_fbtc_tdma(struct rtw89
+ 	if (!pcinfo->valid)
+ 		return;
+ 
+-	if (chip->chip_id == RTL8852A)
+-		t = &pfwinfo->rpt_fbtc_tdma.finfo;
++	if (ver->fcxtdma == 1)
++		t = &pfwinfo->rpt_fbtc_tdma.finfo.v1;
+ 	else
+-		t = &pfwinfo->rpt_fbtc_tdma.finfo_v1.tdma;
++		t = &pfwinfo->rpt_fbtc_tdma.finfo.v3.tdma;
+ 
+ 	seq_printf(m,
+ 		   " %-15s : ", "[tdma_policy]");
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -1450,13 +1450,18 @@ struct rtw89_btc_fbtc_tdma {
+ 	u8 option_ctrl;
+ } __packed;
+ 
+-struct rtw89_btc_fbtc_tdma_v1 {
++struct rtw89_btc_fbtc_tdma_v3 {
+ 	u8 fver; /* btc_ver::fcxtdma */
+ 	u8 rsvd;
+ 	__le16 rsvd1;
+ 	struct rtw89_btc_fbtc_tdma tdma;
+ } __packed;
+ 
++union rtw89_btc_fbtc_tdma_le32 {
++	struct rtw89_btc_fbtc_tdma v1;
++	struct rtw89_btc_fbtc_tdma_v3 v3;
++};
++
+ #define CXMREG_MAX 30
+ #define FCXMAX_STEP 255 /*STEP trace record cnt, Max:65535, default:255*/
+ #define BTC_CYCLE_SLOT_MAX 48 /* must be even number, non-zero */
+@@ -1946,10 +1951,7 @@ struct rtw89_btc_report_ctrl_state {
+ 
+ struct rtw89_btc_rpt_fbtc_tdma {
+ 	struct rtw89_btc_rpt_cmn_info cinfo; /* common info, by driver */
+-	union {
+-		struct rtw89_btc_fbtc_tdma finfo; /* info from fw */
+-		struct rtw89_btc_fbtc_tdma_v1 finfo_v1; /* info from fw for 52C*/
+-	};
++	union rtw89_btc_fbtc_tdma_le32 finfo;
+ };
+ 
+ struct rtw89_btc_rpt_fbtc_slots {

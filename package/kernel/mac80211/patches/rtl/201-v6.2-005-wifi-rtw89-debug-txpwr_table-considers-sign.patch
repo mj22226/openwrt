@@ -1,0 +1,53 @@
+From b902161645879ac820dfbb561667cd08be569538 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Wed, 28 Sep 2022 16:43:32 +0800
+Subject: [PATCH 005/149] wifi: rtw89: debug: txpwr_table considers sign
+
+Previously, value of each field is just shown as unsigned.
+Now, we start to show them with sign to make things more intuitive
+during debugging.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20220928084336.34981-6-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/debug.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/debug.c
++++ b/drivers/net/wireless/realtek/rtw89/debug.c
+@@ -464,7 +464,7 @@ static const struct txpwr_map __txpwr_ma
+ };
+ 
+ static u8 __print_txpwr_ent(struct seq_file *m, const struct txpwr_ent *ent,
+-			    const u8 *buf, const u8 cur)
++			    const s8 *buf, const u8 cur)
+ {
+ 	char *fmt;
+ 
+@@ -493,8 +493,9 @@ static int __print_txpwr_map(struct seq_
+ 			     const struct txpwr_map *map)
+ {
+ 	u8 fct = rtwdev->chip->txpwr_factor_mac;
+-	u8 *buf, cur, i;
+ 	u32 val, addr;
++	s8 *buf, tmp;
++	u8 cur, i;
+ 	int ret;
+ 
+ 	buf = vzalloc(map->addr_to - map->addr_from + 4);
+@@ -507,8 +508,11 @@ static int __print_txpwr_map(struct seq_
+ 			val = MASKDWORD;
+ 
+ 		cur = addr - map->addr_from;
+-		for (i = 0; i < 4; i++, val >>= 8)
+-			buf[cur + i] = FIELD_GET(MASKBYTE0, val) >> fct;
++		for (i = 0; i < 4; i++, val >>= 8) {
++			/* signed 7 bits, and reserved BIT(7) */
++			tmp = sign_extend32(val, 6);
++			buf[cur + i] = tmp >> fct;
++		}
+ 	}
+ 
+ 	for (cur = 0, i = 0; i < map->size; i++)

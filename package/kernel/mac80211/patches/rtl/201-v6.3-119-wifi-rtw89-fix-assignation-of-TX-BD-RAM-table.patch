@@ -1,0 +1,139 @@
+From 7f495de6ae7d31f098970fb45a038c9f69b1bf75 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Fri, 13 Jan 2023 17:06:31 +0800
+Subject: [PATCH 119/149] wifi: rtw89: fix assignation of TX BD RAM table
+
+TX BD's RAM table describes how HW allocates usable buffer section
+for each TX channel at fetch time. The total RAM size for TX BD is
+chip-dependent. For 8852BE, it has only half size (32) for TX channels
+of single band. Original table arrange total size (64) for dual band.
+It will overflow on 8852BE circuit and cause section conflicts between
+different TX channels.
+
+So, we do the changes below.
+* add another table for single band chip and export both kind of tables
+* point to the expected one in rtw89_pci_info by chip
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230113090632.60957-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/pci.c       | 15 ++++++++++++++-
+ drivers/net/wireless/realtek/rtw89/pci.h       | 15 +++++++++------
+ drivers/net/wireless/realtek/rtw89/rtw8852ae.c |  1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852be.c |  1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852ce.c |  1 +
+ 5 files changed, 26 insertions(+), 7 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/pci.c
++++ b/drivers/net/wireless/realtek/rtw89/pci.c
+@@ -1384,7 +1384,7 @@ static int rtw89_pci_ops_tx_write(struct
+ 	return 0;
+ }
+ 
+-static const struct rtw89_pci_bd_ram bd_ram_table[RTW89_TXCH_NUM] = {
++const struct rtw89_pci_bd_ram rtw89_bd_ram_table_dual[RTW89_TXCH_NUM] = {
+ 	[RTW89_TXCH_ACH0] = {.start_idx = 0,  .max_num = 5, .min_num = 2},
+ 	[RTW89_TXCH_ACH1] = {.start_idx = 5,  .max_num = 5, .min_num = 2},
+ 	[RTW89_TXCH_ACH2] = {.start_idx = 10, .max_num = 5, .min_num = 2},
+@@ -1399,11 +1399,24 @@ static const struct rtw89_pci_bd_ram bd_
+ 	[RTW89_TXCH_CH11] = {.start_idx = 55, .max_num = 5, .min_num = 1},
+ 	[RTW89_TXCH_CH12] = {.start_idx = 60, .max_num = 4, .min_num = 1},
+ };
++EXPORT_SYMBOL(rtw89_bd_ram_table_dual);
++
++const struct rtw89_pci_bd_ram rtw89_bd_ram_table_single[RTW89_TXCH_NUM] = {
++	[RTW89_TXCH_ACH0] = {.start_idx = 0,  .max_num = 5, .min_num = 2},
++	[RTW89_TXCH_ACH1] = {.start_idx = 5,  .max_num = 5, .min_num = 2},
++	[RTW89_TXCH_ACH2] = {.start_idx = 10, .max_num = 5, .min_num = 2},
++	[RTW89_TXCH_ACH3] = {.start_idx = 15, .max_num = 5, .min_num = 2},
++	[RTW89_TXCH_CH8]  = {.start_idx = 20, .max_num = 4, .min_num = 1},
++	[RTW89_TXCH_CH9]  = {.start_idx = 24, .max_num = 4, .min_num = 1},
++	[RTW89_TXCH_CH12] = {.start_idx = 28, .max_num = 4, .min_num = 1},
++};
++EXPORT_SYMBOL(rtw89_bd_ram_table_single);
+ 
+ static void rtw89_pci_reset_trx_rings(struct rtw89_dev *rtwdev)
+ {
+ 	struct rtw89_pci *rtwpci = (struct rtw89_pci *)rtwdev->priv;
+ 	const struct rtw89_pci_info *info = rtwdev->pci_info;
++	const struct rtw89_pci_bd_ram *bd_ram_table = *info->bd_ram_table;
+ 	struct rtw89_pci_tx_ring *tx_ring;
+ 	struct rtw89_pci_rx_ring *rx_ring;
+ 	struct rtw89_pci_dma_ring *bd_ring;
+--- a/drivers/net/wireless/realtek/rtw89/pci.h
++++ b/drivers/net/wireless/realtek/rtw89/pci.h
+@@ -750,6 +750,12 @@ struct rtw89_pci_ch_dma_addr_set {
+ 	struct rtw89_pci_ch_dma_addr rx[RTW89_RXCH_NUM];
+ };
+ 
++struct rtw89_pci_bd_ram {
++	u8 start_idx;
++	u8 max_num;
++	u8 min_num;
++};
++
+ struct rtw89_pci_info {
+ 	enum mac_ax_bd_trunc_mode txbd_trunc_mode;
+ 	enum mac_ax_bd_trunc_mode rxbd_trunc_mode;
+@@ -785,6 +791,7 @@ struct rtw89_pci_info {
+ 	u32 tx_dma_ch_mask;
+ 	const struct rtw89_pci_bd_idx_addr *bd_idx_addr_low_power;
+ 	const struct rtw89_pci_ch_dma_addr_set *dma_addr_set;
++	const struct rtw89_pci_bd_ram (*bd_ram_table)[RTW89_TXCH_NUM];
+ 
+ 	int (*ltr_set)(struct rtw89_dev *rtwdev, bool en);
+ 	u32 (*fill_txaddr_info)(struct rtw89_dev *rtwdev,
+@@ -798,12 +805,6 @@ struct rtw89_pci_info {
+ 				struct rtw89_pci_isrs *isrs);
+ };
+ 
+-struct rtw89_pci_bd_ram {
+-	u8 start_idx;
+-	u8 max_num;
+-	u8 min_num;
+-};
+-
+ struct rtw89_pci_tx_data {
+ 	dma_addr_t dma;
+ };
+@@ -1057,6 +1058,8 @@ static inline bool rtw89_pci_ltr_is_err_
+ extern const struct dev_pm_ops rtw89_pm_ops;
+ extern const struct rtw89_pci_ch_dma_addr_set rtw89_pci_ch_dma_addr_set;
+ extern const struct rtw89_pci_ch_dma_addr_set rtw89_pci_ch_dma_addr_set_v1;
++extern const struct rtw89_pci_bd_ram rtw89_bd_ram_table_dual[RTW89_TXCH_NUM];
++extern const struct rtw89_pci_bd_ram rtw89_bd_ram_table_single[RTW89_TXCH_NUM];
+ 
+ struct pci_device_id;
+ 
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852ae.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852ae.c
+@@ -44,6 +44,7 @@ static const struct rtw89_pci_info rtw88
+ 	.tx_dma_ch_mask		= 0,
+ 	.bd_idx_addr_low_power	= NULL,
+ 	.dma_addr_set		= &rtw89_pci_ch_dma_addr_set,
++	.bd_ram_table		= &rtw89_bd_ram_table_dual,
+ 
+ 	.ltr_set		= rtw89_pci_ltr_set,
+ 	.fill_txaddr_info	= rtw89_pci_fill_txaddr_info,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852be.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852be.c
+@@ -46,6 +46,7 @@ static const struct rtw89_pci_info rtw88
+ 				  BIT(RTW89_TXCH_CH10) | BIT(RTW89_TXCH_CH11),
+ 	.bd_idx_addr_low_power	= NULL,
+ 	.dma_addr_set		= &rtw89_pci_ch_dma_addr_set,
++	.bd_ram_table		= &rtw89_bd_ram_table_single,
+ 
+ 	.ltr_set		= rtw89_pci_ltr_set,
+ 	.fill_txaddr_info	= rtw89_pci_fill_txaddr_info,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852ce.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852ce.c
+@@ -53,6 +53,7 @@ static const struct rtw89_pci_info rtw88
+ 	.tx_dma_ch_mask		= 0,
+ 	.bd_idx_addr_low_power	= &rtw8852c_bd_idx_addr_low_power,
+ 	.dma_addr_set		= &rtw89_pci_ch_dma_addr_set_v1,
++	.bd_ram_table		= &rtw89_bd_ram_table_dual,
+ 
+ 	.ltr_set		= rtw89_pci_ltr_set_v1,
+ 	.fill_txaddr_info	= rtw89_pci_fill_txaddr_info_v1,

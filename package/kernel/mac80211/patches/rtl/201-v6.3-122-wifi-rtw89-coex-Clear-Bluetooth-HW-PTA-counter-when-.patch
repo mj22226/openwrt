@@ -1,0 +1,37 @@
+From aae256c0f2334691645d52e7cc965bf4241b599b Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Tue, 17 Jan 2023 19:41:03 +0800
+Subject: [PATCH 122/149] wifi: rtw89: coex: Clear Bluetooth HW PTA counter
+ when radio state change
+
+Reset the counter no matter Wi-Fi is notified turning into power save or
+not. With rest the counter coexistence will recognize Bluetooth is hanged
+easily.
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230117114109.4298-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/coex.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/coex.c
++++ b/drivers/net/wireless/realtek/rtw89/coex.c
+@@ -5335,7 +5335,6 @@ void rtw89_btc_ntfy_radio_state(struct r
+ 	}
+ 
+ 	if (rf_state == BTC_RFCTRL_WL_ON) {
+-		btc->dm.cnt_dm[BTC_DCNT_BTCNT_FREEZE] = 0;
+ 		rtw89_btc_fw_en_rpt(rtwdev, RPT_EN_MREG, true);
+ 		val = BTC_WSCB_ACTIVE | BTC_WSCB_ON | BTC_WSCB_BTLOG;
+ 		_write_scbd(rtwdev, val, true);
+@@ -5347,6 +5346,8 @@ void rtw89_btc_ntfy_radio_state(struct r
+ 			_write_scbd(rtwdev, BTC_WSCB_ALL, false);
+ 	}
+ 
++	btc->dm.cnt_dm[BTC_DCNT_BTCNT_FREEZE] = 0;
++
+ 	_run_coex(rtwdev, BTC_RSN_NTFY_RADIO_STATE);
+ 
+ 	wl->status.map.rf_off_pre = wl->status.map.rf_off;

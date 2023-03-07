@@ -1,0 +1,30 @@
+From de06588cb95cb3bbece81e9838547c1a3c2aa023 Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Tue, 17 Jan 2023 19:41:09 +0800
+Subject: [PATCH 128/149] wifi: rtw89: coex: Update Wi-Fi Bluetooth coexistence
+ version to 7.0.0
+
+Should update the driver with the supported firmware version of the
+below item.
+Bluetooth firmware BT_Coex_Ver: 0x07
+Wi-Fi firmware version: RTL8852C->v0.27.56.10, RTL8852A->v0.24.36
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230117114109.4298-9-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/coex.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/coex.c
++++ b/drivers/net/wireless/realtek/rtw89/coex.c
+@@ -9,7 +9,7 @@
+ #include "ps.h"
+ #include "reg.h"
+ 
+-#define RTW89_COEX_VERSION 0x06030013
++#define RTW89_COEX_VERSION 0x07000013
+ #define FCXDEF_STEP 50 /* MUST <= FCXMAX_STEP and match with wl fw*/
+ 
+ enum btc_fbtc_tdma_template {

@@ -1,0 +1,50 @@
+From 210871887208d1098d65b9bb597e7f9aa1c66900 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Mon, 13 Feb 2023 17:13:28 +0800
+Subject: [PATCH 147/149] wifi: rtw89: use readable return 0 in
+ rtw89_mac_cfg_ppdu_status()
+
+For normal (successful) flow, it must return 0. The original code uses
+'return ret', and then we need to backward reference to initial value to
+know 'ret = 0'. Changing them to 'return 0', because it will be more
+readable and intuitive. This patch doesn't change logic at all.
+
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Dan Carpenter <error27@gmail.com>
+Link: https://lore.kernel.org/r/202302101023.ctlih5q0-lkp@intel.com/
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230213091328.25481-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/mac.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -4554,7 +4554,7 @@ EXPORT_SYMBOL(rtw89_mac_get_txpwr_cr);
+ int rtw89_mac_cfg_ppdu_status(struct rtw89_dev *rtwdev, u8 mac_idx, bool enable)
+ {
+ 	u32 reg = rtw89_mac_reg_by_idx(R_AX_PPDU_STAT, mac_idx);
+-	int ret = 0;
++	int ret;
+ 
+ 	ret = rtw89_mac_check_mac_en(rtwdev, mac_idx, RTW89_CMAC_SEL);
+ 	if (ret)
+@@ -4562,7 +4562,7 @@ int rtw89_mac_cfg_ppdu_status(struct rtw
+ 
+ 	if (!enable) {
+ 		rtw89_write32_clr(rtwdev, reg, B_AX_PPDU_STAT_RPT_EN);
+-		return ret;
++		return 0;
+ 	}
+ 
+ 	rtw89_write32(rtwdev, reg, B_AX_PPDU_STAT_RPT_EN |
+@@ -4572,7 +4572,7 @@ int rtw89_mac_cfg_ppdu_status(struct rtw
+ 	rtw89_write32_mask(rtwdev, R_AX_HW_RPT_FWD, B_AX_FWD_PPDU_STAT_MASK,
+ 			   RTW89_PRPT_DEST_HOST);
+ 
+-	return ret;
++	return 0;
+ }
+ EXPORT_SYMBOL(rtw89_mac_cfg_ppdu_status);
+ 

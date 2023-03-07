@@ -1,0 +1,93 @@
+From 10cd4092f67eaf0cade4f50c68ecb055d4ee3a93 Mon Sep 17 00:00:00 2001
+From: Eric Huang <echuang@realtek.com>
+Date: Thu, 17 Nov 2022 14:30:00 +0800
+Subject: [PATCH 064/149] wifi: rtw89: read CFO from FD or preamble CFO field
+ of phy status ie_type 1 accordingly
+
+Add macro to get FD(frequency domain) CFO field from ie_type 1, and correct
+the naming for preamble CFO field. Each IC could assign the CFO source to
+either FD CFO or preamble CFO in chip_info. Based on the suggestion from HW
+designer, rtw8852b and its derived versions will have better CFO tracking
+performance with FD CFO.
+
+Signed-off-by: Eric Huang <echuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221117063001.42967-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c     | 6 +++++-
+ drivers/net/wireless/realtek/rtw89/core.h     | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 1 +
+ drivers/net/wireless/realtek/rtw89/txrx.h     | 4 +++-
+ 6 files changed, 12 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -1196,7 +1196,11 @@ static void rtw89_core_parse_phy_status_
+ 	if (phy_ppdu->rate < RTW89_HW_RATE_OFDM6)
+ 		return;
+ 	/* sign conversion for S(12,2) */
+-	cfo = sign_extend32(RTW89_GET_PHY_STS_IE01_CFO(addr), 11);
++	if (rtwdev->chip->cfo_src_fd)
++		cfo = sign_extend32(RTW89_GET_PHY_STS_IE01_FD_CFO(addr), 11);
++	else
++		cfo = sign_extend32(RTW89_GET_PHY_STS_IE01_PREMB_CFO(addr), 11);
++
+ 	rtw89_phy_cfo_parse(rtwdev, cfo, phy_ppdu);
+ }
+ 
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -2755,6 +2755,7 @@ struct rtw89_chip_info {
+ 	u32 c2h_ctrl_reg;
+ 	const u32 *c2h_regs;
+ 	const struct rtw89_page_regs *page_regs;
++	bool cfo_src_fd;
+ 	const struct rtw89_reg_def *dcfo_comp;
+ 	u8 dcfo_comp_sft;
+ 	const struct rtw89_imr_info *imr_info;
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -2143,6 +2143,7 @@ const struct rtw89_chip_info rtw8852a_ch
+ 	.c2h_ctrl_reg		= R_AX_C2HREG_CTRL,
+ 	.c2h_regs		= rtw8852a_c2h_regs,
+ 	.page_regs		= &rtw8852a_page_regs,
++	.cfo_src_fd		= false,
+ 	.dcfo_comp		= &rtw8852a_dcfo_comp,
+ 	.dcfo_comp_sft		= 3,
+ 	.imr_info		= &rtw8852a_imr_info,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2512,6 +2512,7 @@ const struct rtw89_chip_info rtw8852b_ch
+ 	.c2h_ctrl_reg		= R_AX_C2HREG_CTRL,
+ 	.c2h_regs		= rtw8852b_c2h_regs,
+ 	.page_regs		= &rtw8852b_page_regs,
++	.cfo_src_fd		= true,
+ 	.dcfo_comp		= &rtw8852b_dcfo_comp,
+ 	.dcfo_comp_sft		= 3,
+ 	.imr_info		= &rtw8852b_imr_info,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2953,6 +2953,7 @@ const struct rtw89_chip_info rtw8852c_ch
+ 	.c2h_ctrl_reg		= R_AX_C2HREG_CTRL_V1,
+ 	.c2h_regs		= rtw8852c_c2h_regs,
+ 	.page_regs		= &rtw8852c_page_regs,
++	.cfo_src_fd		= false,
+ 	.dcfo_comp		= &rtw8852c_dcfo_comp,
+ 	.dcfo_comp_sft		= 5,
+ 	.imr_info		= &rtw8852c_imr_info,
+--- a/drivers/net/wireless/realtek/rtw89/txrx.h
++++ b/drivers/net/wireless/realtek/rtw89/txrx.h
+@@ -298,7 +298,9 @@
+ 	le32_get_bits(*((const __le32 *)ie), GENMASK(11, 5))
+ #define RTW89_GET_PHY_STS_IE01_CH_IDX(ie) \
+ 	le32_get_bits(*((const __le32 *)ie), GENMASK(23, 16))
+-#define RTW89_GET_PHY_STS_IE01_CFO(ie) \
++#define RTW89_GET_PHY_STS_IE01_FD_CFO(ie) \
++	le32_get_bits(*((const __le32 *)(ie) + 1), GENMASK(19, 8))
++#define RTW89_GET_PHY_STS_IE01_PREMB_CFO(ie) \
+ 	le32_get_bits(*((const __le32 *)(ie) + 1), GENMASK(31, 20))
+ 
+ enum rtw89_tx_channel {

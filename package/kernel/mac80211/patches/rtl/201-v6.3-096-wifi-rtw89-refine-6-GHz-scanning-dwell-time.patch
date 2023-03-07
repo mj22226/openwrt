@@ -1,0 +1,49 @@
+From 08c93c0ca74c4223dce8fb68e4bb24f7426e55c8 Mon Sep 17 00:00:00 2001
+From: Po-Hao Huang <phhuang@realtek.com>
+Date: Wed, 14 Dec 2022 17:19:52 +0800
+Subject: [PATCH 096/149] wifi: rtw89: refine 6 GHz scanning dwell time
+
+Reduce dwell time to improve scan duration in 6 GHz. This is required
+for scan requests that does not include RNR parsing and does full
+channel scan.
+
+Signed-off-by: Po-Hao Huang <phhuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221214091952.42792-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c | 5 +++--
+ drivers/net/wireless/realtek/rtw89/fw.h | 1 +
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -2749,7 +2749,7 @@ static void rtw89_hw_scan_add_chan(struc
+ 		if (ssid_num == 1 && req->ssids[0].ssid_len == 0) {
+ 			ch_info->tx_pkt = false;
+ 			if (!req->duration_mandatory)
+-				ch_info->period -= RTW89_DWELL_TIME;
++				ch_info->period -= RTW89_DWELL_TIME_6G;
+ 		}
+ 	}
+ 
+@@ -2802,7 +2802,8 @@ static int rtw89_hw_scan_add_chan_list(s
+ 		if (req->duration_mandatory)
+ 			ch_info->period = req->duration;
+ 		else if (channel->band == NL80211_BAND_6GHZ)
+-			ch_info->period = RTW89_CHANNEL_TIME_6G + RTW89_DWELL_TIME;
++			ch_info->period = RTW89_CHANNEL_TIME_6G +
++					  RTW89_DWELL_TIME_6G;
+ 		else
+ 			ch_info->period = RTW89_CHANNEL_TIME;
+ 
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -205,6 +205,7 @@ struct rtw89_h2creg_sch_tx_en {
+ #define RTW89_DFS_CHAN_TIME 105
+ #define RTW89_OFF_CHAN_TIME 100
+ #define RTW89_DWELL_TIME 20
++#define RTW89_DWELL_TIME_6G 10
+ #define RTW89_SCAN_WIDTH 0
+ #define RTW89_SCANOFLD_MAX_SSID 8
+ #define RTW89_SCANOFLD_MAX_IE_LEN 512

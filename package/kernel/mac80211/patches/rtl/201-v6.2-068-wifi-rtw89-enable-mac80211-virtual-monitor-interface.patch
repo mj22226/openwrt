@@ -1,0 +1,47 @@
+From cd9b6b3baf5278c73c91e242d41387684fc7f8d8 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Fri, 25 Nov 2022 15:24:14 +0800
+Subject: [PATCH 068/149] wifi: rtw89: enable mac80211 virtual monitor
+ interface
+
+For running with mac80211 channel context ops and using only as monitor,
+we need to enable WANT_MONITOR_VIF to let mac80211 process virtual monitor
+interface. Then, we are able to set channel on the monitor from user space.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221125072416.94752-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -1405,6 +1405,9 @@ static void rtw89_vif_rx_stats_iter(void
+ 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
+ 	const u8 *bssid = iter_data->bssid;
+ 
++	if (!vif->bss_conf.bssid)
++		return;
++
+ 	if (ieee80211_is_trigger(hdr->frame_control)) {
+ 		rtw89_stats_trigger_frame(rtwdev, vif, skb);
+ 		return;
+@@ -2386,6 +2389,8 @@ void rtw89_vif_type_mapping(struct ieee8
+ 		rtwvif->self_role = RTW89_SELF_ROLE_CLIENT;
+ 		rtwvif->addr_cam.sec_ent_mode = RTW89_ADDR_CAM_SEC_NORMAL;
+ 		break;
++	case NL80211_IFTYPE_MONITOR:
++		break;
+ 	default:
+ 		WARN_ON(1);
+ 		break;
+@@ -3266,6 +3271,7 @@ static int rtw89_core_register_hw(struct
+ 	ieee80211_hw_set(hw, SUPPORTS_DYNAMIC_PS);
+ 	ieee80211_hw_set(hw, SINGLE_SCAN_ON_ALL_BANDS);
+ 	ieee80211_hw_set(hw, SUPPORTS_MULTI_BSSID);
++	ieee80211_hw_set(hw, WANT_MONITOR_VIF);
+ 
+ 	hw->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) |
+ 				     BIT(NL80211_IFTYPE_AP) |

@@ -1,0 +1,78 @@
+From 764f07f4565da0c0f94f24d18f9d6f5ddb39ccd8 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Wed, 1 Feb 2023 11:20:57 +0800
+Subject: [PATCH 144/149] wifi: rtw89: use passed channel in
+ set_tx_shape_dfir()
+
+In path of setting channel and setting TX power, the rtw89_chan instance
+to be used is controlled by top and passed down. The set_tx_shape_dfir()
+is in path of setting TX power, so it should use the passed rtw89_chan
+instead of querying it itself. Otherwise, it might encounter mismatch
+between parameters if multi-channel.
+
+For example,
+rtw89_8852ce 0000:04:00.0: set tx shape dfir by unknown ch: 155 on 2GHz
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230201032057.7349-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 4 ++--
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -1618,6 +1618,7 @@ static void rtw8852b_set_txpwr_ref(struc
+ }
+ 
+ static void rtw8852b_bb_set_tx_shape_dfir(struct rtw89_dev *rtwdev,
++					  const struct rtw89_chan *chan,
+ 					  u8 tx_shape_idx,
+ 					  enum rtw89_phy_idx phy_idx)
+ {
+@@ -1637,7 +1638,6 @@ static void rtw8852b_bb_set_tx_shape_dfi
+ 	__DECL_DFIR_PARAM(sharp_14,
+ 			  0x023B13FF, 0x001C42DE, 0x00FDB0AD, 0x00F60F6E,
+ 			  0x00FD8F92, 0x0602D011, 0x0001C02C, 0x00FFF00A);
+-	const struct rtw89_chan *chan = rtw89_chan_get(rtwdev, RTW89_SUB_ENTITY_0);
+ 	u8 ch = chan->channel;
+ 	const u32 *param;
+ 	u32 addr;
+@@ -1678,7 +1678,7 @@ static void rtw8852b_set_tx_shape(struct
+ 	u8 tx_shape_ofdm = rtw89_8852b_tx_shape[band][RTW89_RS_OFDM][regd];
+ 
+ 	if (band == RTW89_BAND_2G)
+-		rtw8852b_bb_set_tx_shape_dfir(rtwdev, tx_shape_cck, phy_idx);
++		rtw8852b_bb_set_tx_shape_dfir(rtwdev, chan, tx_shape_cck, phy_idx);
+ 
+ 	rtw89_phy_write32_mask(rtwdev, R_DCFO_OPT, B_TXSHAPE_TRIANGULAR_CFG,
+ 			       tx_shape_ofdm);
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -1968,6 +1968,7 @@ static void rtw8852c_set_txpwr_ref(struc
+ }
+ 
+ static void rtw8852c_bb_set_tx_shape_dfir(struct rtw89_dev *rtwdev,
++					  const struct rtw89_chan *chan,
+ 					  u8 tx_shape_idx,
+ 					  enum rtw89_phy_idx phy_idx)
+ {
+@@ -1991,7 +1992,6 @@ static void rtw8852c_bb_set_tx_shape_dfi
+ 	__DECL_DFIR_ADDR(filter,
+ 			 0x45BC, 0x45CC, 0x45D0, 0x45D4, 0x45D8, 0x45C0,
+ 			 0x45C4, 0x45C8);
+-	const struct rtw89_chan *chan = rtw89_chan_get(rtwdev, RTW89_SUB_ENTITY_0);
+ 	u8 ch = chan->channel;
+ 	const u32 *param;
+ 	int i;
+@@ -2032,7 +2032,7 @@ static void rtw8852c_set_tx_shape(struct
+ 	u8 tx_shape_ofdm = rtw89_8852c_tx_shape[band][RTW89_RS_OFDM][regd];
+ 
+ 	if (band == RTW89_BAND_2G)
+-		rtw8852c_bb_set_tx_shape_dfir(rtwdev, tx_shape_cck, phy_idx);
++		rtw8852c_bb_set_tx_shape_dfir(rtwdev, chan, tx_shape_cck, phy_idx);
+ 
+ 	rtw89_phy_tssi_ctrl_set_bandedge_cfg(rtwdev,
+ 					     (enum rtw89_mac_idx)phy_idx,

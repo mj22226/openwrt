@@ -27,7 +27,7 @@ config-$(CONFIG_PACKAGE_RTW88_DEBUG) += RTW88_DEBUG
 config-$(CONFIG_PACKAGE_RTW88_DEBUGFS) += RTW88_DEBUGFS
 
 config-$(call config_package,rtw89) += RTW89 RTW89_CORE RTW89_PCI
-config-y += RTW89_8852AE RTW89_8852CE
+config-y += RTW89_8852AE RTW89_8852BE RTW89_8852CE
 config-$(CONFIG_PACKAGE_RTW89_DEBUG) += RTW89_DEBUG
 config-$(CONFIG_PACKAGE_RTW89_DEBUGFS) += RTW89_DEBUGFS
 config-$(CONFIG_PACKAGE_RTW89_DEBUGMSG) += RTW89_DEBUGMSG
@@ -218,16 +218,18 @@ endef
 
 define KernelPackage/rtw89
   $(call KernelPackage/mac80211/Default)
-  TITLE:=Realtek RTL8852AE/CE
+  TITLE:=Realtek RTL8852AE/BE/CE
   DEPENDS+= @(PCI_SUPPORT) +kmod-mac80211 +@DRIVER_11AX_SUPPORT +rtw89-firmware
   FILES:=\
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852a.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852ae.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852b.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852be.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852c.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852ce.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_core.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_pci.ko
-  AUTOLOAD:=$(call AutoProbe,rtw89_8852ae rtw89_8852ce)
+  AUTOLOAD:=$(call AutoProbe,rtw89_8852ae rtw89_8852be rtw89_8852ce)
 endef
 
 define KernelPackage/rtl8723bs

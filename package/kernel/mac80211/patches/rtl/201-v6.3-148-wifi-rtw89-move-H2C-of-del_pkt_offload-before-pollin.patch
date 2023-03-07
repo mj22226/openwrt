@@ -1,0 +1,38 @@
+From ce1ba4d782d94fc8ed9116c774e2e5885626836b Mon Sep 17 00:00:00 2001
+From: Chin-Yen Lee <timlee@realtek.com>
+Date: Tue, 14 Feb 2023 19:43:14 +0800
+Subject: [PATCH 148/149] wifi: rtw89: move H2C of del_pkt_offload before
+ polling FW status ready
+
+The H2C of del_pkt_offload must be called before polling FW status
+ready, otherwise the following downloading normal FW will fail.
+
+Fixes: 5c12bb66b79d ("wifi: rtw89: refine packet offload flow")
+Signed-off-by: Chin-Yen Lee <timlee@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230214114314.5268-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/wow.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/wow.c
++++ b/drivers/net/wireless/realtek/rtw89/wow.c
+@@ -710,6 +710,8 @@ static int rtw89_wow_fw_stop(struct rtw8
+ 		goto out;
+ 	}
+ 
++	rtw89_fw_release_general_pkt_list(rtwdev, true);
++
+ 	ret = rtw89_wow_check_fw_status(rtwdev, false);
+ 	if (ret) {
+ 		rtw89_err(rtwdev, "wow: failed to check disable fw ready\n");
+@@ -779,8 +781,6 @@ static int rtw89_wow_disable(struct rtw8
+ 		goto out;
+ 	}
+ 
+-	rtw89_fw_release_general_pkt_list(rtwdev, true);
+-
+ 	ret = rtw89_wow_swap_fw(rtwdev, false);
+ 	if (ret) {
+ 		rtw89_err(rtwdev, "wow: failed to disable trx_post\n");

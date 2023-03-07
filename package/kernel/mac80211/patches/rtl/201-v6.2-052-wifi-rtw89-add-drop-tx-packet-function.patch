@@ -1,0 +1,258 @@
+From 41d567699283b86ce7443a5bf07114f1bde8e203 Mon Sep 17 00:00:00 2001
+From: Chih-Kang Chang <gary.chang@realtek.com>
+Date: Thu, 27 Oct 2022 13:27:04 +0800
+Subject: [PATCH 052/149] wifi: rtw89: add drop tx packet function
+
+When entering WoWLAN mode, we need to drop all transmit packets,
+including those in mac buffer, to avoid memory leakage, so implement
+the drop_tx function.
+
+Signed-off-by: Chih-Kang Chang <gary.chang@realtek.com>
+Signed-off-by: Chin-Yen Lee <timlee@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221027052707.14605-5-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h     |  3 +
+ drivers/net/wireless/realtek/rtw89/fw.c       |  9 +++
+ drivers/net/wireless/realtek/rtw89/fw.h       | 20 +++++
+ drivers/net/wireless/realtek/rtw89/mac.c      | 75 +++++++++++++++++++
+ drivers/net/wireless/realtek/rtw89/mac.h      | 13 ++++
+ drivers/net/wireless/realtek/rtw89/reg.h      | 13 ++++
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c |  2 +
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c |  2 +
+ 8 files changed, 137 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -2624,6 +2624,8 @@ struct rtw89_chip_info {
+ 	u32 rsvd_ple_ofst;
+ 	const struct rtw89_hfc_param_ini *hfc_param_ini;
+ 	const struct rtw89_dle_mem *dle_mem;
++	u8 wde_qempty_acq_num;
++	u8 wde_qempty_mgq_sel;
+ 	u32 rf_base_addr[2];
+ 	u8 support_chanctx_num;
+ 	u8 support_bands;
+@@ -2949,6 +2951,7 @@ struct rtw89_pkt_drop_params {
+ 	u8 port;
+ 	u8 mbssid;
+ 	bool tf_trs;
++	u32 macid_band_sel[4];
+ };
+ 
+ struct rtw89_pkt_stat {
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -2900,6 +2900,7 @@ int rtw89_fw_h2c_pkt_drop(struct rtw89_d
+ 	case RTW89_PKT_DROP_SEL_MACID_BK_ONCE:
+ 	case RTW89_PKT_DROP_SEL_MACID_VI_ONCE:
+ 	case RTW89_PKT_DROP_SEL_MACID_VO_ONCE:
++	case RTW89_PKT_DROP_SEL_BAND_ONCE:
+ 		break;
+ 	default:
+ 		rtw89_debug(rtwdev, RTW89_DBG_FW,
+@@ -2915,6 +2916,14 @@ int rtw89_fw_h2c_pkt_drop(struct rtw89_d
+ 	RTW89_SET_FWCMD_PKT_DROP_PORT(skb->data, params->port);
+ 	RTW89_SET_FWCMD_PKT_DROP_MBSSID(skb->data, params->mbssid);
+ 	RTW89_SET_FWCMD_PKT_DROP_ROLE_A_INFO_TF_TRS(skb->data, params->tf_trs);
++	RTW89_SET_FWCMD_PKT_DROP_MACID_BAND_SEL_0(skb->data,
++						  params->macid_band_sel[0]);
++	RTW89_SET_FWCMD_PKT_DROP_MACID_BAND_SEL_1(skb->data,
++						  params->macid_band_sel[1]);
++	RTW89_SET_FWCMD_PKT_DROP_MACID_BAND_SEL_2(skb->data,
++						  params->macid_band_sel[2]);
++	RTW89_SET_FWCMD_PKT_DROP_MACID_BAND_SEL_3(skb->data,
++						  params->macid_band_sel[3]);
+ 
+ 	rtw89_h2c_pkt_set_hdr(rtwdev, skb, FWCMD_TYPE_H2C,
+ 			      H2C_CAT_MAC,
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -1873,6 +1873,26 @@ static inline void RTW89_SET_FWCMD_PKT_D
+ 	le32p_replace_bits((__le32 *)cmd + 1, val, GENMASK(15, 8));
+ }
+ 
++static inline void RTW89_SET_FWCMD_PKT_DROP_MACID_BAND_SEL_0(void *cmd, u32 val)
++{
++	le32p_replace_bits((__le32 *)cmd + 2, val, GENMASK(31, 0));
++}
++
++static inline void RTW89_SET_FWCMD_PKT_DROP_MACID_BAND_SEL_1(void *cmd, u32 val)
++{
++	le32p_replace_bits((__le32 *)cmd + 3, val, GENMASK(31, 0));
++}
++
++static inline void RTW89_SET_FWCMD_PKT_DROP_MACID_BAND_SEL_2(void *cmd, u32 val)
++{
++	le32p_replace_bits((__le32 *)cmd + 4, val, GENMASK(31, 0));
++}
++
++static inline void RTW89_SET_FWCMD_PKT_DROP_MACID_BAND_SEL_3(void *cmd, u32 val)
++{
++	le32p_replace_bits((__le32 *)cmd + 5, val, GENMASK(31, 0));
++}
++
+ enum rtw89_btc_btf_h2c_class {
+ 	BTFC_SET = 0x10,
+ 	BTFC_GET = 0x11,
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -1335,6 +1335,60 @@ static const struct rtw89_dle_mem *get_d
+ 	return cfg;
+ }
+ 
++static bool mac_is_txq_empty(struct rtw89_dev *rtwdev)
++{
++	struct rtw89_mac_dle_dfi_qempty qempty;
++	u32 qnum, qtmp, val32, msk32;
++	int i, j, ret;
++
++	qnum = rtwdev->chip->wde_qempty_acq_num;
++	qempty.dle_type = DLE_CTRL_TYPE_WDE;
++
++	for (i = 0; i < qnum; i++) {
++		qempty.grpsel = i;
++		ret = dle_dfi_qempty(rtwdev, &qempty);
++		if (ret) {
++			rtw89_warn(rtwdev, "dle dfi acq empty %d\n", ret);
++			return false;
++		}
++		qtmp = qempty.qempty;
++		for (j = 0 ; j < QEMP_ACQ_GRP_MACID_NUM; j++) {
++			val32 = FIELD_GET(QEMP_ACQ_GRP_QSEL_MASK, qtmp);
++			if (val32 != QEMP_ACQ_GRP_QSEL_MASK)
++				return false;
++			qtmp >>= QEMP_ACQ_GRP_QSEL_SH;
++		}
++	}
++
++	qempty.grpsel = rtwdev->chip->wde_qempty_mgq_sel;
++	ret = dle_dfi_qempty(rtwdev, &qempty);
++	if (ret) {
++		rtw89_warn(rtwdev, "dle dfi mgq empty %d\n", ret);
++		return false;
++	}
++	msk32 = B_CMAC0_MGQ_NORMAL | B_CMAC0_MGQ_NO_PWRSAV | B_CMAC0_CPUMGQ;
++	if ((qempty.qempty & msk32) != msk32)
++		return false;
++
++	if (rtwdev->dbcc_en) {
++		msk32 |= B_CMAC1_MGQ_NORMAL | B_CMAC1_MGQ_NO_PWRSAV | B_CMAC1_CPUMGQ;
++		if ((qempty.qempty & msk32) != msk32)
++			return false;
++	}
++
++	msk32 = B_AX_WDE_EMPTY_QTA_DMAC_WLAN_CPU | B_AX_WDE_EMPTY_QTA_DMAC_DATA_CPU |
++		B_AX_PLE_EMPTY_QTA_DMAC_WLAN_CPU | B_AX_PLE_EMPTY_QTA_DMAC_H2C |
++		B_AX_WDE_EMPTY_QUE_OTHERS | B_AX_PLE_EMPTY_QUE_DMAC_MPDU_TX |
++		B_AX_WDE_EMPTY_QTA_DMAC_CPUIO | B_AX_PLE_EMPTY_QTA_DMAC_CPUIO |
++		B_AX_WDE_EMPTY_QUE_DMAC_PKTIN | B_AX_WDE_EMPTY_QTA_DMAC_HIF |
++		B_AX_PLE_EMPTY_QUE_DMAC_SEC_TX | B_AX_WDE_EMPTY_QTA_DMAC_PKTIN |
++		B_AX_PLE_EMPTY_QTA_DMAC_B0_TXPL | B_AX_PLE_EMPTY_QTA_DMAC_B1_TXPL |
++		B_AX_PLE_EMPTY_QTA_DMAC_MPDU_TX;
++	val32 = rtw89_read32(rtwdev, R_AX_DLE_EMPTY0);
++
++	return (val32 & msk32) == msk32;
++}
++
+ static inline u32 dle_used_size(const struct rtw89_dle_size *wde,
+ 				const struct rtw89_dle_size *ple)
+ {
+@@ -4893,3 +4947,24 @@ void rtw89_mac_pkt_drop_vif(struct rtw89
+ 					  rtw89_mac_pkt_drop_vif_iter,
+ 					  rtwvif);
+ }
++
++int rtw89_mac_ptk_drop_by_band_and_wait(struct rtw89_dev *rtwdev,
++					enum rtw89_mac_idx band)
++{
++	struct rtw89_pkt_drop_params params = {0};
++	bool empty;
++	int i, ret = 0, try_cnt = 3;
++
++	params.mac_band = band;
++	params.sel = RTW89_PKT_DROP_SEL_BAND_ONCE;
++
++	for (i = 0; i < try_cnt; i++) {
++		ret = read_poll_timeout(mac_is_txq_empty, empty, empty, 50,
++					50000, false, rtwdev);
++		if (ret)
++			rtw89_fw_h2c_pkt_drop(rtwdev, &params);
++		else
++			return 0;
++	}
++	return ret;
++}
+--- a/drivers/net/wireless/realtek/rtw89/mac.h
++++ b/drivers/net/wireless/realtek/rtw89/mac.h
+@@ -420,6 +420,17 @@ enum rtw89_mac_bf_rrsc_rate {
+ #define S_AX_PLE_PAGE_SEL_128	1
+ #define S_AX_PLE_PAGE_SEL_256	2
+ 
++#define B_CMAC0_MGQ_NORMAL	BIT(2)
++#define B_CMAC0_MGQ_NO_PWRSAV	BIT(3)
++#define B_CMAC0_CPUMGQ		BIT(4)
++#define B_CMAC1_MGQ_NORMAL	BIT(10)
++#define B_CMAC1_MGQ_NO_PWRSAV	BIT(11)
++#define B_CMAC1_CPUMGQ		BIT(12)
++
++#define QEMP_ACQ_GRP_MACID_NUM	8
++#define QEMP_ACQ_GRP_QSEL_SH	4
++#define QEMP_ACQ_GRP_QSEL_MASK	0xF
++
+ #define SDIO_LOCAL_BASE_ADDR    0x80000000
+ 
+ #define	PWR_CMD_WRITE		0
+@@ -1028,5 +1039,7 @@ u16 rtw89_mac_dle_buf_req(struct rtw89_d
+ int rtw89_mac_set_cpuio(struct rtw89_dev *rtwdev,
+ 			struct rtw89_cpuio_ctrl *ctrl_para, bool wd);
+ int rtw89_mac_resize_ple_rx_quota(struct rtw89_dev *rtwdev, bool wow);
++int rtw89_mac_ptk_drop_by_band_and_wait(struct rtw89_dev *rtwdev,
++					enum rtw89_mac_idx band);
+ 
+ #endif
+--- a/drivers/net/wireless/realtek/rtw89/reg.h
++++ b/drivers/net/wireless/realtek/rtw89/reg.h
+@@ -545,6 +545,19 @@
+ #define B_AX_WDE_EMPTY_QUE_CMAC0_MBH BIT(1)
+ #define B_AX_WDE_EMPTY_QUE_CMAC0_ALL_AC BIT(0)
+ 
++#define R_AX_DLE_EMPTY1 0x8434
++#define B_AX_PLE_EMPTY_QTA_DMAC_WDRLS BIT(20)
++#define B_AX_PLE_EMPTY_QTA_CMAC1_DMA_BBRPT BIT(19)
++#define B_AX_PLE_EMPTY_QTA_CMAC1_DMA_RX BIT(18)
++#define B_AX_PLE_EMPTY_QTA_CMAC0_DMA_RX BIT(17)
++#define B_AX_PLE_EMPTY_QTA_DMAC_C2H BIT(16)
++#define B_AX_PLE_EMPTY_QUE_DMAC_PLRLS BIT(5)
++#define B_AX_PLE_EMPTY_QUE_DMAC_CPUIO BIT(4)
++#define B_AX_PLE_EMPTY_QUE_DMAC_SEC_RX BIT(3)
++#define B_AX_PLE_EMPTY_QUE_DMAC_MPDU_RX BIT(2)
++#define B_AX_PLE_EMPTY_QUE_DMAC_HDP BIT(1)
++#define B_AX_WDE_EMPTY_QUE_DMAC_WDRLS BIT(0)
++
+ #define R_AX_DMAC_ERR_IMR 0x8520
+ #define B_AX_DLE_CPUIO_ERR_INT_EN BIT(10)
+ #define B_AX_APB_BRIDGE_ERR_INT_EN BIT(9)
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -2049,6 +2049,8 @@ const struct rtw89_chip_info rtw8852a_ch
+ 	.rsvd_ple_ofst		= 0x6f800,
+ 	.hfc_param_ini		= rtw8852a_hfc_param_ini_pcie,
+ 	.dle_mem		= rtw8852a_dle_mem_pcie,
++	.wde_qempty_acq_num	= 16,
++	.wde_qempty_mgq_sel	= 16,
+ 	.rf_base_addr		= {0xc000, 0xd000},
+ 	.pwr_on_seq		= pwr_on_seq_8852a,
+ 	.pwr_off_seq		= pwr_off_seq_8852a,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2855,6 +2855,8 @@ const struct rtw89_chip_info rtw8852c_ch
+ 	.rsvd_ple_ofst		= 0x6f800,
+ 	.hfc_param_ini		= rtw8852c_hfc_param_ini_pcie,
+ 	.dle_mem		= rtw8852c_dle_mem_pcie,
++	.wde_qempty_acq_num     = 16,
++	.wde_qempty_mgq_sel     = 16,
+ 	.rf_base_addr		= {0xe000, 0xf000},
+ 	.pwr_on_seq		= NULL,
+ 	.pwr_off_seq		= NULL,

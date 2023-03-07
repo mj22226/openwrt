@@ -1,0 +1,41 @@
+From c074da21dd346e0cfef5d08b0715078d7aea7f8d Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Thu, 19 Jan 2023 14:35:28 +0800
+Subject: [PATCH 132/149] wifi: rtw89: debug: avoid invalid access on
+ RTW89_DBG_SEL_MAC_30
+
+Only 8852C chip has valid pages on RTW89_DBG_SEL_MAC_30. To other chips,
+this section is an address hole. It will lead to crash if trying to access
+this section on chips except for 8852C. So, we avoid that.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230119063529.61563-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/debug.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/debug.c
++++ b/drivers/net/wireless/realtek/rtw89/debug.c
+@@ -615,6 +615,7 @@ rtw89_debug_priv_mac_reg_dump_select(str
+ 	struct seq_file *m = (struct seq_file *)filp->private_data;
+ 	struct rtw89_debugfs_priv *debugfs_priv = m->private;
+ 	struct rtw89_dev *rtwdev = debugfs_priv->rtwdev;
++	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	char buf[32];
+ 	size_t buf_size;
+ 	int sel;
+@@ -634,6 +635,12 @@ rtw89_debug_priv_mac_reg_dump_select(str
+ 		return -EINVAL;
+ 	}
+ 
++	if (sel == RTW89_DBG_SEL_MAC_30 && chip->chip_id != RTL8852C) {
++		rtw89_info(rtwdev, "sel %d is address hole on chip %d\n", sel,
++			   chip->chip_id);
++		return -EINVAL;
++	}
++
+ 	debugfs_priv->cb_data = sel;
+ 	rtw89_info(rtwdev, "select mac page dump %d\n", debugfs_priv->cb_data);
+ 

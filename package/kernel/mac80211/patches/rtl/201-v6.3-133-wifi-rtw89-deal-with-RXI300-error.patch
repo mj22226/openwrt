@@ -1,0 +1,67 @@
+From f5d98831badb89172515ac73015d0e7475a285c1 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Thu, 19 Jan 2023 14:35:29 +0800
+Subject: [PATCH 133/149] wifi: rtw89: deal with RXI300 error
+
+RXI300 is a HW design to maintain stuffs across BUS, e.g. AXI, AHB, APB.
+It will feedback an error when host does an invalid BUS operation.
+For example,
+* BUS master request without power/clock on.
+* host reads/writes/accesses an invalid address.
+
+They might lead to problems such as BUS timeout, platform hang, etc. So,
+once if RXI300 feedback an error, it notifies that driver need a L2 SER
+(system error recovery) to reset things.
+
+Previously, driver did not parse the error scenario for RXI300. We add
+it and assign a corresponding error code which will make SER flow do L2
+reset.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230119063529.61563-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/mac.c | 5 ++++-
+ drivers/net/wireless/realtek/rtw89/mac.h | 2 ++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -623,7 +623,8 @@ static void rtw89_mac_dump_err_status(st
+ 	if (err != MAC_AX_ERR_L1_ERR_DMAC &&
+ 	    err != MAC_AX_ERR_L0_PROMOTE_TO_L1 &&
+ 	    err != MAC_AX_ERR_L0_ERR_CMAC0 &&
+-	    err != MAC_AX_ERR_L0_ERR_CMAC1)
++	    err != MAC_AX_ERR_L0_ERR_CMAC1 &&
++	    err != MAC_AX_ERR_RXI300)
+ 		return;
+ 
+ 	rtw89_info(rtwdev, "--->\nerr=0x%x\n", err);
+@@ -663,6 +664,8 @@ u32 rtw89_mac_get_err_status(struct rtw8
+ 		err = MAC_AX_ERR_CPU_EXCEPTION;
+ 	else if (err_scnr == RTW89_WCPU_ASSERTION)
+ 		err = MAC_AX_ERR_ASSERTION;
++	else if (err_scnr == RTW89_RXI300_ERROR)
++		err = MAC_AX_ERR_RXI300;
+ 
+ 	rtw89_fw_st_dbg_dump(rtwdev);
+ 	rtw89_mac_dump_err_status(rtwdev, err);
+--- a/drivers/net/wireless/realtek/rtw89/mac.h
++++ b/drivers/net/wireless/realtek/rtw89/mac.h
+@@ -623,6 +623,7 @@ struct rtw89_mac_dle_dfi_qempty {
+ };
+ 
+ enum rtw89_mac_error_scenario {
++	RTW89_RXI300_ERROR		= 1,
+ 	RTW89_WCPU_CPU_EXCEPTION	= 2,
+ 	RTW89_WCPU_ASSERTION		= 3,
+ };
+@@ -769,6 +770,7 @@ enum mac_ax_err_info {
+ 	MAC_AX_ERR_L2_ERR_WDT_TIMEOUT_INT = 0x2599,
+ 	MAC_AX_ERR_CPU_EXCEPTION = 0x3000,
+ 	MAC_AX_ERR_ASSERTION = 0x4000,
++	MAC_AX_ERR_RXI300 = 0x5000,
+ 	MAC_AX_GET_ERR_MAX,
+ 	MAC_AX_DUMP_SHAREBUFF_INDICATOR = 0x80000000,
+ 

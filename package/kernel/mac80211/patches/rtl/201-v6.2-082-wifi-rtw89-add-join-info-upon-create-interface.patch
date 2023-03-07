@@ -1,0 +1,29 @@
+From a0e78d5c6082fc953fef5af7293be0145c67dba4 Mon Sep 17 00:00:00 2001
+From: Po-Hao Huang <phhuang@realtek.com>
+Date: Fri, 2 Dec 2022 14:15:27 +0800
+Subject: [PATCH 082/149] wifi: rtw89: add join info upon create interface
+
+To support multiple vifs, fw need more information of each role.
+Send this info to make things work as expected.
+
+Signed-off-by: Po-Hao Huang <phhuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221202061527.505668-5-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/mac.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -3980,6 +3980,10 @@ int rtw89_mac_vif_init(struct rtw89_dev
+ 	if (ret)
+ 		return ret;
+ 
++	ret = rtw89_fw_h2c_join_info(rtwdev, rtwvif, NULL, true);
++	if (ret)
++		return ret;
++
+ 	ret = rtw89_cam_init(rtwdev, rtwvif);
+ 	if (ret)
+ 		return ret;

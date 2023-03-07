@@ -1,0 +1,390 @@
+From 1fc4a874ff02ba8c07f8abf97c0bef686406f6df Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Sat, 17 Dec 2022 22:17:40 +0800
+Subject: [PATCH 089/149] wifi: rtw89: coex: use new introduction BTC version
+ format
+
+Previous patch has added format version derived from firmware version.
+Use the format version, and remove constant version number from chip_info.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221217141745.43291-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/coex.c     | 32 +++++++-------
+ drivers/net/wireless/realtek/rtw89/core.h     | 42 +++++++------------
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c | 14 -------
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 15 +------
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 14 -------
+ 5 files changed, 32 insertions(+), 85 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/coex.c
++++ b/drivers/net/wireless/realtek/rtw89/coex.c
+@@ -976,6 +976,7 @@ static u32 _chk_btc_report(struct rtw89_
+ {
+ 	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	struct rtw89_btc *btc = &rtwdev->btc;
++	const struct rtw89_btc_ver *ver = btc->ver;
+ 	struct rtw89_btc_dm *dm = &btc->dm;
+ 	struct rtw89_btc_rpt_cmn_info *pcinfo = NULL;
+ 	struct rtw89_btc_wl_info *wl = &btc->cx.wl;
+@@ -1022,7 +1023,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 			pfinfo = &pfwinfo->rpt_ctrl.finfo_v1;
+ 			pcinfo->req_len = sizeof(pfwinfo->rpt_ctrl.finfo_v1);
+ 		}
+-		pcinfo->req_fver = chip->fcxbtcrpt_ver;
++		pcinfo->req_fver = ver->fcxbtcrpt;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1035,7 +1036,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 			pfinfo = &pfwinfo->rpt_fbtc_tdma.finfo_v1;
+ 			pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_tdma.finfo_v1);
+ 		}
+-		pcinfo->req_fver = chip->fcxtdma_ver;
++		pcinfo->req_fver = ver->fcxtdma;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1043,7 +1044,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 		pcinfo = &pfwinfo->rpt_fbtc_slots.cinfo;
+ 		pfinfo = &pfwinfo->rpt_fbtc_slots.finfo;
+ 		pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_slots.finfo);
+-		pcinfo->req_fver = chip->fcxslots_ver;
++		pcinfo->req_fver = ver->fcxslots;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1059,7 +1060,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 			pcysta_v1 = &pfwinfo->rpt_fbtc_cysta.finfo_v1;
+ 			pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_cysta.finfo_v1);
+ 		}
+-		pcinfo->req_fver = chip->fcxcysta_ver;
++		pcinfo->req_fver = ver->fcxcysta;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1076,7 +1077,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 					  trace_step +
+ 					  offsetof(struct rtw89_btc_fbtc_steps_v1, step);
+ 		}
+-		pcinfo->req_fver = chip->fcxstep_ver;
++		pcinfo->req_fver = ver->fcxstep;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1089,7 +1090,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 			pfinfo = &pfwinfo->rpt_fbtc_nullsta.finfo_v1;
+ 			pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_nullsta.finfo_v1);
+ 		}
+-		pcinfo->req_fver = chip->fcxnullsta_ver;
++		pcinfo->req_fver = ver->fcxnullsta;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1097,7 +1098,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 		pcinfo = &pfwinfo->rpt_fbtc_mregval.cinfo;
+ 		pfinfo = &pfwinfo->rpt_fbtc_mregval.finfo;
+ 		pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_mregval.finfo);
+-		pcinfo->req_fver = chip->fcxmreg_ver;
++		pcinfo->req_fver = ver->fcxmreg;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1105,7 +1106,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 		pcinfo = &pfwinfo->rpt_fbtc_gpio_dbg.cinfo;
+ 		pfinfo = &pfwinfo->rpt_fbtc_gpio_dbg.finfo;
+ 		pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_gpio_dbg.finfo);
+-		pcinfo->req_fver = chip->fcxgpiodbg_ver;
++		pcinfo->req_fver = ver->fcxgpiodbg;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1113,7 +1114,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 		pcinfo = &pfwinfo->rpt_fbtc_btver.cinfo;
+ 		pfinfo = &pfwinfo->rpt_fbtc_btver.finfo;
+ 		pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_btver.finfo);
+-		pcinfo->req_fver = chip->fcxbtver_ver;
++		pcinfo->req_fver = ver->fcxbtver;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1121,7 +1122,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 		pcinfo = &pfwinfo->rpt_fbtc_btscan.cinfo;
+ 		pfinfo = &pfwinfo->rpt_fbtc_btscan.finfo;
+ 		pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_btscan.finfo);
+-		pcinfo->req_fver = chip->fcxbtscan_ver;
++		pcinfo->req_fver = ver->fcxbtscan;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1129,7 +1130,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 		pcinfo = &pfwinfo->rpt_fbtc_btafh.cinfo;
+ 		pfinfo = &pfwinfo->rpt_fbtc_btafh.finfo;
+ 		pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_btafh.finfo);
+-		pcinfo->req_fver = chip->fcxbtafh_ver;
++		pcinfo->req_fver = ver->fcxbtafh;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1137,7 +1138,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 		pcinfo = &pfwinfo->rpt_fbtc_btdev.cinfo;
+ 		pfinfo = &pfwinfo->rpt_fbtc_btdev.finfo;
+ 		pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_btdev.finfo);
+-		pcinfo->req_fver = chip->fcxbtdevinfo_ver;
++		pcinfo->req_fver = ver->fcxbtdevinfo;
+ 		pcinfo->rx_len = rpt_len;
+ 		pcinfo->rx_cnt++;
+ 		break;
+@@ -1394,7 +1395,7 @@ static void _parse_btc_report(struct rtw
+ 			      struct rtw89_btc_btf_fwinfo *pfwinfo,
+ 			      u8 *pbuf, u32 buf_len)
+ {
+-	const struct rtw89_chip_info *chip = rtwdev->chip;
++	const struct rtw89_btc_ver *ver = rtwdev->btc.ver;
+ 	struct rtw89_btc_prpt *btc_prpt = NULL;
+ 	u32 index = 0, rpt_len = 0;
+ 
+@@ -1404,7 +1405,7 @@ static void _parse_btc_report(struct rtw
+ 
+ 	while (pbuf) {
+ 		btc_prpt = (struct rtw89_btc_prpt *)&pbuf[index];
+-		if (index + 2 >= chip->btc_fwinfo_buf)
++		if (index + 2 >= ver->info_buf)
+ 			break;
+ 		/* At least 3 bytes: type(1) & len(2) */
+ 		rpt_len = le16_to_cpu(btc_prpt->len);
+@@ -1424,6 +1425,7 @@ static void _append_tdma(struct rtw89_de
+ {
+ 	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	struct rtw89_btc *btc = &rtwdev->btc;
++	const struct rtw89_btc_ver *ver = btc->ver;
+ 	struct rtw89_btc_dm *dm = &btc->dm;
+ 	struct rtw89_btc_btf_tlv *tlv;
+ 	struct rtw89_btc_fbtc_tdma *v;
+@@ -1448,7 +1450,7 @@ static void _append_tdma(struct rtw89_de
+ 	} else {
+ 		tlv->len = sizeof(*v1);
+ 		v1 = (struct rtw89_btc_fbtc_tdma_v1 *)&tlv->val[0];
+-		v1->fver = chip->fcxtdma_ver;
++		v1->fver = ver->fcxtdma;
+ 		v1->tdma = dm->tdma;
+ 		btc->policy_len += BTC_TLV_HDR_LEN  + sizeof(*v1);
+ 	}
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -1438,7 +1438,7 @@ struct rtw89_btc_cx {
+ };
+ 
+ struct rtw89_btc_fbtc_tdma {
+-	u8 type; /* chip_info::fcxtdma_ver */
++	u8 type; /* btc_ver::fcxtdma */
+ 	u8 rxflctrl;
+ 	u8 txpause;
+ 	u8 wtgle_n;
+@@ -1449,7 +1449,7 @@ struct rtw89_btc_fbtc_tdma {
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_tdma_v1 {
+-	u8 fver; /* chip_info::fcxtdma_ver */
++	u8 fver; /* btc_ver::fcxtdma */
+ 	u8 rsvd;
+ 	__le16 rsvd1;
+ 	struct rtw89_btc_fbtc_tdma tdma;
+@@ -1474,7 +1474,7 @@ enum rtw89_btc_bt_sta_counter {
+ };
+ 
+ struct rtw89_btc_fbtc_rpt_ctrl {
+-	u16 fver; /* chip_info::fcxbtcrpt_ver */
++	u16 fver; /* btc_ver::fcxbtcrpt */
+ 	u16 rpt_cnt; /* tmr counters */
+ 	u32 wl_fw_coex_ver; /* match which driver's coex version */
+ 	u32 wl_fw_cx_offload;
+@@ -1607,7 +1607,7 @@ enum { /* STEP TYPE */
+ 
+ #define BTC_DBG_MAX1  32
+ struct rtw89_btc_fbtc_gpio_dbg {
+-	u8 fver; /* chip_info::fcxgpiodbg_ver */
++	u8 fver; /* btc_ver::fcxgpiodbg */
+ 	u8 rsvd;
+ 	u16 rsvd2;
+ 	u32 en_map; /* which debug signal (see btc_wl_gpio_debug) is enable */
+@@ -1616,7 +1616,7 @@ struct rtw89_btc_fbtc_gpio_dbg {
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_mreg_val {
+-	u8 fver; /* chip_info::fcxmreg_ver */
++	u8 fver; /* btc_ver::fcxmreg */
+ 	u8 reg_num;
+ 	__le16 rsvd;
+ 	__le32 mreg_val[CXMREG_MAX];
+@@ -1639,7 +1639,7 @@ struct rtw89_btc_fbtc_slot {
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_slots {
+-	u8 fver; /* chip_info::fcxslots_ver */
++	u8 fver; /* btc_ver::fcxslots */
+ 	u8 tbl_num;
+ 	__le16 rsvd;
+ 	__le32 update_map;
+@@ -1653,7 +1653,7 @@ struct rtw89_btc_fbtc_step {
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_steps {
+-	u8 fver; /* chip_info::fcxstep_ver */
++	u8 fver; /* btc_ver::fcxstep */
+ 	u8 rsvd;
+ 	__le16 cnt;
+ 	__le16 pos_old;
+@@ -1670,7 +1670,7 @@ struct rtw89_btc_fbtc_steps_v1 {
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_cysta { /* statistics for cycles */
+-	u8 fver; /* chip_info::fcxcysta_ver */
++	u8 fver; /* btc_ver::fcxcysta */
+ 	u8 rsvd;
+ 	__le16 cycles; /* total cycle number */
+ 	__le16 cycles_a2dp[CXT_FLCTRL_MAX];
+@@ -1750,7 +1750,7 @@ struct rtw89_btc_fbtc_cysta_v1 { /* stat
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_cynullsta { /* cycle null statistics */
+-	u8 fver; /* chip_info::fcxnullsta_ver */
++	u8 fver; /* btc_ver::fcxnullsta */
+ 	u8 rsvd;
+ 	__le16 rsvd2;
+ 	__le32 max_t[2]; /* max_t for 0:null0/1:null1 */
+@@ -1759,7 +1759,7 @@ struct rtw89_btc_fbtc_cynullsta { /* cyc
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_cynullsta_v1 { /* cycle null statistics */
+-	u8 fver; /* chip_info::fcxnullsta_ver */
++	u8 fver; /* btc_ver::fcxnullsta */
+ 	u8 rsvd;
+ 	__le16 rsvd2;
+ 	__le32 max_t[2]; /* max_t for 0:null0/1:null1 */
+@@ -1768,7 +1768,7 @@ struct rtw89_btc_fbtc_cynullsta_v1 { /*
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_btver {
+-	u8 fver; /* chip_info::fcxbtver_ver */
++	u8 fver; /* btc_ver::fcxbtver */
+ 	u8 rsvd;
+ 	__le16 rsvd2;
+ 	__le32 coex_ver; /*bit[15:8]->shared, bit[7:0]->non-shared */
+@@ -1777,14 +1777,14 @@ struct rtw89_btc_fbtc_btver {
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_btscan {
+-	u8 fver; /* chip_info::fcxbtscan_ver */
++	u8 fver; /* btc_ver::fcxbtscan */
+ 	u8 rsvd;
+ 	__le16 rsvd2;
+ 	u8 scan[6];
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_btafh {
+-	u8 fver; /* chip_info::fcxbtafh_ver */
++	u8 fver; /* btc_ver::fcxbtafh */
+ 	u8 rsvd;
+ 	__le16 rsvd2;
+ 	u8 afh_l[4]; /*bit0:2402, bit1: 2403.... bit31:2433 */
+@@ -1793,7 +1793,7 @@ struct rtw89_btc_fbtc_btafh {
+ } __packed;
+ 
+ struct rtw89_btc_fbtc_btdevinfo {
+-	u8 fver; /* chip_info::fcxbtdevinfo_ver */
++	u8 fver; /* btc_ver::fcxbtdevinfo */
+ 	u8 rsvd;
+ 	__le16 vendor_id;
+ 	__le32 dev_name; /* only 24 bits valid */
+@@ -2756,20 +2756,6 @@ struct rtw89_chip_info {
+ 	u8 btcx_desired;
+ 	u8 scbd;
+ 	u8 mailbox;
+-	u16 btc_fwinfo_buf;
+-
+-	u8 fcxbtcrpt_ver;
+-	u8 fcxtdma_ver;
+-	u8 fcxslots_ver;
+-	u8 fcxcysta_ver;
+-	u8 fcxstep_ver;
+-	u8 fcxnullsta_ver;
+-	u8 fcxmreg_ver;
+-	u8 fcxgpiodbg_ver;
+-	u8 fcxbtver_ver;
+-	u8 fcxbtscan_ver;
+-	u8 fcxbtafh_ver;
+-	u8 fcxbtdevinfo_ver;
+ 
+ 	u8 afh_guard_ch;
+ 	const u8 *wl_rssi_thres;
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -2106,20 +2106,6 @@ const struct rtw89_chip_info rtw8852a_ch
+ 	.btcx_desired		= 0x7,
+ 	.scbd			= 0x1,
+ 	.mailbox		= 0x1,
+-	.btc_fwinfo_buf		= 1024,
+-
+-	.fcxbtcrpt_ver		= 1,
+-	.fcxtdma_ver		= 1,
+-	.fcxslots_ver		= 1,
+-	.fcxcysta_ver		= 2,
+-	.fcxstep_ver		= 2,
+-	.fcxnullsta_ver		= 1,
+-	.fcxmreg_ver		= 1,
+-	.fcxgpiodbg_ver		= 1,
+-	.fcxbtver_ver		= 1,
+-	.fcxbtscan_ver		= 1,
+-	.fcxbtafh_ver		= 1,
+-	.fcxbtdevinfo_ver	= 1,
+ 
+ 	.afh_guard_ch		= 6,
+ 	.wl_rssi_thres		= rtw89_btc_8852a_wl_rssi_thres,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2483,20 +2483,7 @@ const struct rtw89_chip_info rtw8852b_ch
+ 	.btcx_desired		= 0x5,
+ 	.scbd			= 0x1,
+ 	.mailbox		= 0x1,
+-	.btc_fwinfo_buf		= 1024,
+ 
+-	.fcxbtcrpt_ver		= 1,
+-	.fcxtdma_ver		= 1,
+-	.fcxslots_ver		= 1,
+-	.fcxcysta_ver		= 2,
+-	.fcxstep_ver		= 2,
+-	.fcxnullsta_ver		= 1,
+-	.fcxmreg_ver		= 1,
+-	.fcxgpiodbg_ver		= 1,
+-	.fcxbtver_ver		= 1,
+-	.fcxbtscan_ver		= 1,
+-	.fcxbtafh_ver		= 1,
+-	.fcxbtdevinfo_ver	= 1,
+ 	.afh_guard_ch		= 6,
+ 	.wl_rssi_thres		= rtw89_btc_8852b_wl_rssi_thres,
+ 	.bt_rssi_thres		= rtw89_btc_8852b_bt_rssi_thres,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2915,20 +2915,6 @@ const struct rtw89_chip_info rtw8852c_ch
+ 	.btcx_desired		= 0x7,
+ 	.scbd			= 0x1,
+ 	.mailbox		= 0x1,
+-	.btc_fwinfo_buf		= 1280,
+-
+-	.fcxbtcrpt_ver		= 4,
+-	.fcxtdma_ver		= 3,
+-	.fcxslots_ver		= 1,
+-	.fcxcysta_ver		= 3,
+-	.fcxstep_ver		= 3,
+-	.fcxnullsta_ver		= 2,
+-	.fcxmreg_ver		= 1,
+-	.fcxgpiodbg_ver		= 1,
+-	.fcxbtver_ver		= 1,
+-	.fcxbtscan_ver		= 1,
+-	.fcxbtafh_ver		= 1,
+-	.fcxbtdevinfo_ver	= 1,
+ 
+ 	.afh_guard_ch		= 6,
+ 	.wl_rssi_thres		= rtw89_btc_8852c_wl_rssi_thres,

@@ -1,0 +1,72 @@
+From 76f478a34dafcee28165022b2f73d0ee1f0f47e5 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Thu, 19 Jan 2023 14:24:53 +0800
+Subject: [PATCH 131/149] wifi: rtw89: mac: add function to get TSF
+
+Add mac function rtw89_mac_port_get_tsf() to get TSF by port.
+It will be used when MCC (multi-channel concurrency) calculates
+timing things.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230119062453.58341-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/mac.c | 18 ++++++++++++++++++
+ drivers/net/wireless/realtek/rtw89/mac.h | 11 +++++++++++
+ 2 files changed, 29 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -4061,6 +4061,24 @@ int rtw89_mac_port_update(struct rtw89_d
+ 	return 0;
+ }
+ 
++int rtw89_mac_port_get_tsf(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif,
++			   u64 *tsf)
++{
++	const struct rtw89_port_reg *p = &rtw_port_base;
++	u32 tsf_low, tsf_high;
++	int ret;
++
++	ret = rtw89_mac_check_mac_en(rtwdev, rtwvif->mac_idx, RTW89_CMAC_SEL);
++	if (ret)
++		return ret;
++
++	tsf_low = rtw89_read32_port(rtwdev, rtwvif, p->tsftr_l);
++	tsf_high = rtw89_read32_port(rtwdev, rtwvif, p->tsftr_h);
++	*tsf = (u64)tsf_high << 32 | tsf_low;
++
++	return 0;
++}
++
+ static void rtw89_mac_check_he_obss_narrow_bw_ru_iter(struct wiphy *wiphy,
+ 						      struct cfg80211_bss *bss,
+ 						      void *data)
+--- a/drivers/net/wireless/realtek/rtw89/mac.h
++++ b/drivers/net/wireless/realtek/rtw89/mac.h
+@@ -828,6 +828,15 @@ static inline u32 rtw89_mac_reg_by_port(
+ }
+ 
+ static inline u32
++rtw89_read32_port(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif, u32 base)
++{
++	u32 reg;
++
++	reg = rtw89_mac_reg_by_port(base, rtwvif->port, rtwvif->mac_idx);
++	return rtw89_read32(rtwdev, reg);
++}
++
++static inline u32
+ rtw89_read32_port_mask(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif,
+ 		       u32 base, u32 mask)
+ {
+@@ -910,6 +919,8 @@ void rtw89_mac_port_tsf_sync(struct rtw8
+ 			     struct rtw89_vif *rtwvif,
+ 			     struct rtw89_vif *rtwvif_src,
+ 			     u16 offset_tu);
++int rtw89_mac_port_get_tsf(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif,
++			   u64 *tsf);
+ void rtw89_mac_set_he_obss_narrow_bw_ru(struct rtw89_dev *rtwdev,
+ 					struct ieee80211_vif *vif);
+ void rtw89_mac_stop_ap(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif);

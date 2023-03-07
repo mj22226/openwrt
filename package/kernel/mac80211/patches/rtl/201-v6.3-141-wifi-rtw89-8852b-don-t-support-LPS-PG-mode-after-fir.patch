@@ -1,0 +1,68 @@
+From e5624482ba3e98f0c34fc72bca509c6017266253 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Mon, 23 Jan 2023 14:54:00 +0800
+Subject: [PATCH 141/149] wifi: rtw89: 8852b: don't support LPS-PG mode after
+ firmware 0.29.26.0
+
+Due to firmware size limit of 8852b, LPS-PG mode isn't supported after
+0.29.26.0, and then we have more space to support other features, such as
+P2P-PS, hardware scan and so on.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230123065401.14174-6-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 6 ++++--
+ drivers/net/wireless/realtek/rtw89/core.h | 1 +
+ drivers/net/wireless/realtek/rtw89/fw.c   | 1 +
+ 3 files changed, 6 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -1764,7 +1764,8 @@ static enum rtw89_ps_mode rtw89_update_p
+ 	    RTW89_CHK_FW_FEATURE(NO_DEEP_PS, &rtwdev->fw))
+ 		return RTW89_PS_MODE_NONE;
+ 
+-	if (chip->ps_mode_supported & BIT(RTW89_PS_MODE_PWR_GATED))
++	if ((chip->ps_mode_supported & BIT(RTW89_PS_MODE_PWR_GATED)) &&
++	    !RTW89_CHK_FW_FEATURE(NO_LPS_PG, &rtwdev->fw))
+ 		return RTW89_PS_MODE_PWR_GATED;
+ 
+ 	if (chip->ps_mode_supported & BIT(RTW89_PS_MODE_CLK_GATED))
+@@ -3160,7 +3161,6 @@ int rtw89_core_init(struct rtw89_dev *rt
+ 	rtw89_core_ppdu_sts_init(rtwdev);
+ 	rtw89_traffic_stats_init(rtwdev, &rtwdev->stats);
+ 
+-	rtwdev->ps_mode = rtw89_update_ps_mode(rtwdev);
+ 	rtwdev->hal.rx_fltr = DEFAULT_AX_RX_FLTR;
+ 
+ 	INIT_WORK(&btc->eapol_notify_work, rtw89_btc_ntfy_eapol_packet_work);
+@@ -3316,6 +3316,8 @@ int rtw89_chip_info_setup(struct rtw89_d
+ 	if (ret)
+ 		return ret;
+ 
++	rtwdev->ps_mode = rtw89_update_ps_mode(rtwdev);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL(rtw89_chip_info_setup);
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3023,6 +3023,7 @@ enum rtw89_fw_feature {
+ 	RTW89_FW_FEATURE_CRASH_TRIGGER,
+ 	RTW89_FW_FEATURE_PACKET_DROP,
+ 	RTW89_FW_FEATURE_NO_DEEP_PS,
++	RTW89_FW_FEATURE_NO_LPS_PG,
+ };
+ 
+ struct rtw89_fw_suit {
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -255,6 +255,7 @@ static const struct __fw_feat_cfg fw_fea
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 35, 0, TX_WAKE),
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 36, 0, CRASH_TRIGGER),
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 38, 0, PACKET_DROP),
++	__CFG_FW_FEAT(RTL8852B, ge, 0, 29, 26, 0, NO_LPS_PG),
+ 	__CFG_FW_FEAT(RTL8852C, ge, 0, 27, 20, 0, PACKET_DROP),
+ 	__CFG_FW_FEAT(RTL8852C, le, 0, 27, 33, 0, NO_DEEP_PS),
+ 	__CFG_FW_FEAT(RTL8852C, ge, 0, 27, 34, 0, TX_WAKE),

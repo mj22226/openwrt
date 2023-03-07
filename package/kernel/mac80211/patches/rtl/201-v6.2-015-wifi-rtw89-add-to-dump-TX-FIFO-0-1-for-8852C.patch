@@ -1,0 +1,88 @@
+From 732dd91db3d3a1b7a767598549ffed358c9fbb89 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 30 Sep 2022 21:44:17 +0800
+Subject: [PATCH 015/149] wifi: rtw89: add to dump TX FIFO 0/1 for 8852C
+
+MAC maintains TX FIFO to transmit packets with meta data to BB layer. To
+debug abnormal transmission, we need to dump the content to dig problem.
+Since FIFO of 8852C locates on different address with different size and
+need additional switch to enable read operation, this patch adds the
+changes accordingly.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20220930134417.10282-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/debug.c | 21 +++++++++++++++++++++
+ drivers/net/wireless/realtek/rtw89/mac.c   |  2 ++
+ drivers/net/wireless/realtek/rtw89/mac.h   |  4 ++++
+ 3 files changed, 27 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/debug.c
++++ b/drivers/net/wireless/realtek/rtw89/debug.c
+@@ -774,13 +774,34 @@ rtw89_debug_priv_mac_mem_dump_get(struct
+ {
+ 	struct rtw89_debugfs_priv *debugfs_priv = m->private;
+ 	struct rtw89_dev *rtwdev = debugfs_priv->rtwdev;
++	bool grant_read = false;
++
++	if (debugfs_priv->mac_mem.sel >= RTW89_MAC_MEM_NUM)
++		return -ENOENT;
++
++	if (rtwdev->chip->chip_id == RTL8852C) {
++		switch (debugfs_priv->mac_mem.sel) {
++		case RTW89_MAC_MEM_TXD_FIFO_0_V1:
++		case RTW89_MAC_MEM_TXD_FIFO_1_V1:
++		case RTW89_MAC_MEM_TXDATA_FIFO_0:
++		case RTW89_MAC_MEM_TXDATA_FIFO_1:
++			grant_read = true;
++			break;
++		default:
++			break;
++		}
++	}
+ 
+ 	mutex_lock(&rtwdev->mutex);
+ 	rtw89_leave_ps_mode(rtwdev);
++	if (grant_read)
++		rtw89_write32_set(rtwdev, R_AX_TCR1, B_AX_TCR_FORCE_READ_TXDFIFO);
+ 	rtw89_debug_dump_mac_mem(m, rtwdev,
+ 				 debugfs_priv->mac_mem.sel,
+ 				 debugfs_priv->mac_mem.start,
+ 				 debugfs_priv->mac_mem.len);
++	if (grant_read)
++		rtw89_write32_clr(rtwdev, R_AX_TCR1, B_AX_TCR_FORCE_READ_TXDFIFO);
+ 	mutex_unlock(&rtwdev->mutex);
+ 
+ 	return 0;
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -31,6 +31,8 @@ const u32 rtw89_mac_mem_base_addrs[RTW89
+ 	[RTW89_MAC_MEM_TXDATA_FIFO_1]	= TXDATA_FIFO_1_BASE_ADDR,
+ 	[RTW89_MAC_MEM_CPU_LOCAL]	= CPU_LOCAL_BASE_ADDR,
+ 	[RTW89_MAC_MEM_BSSID_CAM]	= BSSID_CAM_BASE_ADDR,
++	[RTW89_MAC_MEM_TXD_FIFO_0_V1]	= TXD_FIFO_0_BASE_ADDR_V1,
++	[RTW89_MAC_MEM_TXD_FIFO_1_V1]	= TXD_FIFO_1_BASE_ADDR_V1,
+ };
+ 
+ static void rtw89_mac_mem_write(struct rtw89_dev *rtwdev, u32 offset,
+--- a/drivers/net/wireless/realtek/rtw89/mac.h
++++ b/drivers/net/wireless/realtek/rtw89/mac.h
+@@ -245,6 +245,8 @@ enum rtw89_mac_dbg_port_sel {
+ #define	BCN_IE_CAM1_BASE_ADDR		0x188A0000
+ #define	TXD_FIFO_0_BASE_ADDR		0x18856200
+ #define	TXD_FIFO_1_BASE_ADDR		0x188A1080
++#define	TXD_FIFO_0_BASE_ADDR_V1		0x18856400 /* for 8852C */
++#define	TXD_FIFO_1_BASE_ADDR_V1		0x188A1080 /* for 8852C */
+ #define	TXDATA_FIFO_0_BASE_ADDR		0x18856000
+ #define	TXDATA_FIFO_1_BASE_ADDR		0x188A1000
+ #define	CPU_LOCAL_BASE_ADDR		0x18003000
+@@ -271,6 +273,8 @@ enum rtw89_mac_mem_sel {
+ 	RTW89_MAC_MEM_TXDATA_FIFO_1,
+ 	RTW89_MAC_MEM_CPU_LOCAL,
+ 	RTW89_MAC_MEM_BSSID_CAM,
++	RTW89_MAC_MEM_TXD_FIFO_0_V1,
++	RTW89_MAC_MEM_TXD_FIFO_1_V1,
+ 
+ 	/* keep last */
+ 	RTW89_MAC_MEM_NUM,

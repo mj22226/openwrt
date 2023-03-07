@@ -1,0 +1,28 @@
+From 46245bc42aff5e67b0498fa365a4baeaaaaeda86 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Fri, 21 Oct 2022 17:18:28 +0800
+Subject: [PATCH 048/149] wifi: rtw89: check if sta's mac_id is valid under
+ AP/TDLS
+
+Add boundary check of mac_id when adding sta under AP/TDLS.
+And, return -ENOSPC if the acquired mac_id is invalid.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221021091828.40157-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -2413,6 +2413,8 @@ int rtw89_core_sta_add(struct rtw89_dev
+ 	} else if (vif->type == NL80211_IFTYPE_AP || sta->tdls) {
+ 		rtwsta->mac_id = rtw89_core_acquire_bit_map(rtwdev->mac_id_map,
+ 							    RTW89_MAX_MAC_ID_NUM);
++		if (rtwsta->mac_id == RTW89_MAX_MAC_ID_NUM)
++			return -ENOSPC;
+ 	}
+ 
+ 	return 0;

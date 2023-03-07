@@ -1,0 +1,54 @@
+From 901c247f9687b5aecc950a931a3b0e1930d02bfd Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Tue, 8 Nov 2022 09:42:30 +0800
+Subject: [PATCH 060/149] wifi: rtw89: 8852b: change debug mask of message of
+ no TX resource
+
+8852B has smaller TX FIFO than others in WiFi chip, so it would be buffer
+full frequently, but it doesn't affect TX performance. However, it shows
+verbose debug messages with RTW89_DBG_UNEXP mask that is used to indicate
+abnormal behavior, so change debug mask to RTW89_DBG_TXRX for 8852B.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221108014230.11068-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/pci.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/pci.c
++++ b/drivers/net/wireless/realtek/rtw89/pci.c
+@@ -971,8 +971,10 @@ static u32 __rtw89_pci_check_and_reclaim
+ 	struct rtw89_pci *rtwpci = (struct rtw89_pci *)rtwdev->priv;
+ 	struct rtw89_pci_tx_ring *tx_ring = &rtwpci->tx_rings[txch];
+ 	struct rtw89_pci_tx_wd_ring *wd_ring = &tx_ring->wd_ring;
++	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	u32 bd_cnt, wd_cnt, min_cnt = 0;
+ 	struct rtw89_pci_rx_ring *rx_ring;
++	enum rtw89_debug_mask debug_mask;
+ 	u32 cnt;
+ 
+ 	rx_ring = &rtwpci->rx_rings[RTW89_RXCH_RPQ];
+@@ -996,10 +998,20 @@ static u32 __rtw89_pci_check_and_reclaim
+ 	bd_cnt = rtw89_pci_get_avail_txbd_num(tx_ring);
+ 	wd_cnt = wd_ring->curr_num;
+ 	min_cnt = min(bd_cnt, wd_cnt);
+-	if (min_cnt == 0)
+-		rtw89_debug(rtwdev, rtwpci->low_power ? RTW89_DBG_TXRX : RTW89_DBG_UNEXP,
++	if (min_cnt == 0) {
++		/* This message can be frequently shown in low power mode or
++		 * high traffic with 8852B, and we have recognized it as normal
++		 * behavior, so print with mask RTW89_DBG_TXRX in these situations.
++		 */
++		if (rtwpci->low_power || chip->chip_id == RTL8852B)
++			debug_mask = RTW89_DBG_TXRX;
++		else
++			debug_mask = RTW89_DBG_UNEXP;
++
++		rtw89_debug(rtwdev, debug_mask,
+ 			    "still no tx resource after reclaim: wd_cnt=%d bd_cnt=%d\n",
+ 			    wd_cnt, bd_cnt);
++	}
+ 
+ out_unlock:
+ 	spin_unlock_bh(&rtwpci->trx_lock);

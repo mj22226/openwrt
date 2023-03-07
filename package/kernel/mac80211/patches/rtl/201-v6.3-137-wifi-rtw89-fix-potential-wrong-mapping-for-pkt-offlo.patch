@@ -1,0 +1,68 @@
+From b8e8ff842b1bfe7602409fc71ee812db871ccce6 Mon Sep 17 00:00:00 2001
+From: Chin-Yen Lee <timlee@realtek.com>
+Date: Mon, 23 Jan 2023 14:53:56 +0800
+Subject: [PATCH 137/149] wifi: rtw89: fix potential wrong mapping for
+ pkt-offload
+
+When driver fails to send H2C to firmware for pkt-offload, we should not
+update the pkt_list of driver, and need to release allocated pkt index to
+avoid wrong mapping between driver and firmware.
+
+Signed-off-by: Chin-Yen Lee <timlee@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230123065401.14174-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -948,13 +948,13 @@ static int rtw89_fw_h2c_add_wow_fw_ofld(
+ 	if (!skb)
+ 		goto err;
+ 
+-	list_add_tail(&info->list, &rtw_wow->pkt_list);
+ 	ret = rtw89_fw_h2c_add_pkt_offload(rtwdev, &info->id, skb);
+ 	kfree_skb(skb);
+ 
+ 	if (ret)
+-		return ret;
++		goto err;
+ 
++	list_add_tail(&info->list, &rtw_wow->pkt_list);
+ 	*id = info->id;
+ 	return 0;
+ 
+@@ -2133,6 +2133,7 @@ int rtw89_fw_h2c_add_pkt_offload(struct
+ 	skb = rtw89_fw_h2c_alloc_skb_with_hdr(rtwdev, H2C_LEN_PKT_OFLD + skb_ofld->len);
+ 	if (!skb) {
+ 		rtw89_err(rtwdev, "failed to alloc skb for h2c pkt offload\n");
++		rtw89_core_release_bit_map(rtwdev->pkt_offload, alloc_id);
+ 		return -ENOMEM;
+ 	}
+ 	skb_put(skb, H2C_LEN_PKT_OFLD);
+@@ -2151,6 +2152,7 @@ int rtw89_fw_h2c_add_pkt_offload(struct
+ 	ret = rtw89_h2c_tx(rtwdev, skb, false);
+ 	if (ret) {
+ 		rtw89_err(rtwdev, "failed to send h2c\n");
++		rtw89_core_release_bit_map(rtwdev->pkt_offload, alloc_id);
+ 		goto fail;
+ 	}
+ 
+@@ -2684,13 +2686,14 @@ static int rtw89_append_probe_req_ie(str
+ 			goto out;
+ 		}
+ 
+-		list_add_tail(&info->list, &scan_info->pkt_list[band]);
+ 		ret = rtw89_fw_h2c_add_pkt_offload(rtwdev, &info->id, new);
+ 		if (ret) {
+ 			kfree_skb(new);
++			kfree(info);
+ 			goto out;
+ 		}
+ 
++		list_add_tail(&info->list, &scan_info->pkt_list[band]);
+ 		kfree_skb(new);
+ 	}
+ out:

@@ -1,0 +1,30 @@
+From 95dafeabe477d9692154e85140eda5124895ea4f Mon Sep 17 00:00:00 2001
+From: Kuan-Chung Chen <damon.chen@realtek.com>
+Date: Fri, 6 Jan 2023 20:15:16 +0800
+Subject: [PATCH 115/149] wifi: rtw89: fix null vif pointer when get management
+ frame date rate
+
+When transmitting a packet that gets from ieee80211_nullfunc_get(),
+the vif in tx_info->control was no assigned, which will cause
+dereferencing a null pointer.
+
+Signed-off-by: Kuan-Chung Chen <damon.chen@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230106121517.19841-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -498,7 +498,8 @@ static u16 rtw89_core_get_mgmt_rate(stru
+ 	const struct rtw89_chan *chan = rtw89_chan_get(rtwdev, RTW89_SUB_ENTITY_0);
+ 	u16 lowest_rate;
+ 
+-	if (tx_info->flags & IEEE80211_TX_CTL_NO_CCK_RATE || vif->p2p)
++	if (tx_info->flags & IEEE80211_TX_CTL_NO_CCK_RATE ||
++	    (vif && vif->p2p))
+ 		lowest_rate = RTW89_HW_RATE_OFDM6;
+ 	else if (chan->band_type == RTW89_BAND_2G)
+ 		lowest_rate = RTW89_HW_RATE_CCK1;

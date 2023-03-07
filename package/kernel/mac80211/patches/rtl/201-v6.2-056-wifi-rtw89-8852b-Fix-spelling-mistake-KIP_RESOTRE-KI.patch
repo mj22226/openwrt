@@ -1,0 +1,27 @@
+From 8fa681703175ba0ea283dd564a64edaef3472ee6 Mon Sep 17 00:00:00 2001
+From: Colin Ian King <colin.i.king@gmail.com>
+Date: Thu, 20 Oct 2022 08:26:46 +0100
+Subject: [PATCH 056/149] wifi: rtw89: 8852b: Fix spelling mistake KIP_RESOTRE
+ -> KIP_RESTORE
+
+Ther is a spelling mistake in a rtw89_debug message. Fix it.
+
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Acked-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221020072646.1513307-1-colin.i.king@gmail.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8852b_rfk.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b_rfk.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b_rfk.c
+@@ -1754,7 +1754,7 @@ static void _dpk_one_shot(struct rtw89_d
+ 		    id == 0x14 ? "PWR_CAL" :
+ 		    id == 0x15 ? "DPK_RXAGC" :
+ 		    id == 0x16 ? "KIP_PRESET" :
+-		    id == 0x17 ? "KIP_RESOTRE" : "DPK_TXAGC",
++		    id == 0x17 ? "KIP_RESTORE" : "DPK_TXAGC",
+ 		    dpk_cmd);
+ }
+ 

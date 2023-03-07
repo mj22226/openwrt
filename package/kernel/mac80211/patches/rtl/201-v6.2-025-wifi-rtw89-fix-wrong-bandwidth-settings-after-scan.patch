@@ -1,0 +1,27 @@
+From 478132050360a5cf19cc1b3fc9fcf1e56a483481 Mon Sep 17 00:00:00 2001
+From: Po-Hao Huang <phhuang@realtek.com>
+Date: Fri, 7 Oct 2022 12:59:00 +0800
+Subject: [PATCH 025/149] wifi: rtw89: fix wrong bandwidth settings after scan
+
+Set channel in driver side to configure Tx power and channel index
+correctly after scan. Before this, beacons with bandwidth larger than
+20M bandwidth will be dropped by mac80211 due to frequency mismatch.
+
+Signed-off-by: Po-Hao Huang <phhuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221007045900.10823-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -2773,6 +2773,7 @@ void rtw89_hw_scan_complete(struct rtw89
+ 
+ 	if (rtwvif->net_type != RTW89_NET_TYPE_NO_LINK)
+ 		rtw89_store_op_chan(rtwdev, false);
++	rtw89_set_channel(rtwdev);
+ }
+ 
+ void rtw89_hw_scan_abort(struct rtw89_dev *rtwdev, struct ieee80211_vif *vif)

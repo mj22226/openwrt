@@ -1,0 +1,53 @@
+From a215b2b7055f02d8f7666f457d442e77097bb604 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 25 Nov 2022 15:24:16 +0800
+Subject: [PATCH 070/149] wifi: rtw89: 8852b: turn off PoP function in monitor
+ mode
+
+PoP stands for Packet on Packet that can improve performance in noisy
+environment, but it could get RX stuck suddenly. In normal mode, firmware
+can help to resolve the stuck, but firmware doesn't work in monitor mode.
+Therefore, turn off PoP to avoid RX stuck.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221125072416.94752-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/reg.h      | 2 ++
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 7 +++++++
+ 2 files changed, 9 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/reg.h
++++ b/drivers/net/wireless/realtek/rtw89/reg.h
+@@ -4236,6 +4236,8 @@
+ #define R_P1_NBIIDX 0x4770
+ #define B_P1_NBIIDX_VAL GENMASK(11, 0)
+ #define B_P1_NBIIDX_NOTCH_EN BIT(12)
++#define R_PKT_CTRL 0x47D4
++#define B_PKT_POP_EN BIT(8)
+ #define R_SEG0R_PD 0x481C
+ #define R_SEG0R_PD_V1 0x4860
+ #define B_SEG0R_PD_SPATIAL_REUSE_EN_MSK_V1 BIT(30)
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -1411,6 +1411,12 @@ static void rtw8852b_bb_sethw(struct rtw
+ 		rtw89_phy_read32_mask(rtwdev, R_P1_RPL1, B_P0_RPL1_BIAS_MASK);
+ }
+ 
++static void rtw8852b_bb_set_pop(struct rtw89_dev *rtwdev)
++{
++	if (rtwdev->hw->conf.flags & IEEE80211_CONF_MONITOR)
++		rtw89_phy_write32_clr(rtwdev, R_PKT_CTRL, B_PKT_POP_EN);
++}
++
+ static void rtw8852b_set_channel_bb(struct rtw89_dev *rtwdev, const struct rtw89_chan *chan,
+ 				    enum rtw89_phy_idx phy_idx)
+ {
+@@ -1441,6 +1447,7 @@ static void rtw8852b_set_channel_bb(stru
+ 	rtw89_phy_write32_mask(rtwdev, R_MAC_PIN_SEL, B_CH_IDX_SEG0,
+ 			       chan->primary_channel);
+ 	rtw8852b_5m_mask(rtwdev, chan, phy_idx);
++	rtw8852b_bb_set_pop(rtwdev);
+ 	rtw8852b_bb_reset_all(rtwdev, phy_idx);
+ }
+ 

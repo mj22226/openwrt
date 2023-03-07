@@ -1,0 +1,64 @@
+From d881d0a13c3843d213da23cde99bb73f27e53d1e Mon Sep 17 00:00:00 2001
+From: Kuan-Chung Chen <damon.chen@realtek.com>
+Date: Thu, 19 Jan 2023 14:46:31 +0800
+Subject: [PATCH 136/149] wifi: rtw89: disallow enter PS mode after create TDLS
+ link
+
+Buffer STA on TDLS links are not currently supported. Therefore, it
+is not allowed to enter the PS mode after TDLS link is established.
+
+Signed-off-by: Kuan-Chung Chen <damon.chen@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230119064631.66971-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 10 ++++++++--
+ drivers/net/wireless/realtek/rtw89/core.h |  1 +
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -2206,8 +2206,9 @@ static bool rtw89_traffic_stats_track(st
+ 
+ static void rtw89_vif_enter_lps(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif)
+ {
+-	if (rtwvif->wifi_role != RTW89_WIFI_ROLE_STATION &&
+-	    rtwvif->wifi_role != RTW89_WIFI_ROLE_P2P_CLIENT)
++	if ((rtwvif->wifi_role != RTW89_WIFI_ROLE_STATION &&
++	     rtwvif->wifi_role != RTW89_WIFI_ROLE_P2P_CLIENT) ||
++	    rtwvif->tdls_peer)
+ 		return;
+ 
+ 	if (rtwvif->stats.tx_tfc_lv == RTW89_TFC_IDLE &&
+@@ -2466,9 +2467,12 @@ int rtw89_core_sta_disassoc(struct rtw89
+ 			    struct ieee80211_vif *vif,
+ 			    struct ieee80211_sta *sta)
+ {
++	struct rtw89_vif *rtwvif = (struct rtw89_vif *)vif->drv_priv;
+ 	struct rtw89_sta *rtwsta = (struct rtw89_sta *)sta->drv_priv;
+ 
+ 	rtwdev->total_sta_assoc--;
++	if (sta->tdls)
++		rtwvif->tdls_peer--;
+ 	rtwsta->disassoc = true;
+ 
+ 	return 0;
+@@ -2587,6 +2591,8 @@ int rtw89_core_sta_assoc(struct rtw89_de
+ 	}
+ 
+ 	rtwdev->total_sta_assoc++;
++	if (sta->tdls)
++		rtwvif->tdls_peer++;
+ 	rtw89_phy_ra_assoc(rtwdev, sta);
+ 	rtw89_mac_bf_assoc(rtwdev, vif, sta);
+ 	rtw89_mac_bf_monitor_calc(rtwdev, sta, false);
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -2452,6 +2452,7 @@ struct rtw89_vif {
+ 	bool last_a_ctrl;
+ 	bool dyn_tb_bedge_en;
+ 	u8 def_tri_idx;
++	u32 tdls_peer;
+ 	struct work_struct update_beacon_work;
+ 	struct rtw89_addr_cam_entry addr_cam;
+ 	struct rtw89_bssid_cam_entry bssid_cam;

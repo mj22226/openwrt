@@ -1,0 +1,108 @@
+From 4feda7f317cb7e4b6fcdaffb0d1ad363ee28fdea Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Thu, 20 Oct 2022 13:25:49 +0800
+Subject: [PATCH 044/149] wifi: rtw89: fw: adapt to new firmware format of
+ dynamic header
+
+Since firmware size is limited, we create variant firmwares for variant
+application areas. To help driver to know firmware's capabilities, firmware
+dynamic header is introduced to have more information, such as firmware
+features and firmware compile flags.
+
+Since this driver rtw89 only uses single one specific firmware at runtime,
+this patch is just to ignore this dynamic header, not actually use the
+content.
+
+This patch can be backward compatible, and no this kind of firmware is
+added to linux-firmware yet, so I can prepare this in advance.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221020052549.33783-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c | 22 +++++++++++++++++++---
+ drivers/net/wireless/realtek/rtw89/fw.h | 12 ++++++++++++
+ 2 files changed, 31 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -85,15 +85,31 @@ static int rtw89_fw_hdr_parser(struct rt
+ {
+ 	struct rtw89_fw_hdr_section_info *section_info;
+ 	const u8 *fw_end = fw + len;
++	const u8 *fwdynhdr;
+ 	const u8 *bin;
++	u32 base_hdr_len;
+ 	u32 i;
+ 
+ 	if (!info)
+ 		return -EINVAL;
+ 
+ 	info->section_num = GET_FW_HDR_SEC_NUM(fw);
+-	info->hdr_len = RTW89_FW_HDR_SIZE +
+-			info->section_num * RTW89_FW_SECTION_HDR_SIZE;
++	base_hdr_len = RTW89_FW_HDR_SIZE +
++		       info->section_num * RTW89_FW_SECTION_HDR_SIZE;
++	info->dynamic_hdr_en = GET_FW_HDR_DYN_HDR(fw);
++
++	if (info->dynamic_hdr_en) {
++		info->hdr_len = GET_FW_HDR_LEN(fw);
++		info->dynamic_hdr_len = info->hdr_len - base_hdr_len;
++		fwdynhdr = fw + base_hdr_len;
++		if (GET_FW_DYNHDR_LEN(fwdynhdr) != info->dynamic_hdr_len) {
++			rtw89_err(rtwdev, "[ERR]invalid fw dynamic header len\n");
++			return -EINVAL;
++		}
++	} else {
++		info->hdr_len = base_hdr_len;
++		info->dynamic_hdr_len = 0;
++	}
+ 
+ 	bin = fw + info->hdr_len;
+ 
+@@ -534,7 +550,7 @@ int rtw89_fw_download(struct rtw89_dev *
+ 		goto fwdl_err;
+ 	}
+ 
+-	ret = rtw89_fw_download_hdr(rtwdev, fw, info.hdr_len);
++	ret = rtw89_fw_download_hdr(rtwdev, fw, info.hdr_len - info.dynamic_hdr_len);
+ 	if (ret) {
+ 		ret = -EBUSY;
+ 		goto fwdl_err;
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -176,6 +176,8 @@ struct rtw89_fw_hdr_section_info {
+ struct rtw89_fw_bin_info {
+ 	u8 section_num;
+ 	u32 hdr_len;
++	bool dynamic_hdr_en;
++	u32 dynamic_hdr_len;
+ 	struct rtw89_fw_hdr_section_info section_info[FWDL_SECTION_MAX_NUM];
+ };
+ 
+@@ -495,6 +497,8 @@ static inline void RTW89_SET_EDCA_PARAM(
+ 	le32_get_bits(*((const __le32 *)(fwhdr) + 1), GENMASK(23, 16))
+ #define GET_FW_HDR_SUBINDEX(fwhdr)	\
+ 	le32_get_bits(*((const __le32 *)(fwhdr) + 1), GENMASK(31, 24))
++#define GET_FW_HDR_LEN(fwhdr)	\
++	le32_get_bits(*((const __le32 *)(fwhdr) + 3), GENMASK(23, 16))
+ #define GET_FW_HDR_MONTH(fwhdr)		\
+ 	le32_get_bits(*((const __le32 *)(fwhdr) + 4), GENMASK(7, 0))
+ #define GET_FW_HDR_DATE(fwhdr)		\
+@@ -507,8 +511,16 @@ static inline void RTW89_SET_EDCA_PARAM(
+ 	le32_get_bits(*((const __le32 *)(fwhdr) + 5), GENMASK(31, 0))
+ #define GET_FW_HDR_SEC_NUM(fwhdr)	\
+ 	le32_get_bits(*((const __le32 *)(fwhdr) + 6), GENMASK(15, 8))
++#define GET_FW_HDR_DYN_HDR(fwhdr)	\
++	le32_get_bits(*((const __le32 *)(fwhdr) + 7), BIT(16))
+ #define GET_FW_HDR_CMD_VERSERION(fwhdr)	\
+ 	le32_get_bits(*((const __le32 *)(fwhdr) + 7), GENMASK(31, 24))
++
++#define GET_FW_DYNHDR_LEN(fwdynhdr)	\
++	le32_get_bits(*((const __le32 *)(fwdynhdr)), GENMASK(31, 0))
++#define GET_FW_DYNHDR_COUNT(fwdynhdr)	\
++	le32_get_bits(*((const __le32 *)(fwdynhdr) + 1), GENMASK(31, 0))
++
+ static inline void SET_FW_HDR_PART_SIZE(void *fwhdr, u32 val)
+ {
+ 	le32p_replace_bits((__le32 *)fwhdr + 7, val, GENMASK(15, 0));

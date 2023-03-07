@@ -1,0 +1,140 @@
+From 38f25dec521edfa289fa0b829676927b13fede91 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Tue, 29 Nov 2022 16:31:25 +0800
+Subject: [PATCH 071/149] wifi: rtw89: rfk: rename rtw89_mcc_info to
+ rtw89_rfk_mcc_info
+
+The `rtw89_mcc_info mcc` is only for RFK MCC stuffs instead of common
+MCC management info. Replace it with `rtw89_rfk_mcc_info rfk_mcc` to
+avoid confusion and reserve `struct rtw89_mcc_info mcc` for MCC management
+code.
+
+(No logic changes.)
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221129083130.45708-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h     |  4 ++--
+ drivers/net/wireless/realtek/rtw89/fw.c       | 10 +++++-----
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c |  4 ++--
+ .../net/wireless/realtek/rtw89/rtw8852c_rfk.c | 20 +++++++++----------
+ 4 files changed, 19 insertions(+), 19 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3032,7 +3032,7 @@ struct rtw89_dack_info {
+ #define RTW89_IQK_CHS_NR 2
+ #define RTW89_IQK_PATH_NR 4
+ 
+-struct rtw89_mcc_info {
++struct rtw89_rfk_mcc_info {
+ 	u8 ch[RTW89_IQK_CHS_NR];
+ 	u8 band[RTW89_IQK_CHS_NR];
+ 	u8 table_idx;
+@@ -3578,7 +3578,7 @@ struct rtw89_dev {
+ 	struct rtw89_dack_info dack;
+ 	struct rtw89_iqk_info iqk;
+ 	struct rtw89_dpk_info dpk;
+-	struct rtw89_mcc_info mcc;
++	struct rtw89_rfk_mcc_info rfk_mcc;
+ 	struct rtw89_lck_info lck;
+ 	struct rtw89_rx_dck_info rx_dck;
+ 	bool is_tssi_mode[RF_PATH_MAX];
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -2263,7 +2263,7 @@ fail:
+ int rtw89_fw_h2c_rf_ntfy_mcc(struct rtw89_dev *rtwdev)
+ {
+ 	const struct rtw89_chan *chan = rtw89_chan_get(rtwdev, RTW89_SUB_ENTITY_0);
+-	struct rtw89_mcc_info *mcc_info = &rtwdev->mcc;
++	struct rtw89_rfk_mcc_info *rfk_mcc = &rtwdev->rfk_mcc;
+ 	struct rtw89_fw_h2c_rf_get_mccch *mccch;
+ 	struct sk_buff *skb;
+ 	int ret;
+@@ -2276,10 +2276,10 @@ int rtw89_fw_h2c_rf_ntfy_mcc(struct rtw8
+ 	skb_put(skb, sizeof(*mccch));
+ 	mccch = (struct rtw89_fw_h2c_rf_get_mccch *)skb->data;
+ 
+-	mccch->ch_0 = cpu_to_le32(mcc_info->ch[0]);
+-	mccch->ch_1 = cpu_to_le32(mcc_info->ch[1]);
+-	mccch->band_0 = cpu_to_le32(mcc_info->band[0]);
+-	mccch->band_1 = cpu_to_le32(mcc_info->band[1]);
++	mccch->ch_0 = cpu_to_le32(rfk_mcc->ch[0]);
++	mccch->ch_1 = cpu_to_le32(rfk_mcc->ch[1]);
++	mccch->band_0 = cpu_to_le32(rfk_mcc->band[0]);
++	mccch->band_1 = cpu_to_le32(rfk_mcc->band[1]);
+ 	mccch->current_channel = cpu_to_le32(chan->channel);
+ 	mccch->current_band_type = cpu_to_le32(chan->band_type);
+ 
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -1832,11 +1832,11 @@ static void rtw8852c_set_channel_help(st
+ 
+ static void rtw8852c_rfk_init(struct rtw89_dev *rtwdev)
+ {
+-	struct rtw89_mcc_info *mcc_info = &rtwdev->mcc;
++	struct rtw89_rfk_mcc_info *rfk_mcc = &rtwdev->rfk_mcc;
+ 
+ 	rtwdev->is_tssi_mode[RF_PATH_A] = false;
+ 	rtwdev->is_tssi_mode[RF_PATH_B] = false;
+-	memset(mcc_info, 0, sizeof(*mcc_info));
++	memset(rfk_mcc, 0, sizeof(*rfk_mcc));
+ 	rtw8852c_lck_init(rtwdev);
+ 
+ 	rtw8852c_rck(rtwdev);
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c_rfk.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c_rfk.c
+@@ -1030,9 +1030,9 @@ static bool _iqk_nbtxk(struct rtw89_dev
+ 
+ static bool _lok_finetune_check(struct rtw89_dev *rtwdev, u8 path)
+ {
+-	struct rtw89_mcc_info *mcc_info = &rtwdev->mcc;
++	struct rtw89_rfk_mcc_info *rfk_mcc = &rtwdev->rfk_mcc;
+ 	struct rtw89_iqk_info *iqk_info = &rtwdev->iqk;
+-	u8 idx = mcc_info->table_idx;
++	u8 idx = rfk_mcc->table_idx;
+ 	bool is_fail1,  is_fail2;
+ 	u32 val;
+ 	u32 core_i;
+@@ -1375,10 +1375,10 @@ static void _iqk_afebb_restore(struct rt
+ 
+ static void _iqk_preset(struct rtw89_dev *rtwdev, u8 path)
+ {
+-	struct rtw89_mcc_info *mcc_info = &rtwdev->mcc;
++	struct rtw89_rfk_mcc_info *rfk_mcc = &rtwdev->rfk_mcc;
+ 	u8 idx = 0;
+ 
+-	idx = mcc_info->table_idx;
++	idx = rfk_mcc->table_idx;
+ 	rtw89_phy_write32_mask(rtwdev, R_COEF_SEL + (path << 8), B_COEF_SEL_IQC, idx);
+ 	rtw89_phy_write32_mask(rtwdev, R_CFIR_LUT + (path << 8), B_CFIR_LUT_G3, idx);
+ 	rtw89_write_rf(rtwdev, path, RR_RSV1, RR_RSV1_RST, 0x0);
+@@ -3824,20 +3824,20 @@ void rtw8852c_set_channel_rf(struct rtw8
+ void rtw8852c_mcc_get_ch_info(struct rtw89_dev *rtwdev, enum rtw89_phy_idx phy_idx)
+ {
+ 	const struct rtw89_chan *chan = rtw89_chan_get(rtwdev, RTW89_SUB_ENTITY_0);
+-	struct rtw89_mcc_info *mcc_info = &rtwdev->mcc;
+-	u8 idx = mcc_info->table_idx;
++	struct rtw89_rfk_mcc_info *rfk_mcc = &rtwdev->rfk_mcc;
++	u8 idx = rfk_mcc->table_idx;
+ 	int i;
+ 
+ 	for (i = 0; i < RTW89_IQK_CHS_NR; i++) {
+-		if (mcc_info->ch[idx] == 0)
++		if (rfk_mcc->ch[idx] == 0)
+ 			break;
+ 		if (++idx >= RTW89_IQK_CHS_NR)
+ 			idx = 0;
+ 	}
+ 
+-	mcc_info->table_idx = idx;
+-	mcc_info->ch[idx] = chan->channel;
+-	mcc_info->band[idx] = chan->band_type;
++	rfk_mcc->table_idx = idx;
++	rfk_mcc->ch[idx] = chan->channel;
++	rfk_mcc->band[idx] = chan->band_type;
+ }
+ 
+ void rtw8852c_rck(struct rtw89_dev *rtwdev)

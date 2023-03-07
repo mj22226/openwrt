@@ -1,0 +1,31 @@
+From e69ae29e00cec66609bd555398aa4f59f2a9ae84 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Thu, 20 Oct 2022 13:27:02 +0800
+Subject: [PATCH 046/149] wifi: rtw89: 8852c: make table of RU mask constant
+
+This table must be constant, so change it as expectation.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221020052702.33988-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -1683,12 +1683,12 @@ static void rtw8852c_set_channel_bb(stru
+ 				    const struct rtw89_chan *chan,
+ 				    enum rtw89_phy_idx phy_idx)
+ {
++	static const u32 ru_alloc_msk[2] = {B_P80_AT_HIGH_FREQ_RU_ALLOC_PHY0,
++					    B_P80_AT_HIGH_FREQ_RU_ALLOC_PHY1};
+ 	struct rtw89_hal *hal = &rtwdev->hal;
+ 	bool cck_en = chan->band_type == RTW89_BAND_2G;
+ 	u8 pri_ch_idx = chan->pri_ch_idx;
+ 	u32 mask, reg;
+-	u32 ru_alloc_msk[2] = {B_P80_AT_HIGH_FREQ_RU_ALLOC_PHY0,
+-			       B_P80_AT_HIGH_FREQ_RU_ALLOC_PHY1};
+ 	u8 ntx_path;
+ 
+ 	if (chan->band_type == RTW89_BAND_2G)

@@ -1,0 +1,29 @@
+From a790cc3a4fad75048295571a350b95b87e022a5a Mon Sep 17 00:00:00 2001
+From: Alexander Wetzel <alexander@wetzel-home.de>
+Date: Sun, 9 Oct 2022 18:30:39 +0200
+Subject: [PATCH 016/149] wifi: mac80211: add wake_tx_queue callback to drivers
+
+mac80211 is fully switching over to the internal TX queue (iTXQ)
+implementation. Update all drivers not yet providing the now mandatory
+wake_tx_queue() callback.
+
+As an side effect the netdev interfaces of all updated drivers will
+switch to the noqueue qdisc.
+
+Signed-off-by: Alexander Wetzel <alexander@wetzel-home.de>
+[add staging drivers]
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+---
+ drivers/net/wireless/realtek/rtw89/mac80211.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac80211.c
++++ b/drivers/net/wireless/realtek/rtw89/mac80211.c
+@@ -918,6 +918,7 @@ static int rtw89_ops_set_tid_config(stru
+ 
+ const struct ieee80211_ops rtw89_ops = {
+ 	.tx			= rtw89_ops_tx,
++	.wake_tx_queue		= ieee80211_handle_wake_tx_queue,
+ 	.wake_tx_queue		= rtw89_ops_wake_tx_queue,
+ 	.start			= rtw89_ops_start,
+ 	.stop			= rtw89_ops_stop,

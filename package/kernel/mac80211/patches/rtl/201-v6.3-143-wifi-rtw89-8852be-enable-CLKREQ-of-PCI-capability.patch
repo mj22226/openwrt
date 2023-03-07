@@ -1,0 +1,26 @@
+From 3712888e3dba5df2b4f3fb3ba87e20bac6afc7c0 Mon Sep 17 00:00:00 2001
+From: Chin-Yen Lee <timlee@realtek.com>
+Date: Thu, 26 Jan 2023 19:27:15 +0800
+Subject: [PATCH 143/149] wifi: rtw89: 8852be: enable CLKREQ of PCI capability
+
+Enable CLKREQ to reduce power consumption for 8852BE.
+
+Signed-off-by: Chin-Yen Lee <timlee@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230126112715.5811-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/pci.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/pci.c
++++ b/drivers/net/wireless/realtek/rtw89/pci.c
+@@ -3398,7 +3398,7 @@ static void rtw89_pci_clkreq_set(struct
+ 	if (ret)
+ 		rtw89_err(rtwdev, "failed to set CLKREQ Delay\n");
+ 
+-	if (chip_id == RTL8852A) {
++	if (chip_id == RTL8852A || chip_id == RTL8852B) {
+ 		if (enable)
+ 			ret = rtw89_pci_config_byte_set(rtwdev,
+ 							RTW89_PCIE_L1_CTRL,

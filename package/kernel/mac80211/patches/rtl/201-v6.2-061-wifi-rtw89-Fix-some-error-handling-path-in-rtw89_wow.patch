@@ -1,0 +1,47 @@
+From 61ec34dee266f1cea092986d861a2cb136571199 Mon Sep 17 00:00:00 2001
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Date: Sun, 13 Nov 2022 16:42:21 +0100
+Subject: [PATCH 061/149] wifi: rtw89: Fix some error handling path in
+ rtw89_wow_enable()
+
+'ret' is not updated after several function calls in rtw89_wow_enable().
+This prevent error handling from working.
+
+Add the missing assignments.
+
+Fixes: 19e28c7fcc74 ("wifi: rtw89: add WoWLAN function support")
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Acked-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/32320176eeff1c635baeea25ef0e87d116859e65.1668354083.git.christophe.jaillet@wanadoo.fr
+---
+ drivers/net/wireless/realtek/rtw89/wow.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/wow.c
++++ b/drivers/net/wireless/realtek/rtw89/wow.c
+@@ -744,13 +744,13 @@ static int rtw89_wow_enable(struct rtw89
+ 		goto out;
+ 	}
+ 
+-	rtw89_wow_swap_fw(rtwdev, true);
++	ret = rtw89_wow_swap_fw(rtwdev, true);
+ 	if (ret) {
+ 		rtw89_err(rtwdev, "wow: failed to swap to wow fw\n");
+ 		goto out;
+ 	}
+ 
+-	rtw89_wow_fw_start(rtwdev);
++	ret = rtw89_wow_fw_start(rtwdev);
+ 	if (ret) {
+ 		rtw89_err(rtwdev, "wow: failed to let wow fw start\n");
+ 		goto out;
+@@ -758,7 +758,7 @@ static int rtw89_wow_enable(struct rtw89
+ 
+ 	rtw89_wow_enter_lps(rtwdev);
+ 
+-	rtw89_wow_enable_trx_post(rtwdev);
++	ret = rtw89_wow_enable_trx_post(rtwdev);
+ 	if (ret) {
+ 		rtw89_err(rtwdev, "wow: failed to enable trx_post\n");
+ 		goto out;

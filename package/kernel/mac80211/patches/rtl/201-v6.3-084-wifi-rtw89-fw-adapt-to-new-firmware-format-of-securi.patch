@@ -1,0 +1,96 @@
+From 18ddf102d4b8768cd058105168f29f96cd0c6d2d Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 9 Dec 2022 09:22:15 +0800
+Subject: [PATCH 084/149] wifi: rtw89: fw: adapt to new firmware format of
+ security section
+
+Normally, system image should ensure firmware integrity, but we provide
+an advance feature to ensure this by security section along with firmware.
+To enable this feature, custom ID is programmed into efuse, and driver
+will download proper security section to firmware.
+
+Since I don't have this kind hardware modules on hand yet, but new format
+is used by newer firmware. Therefore, I prepare this patch in advance to
+consider size of security section as a factor of checking rule of firmware
+size, but don't actually download security section to firmware.
+
+This patch is backward compatible, so it will be safe to have this change
+before adding an new format firmware to linux-firmware repository.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221209012215.7342-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c | 11 ++++++++++-
+ drivers/net/wireless/realtek/rtw89/fw.h | 13 +++++++++++--
+ 2 files changed, 21 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -91,6 +91,7 @@ static int rtw89_fw_hdr_parser(struct rt
+ 	const u8 *fwdynhdr;
+ 	const u8 *bin;
+ 	u32 base_hdr_len;
++	u32 mssc_len = 0;
+ 	u32 i;
+ 
+ 	if (!info)
+@@ -120,6 +121,14 @@ static int rtw89_fw_hdr_parser(struct rt
+ 	fw += RTW89_FW_HDR_SIZE;
+ 	section_info = info->section_info;
+ 	for (i = 0; i < info->section_num; i++) {
++		section_info->type = GET_FWSECTION_HDR_SECTIONTYPE(fw);
++		if (section_info->type == FWDL_SECURITY_SECTION_TYPE) {
++			section_info->mssc = GET_FWSECTION_HDR_MSSC(fw);
++			mssc_len += section_info->mssc * FWDL_SECURITY_SIGLEN;
++		} else {
++			section_info->mssc = 0;
++		}
++
+ 		section_info->len = GET_FWSECTION_HDR_SEC_SIZE(fw);
+ 		if (GET_FWSECTION_HDR_CHECKSUM(fw))
+ 			section_info->len += FWDL_SECTION_CHKSUM_LEN;
+@@ -132,7 +141,7 @@ static int rtw89_fw_hdr_parser(struct rt
+ 		section_info++;
+ 	}
+ 
+-	if (fw_end != bin) {
++	if (fw_end != bin + mssc_len) {
+ 		rtw89_err(rtwdev, "[ERR]fw bin size\n");
+ 		return -EINVAL;
+ 	}
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -171,6 +171,8 @@ struct rtw89_fw_hdr_section_info {
+ 	const u8 *addr;
+ 	u32 len;
+ 	u32 dladdr;
++	u32 mssc;
++	u8 type;
+ };
+ 
+ struct rtw89_fw_bin_info {
+@@ -480,14 +482,21 @@ static inline void RTW89_SET_EDCA_PARAM(
+ #define FW_EDCA_PARAM_CWMIN_MSK GENMASK(11, 8)
+ #define FW_EDCA_PARAM_AIFS_MSK GENMASK(7, 0)
+ 
++#define FWDL_SECURITY_SECTION_TYPE 9
++#define FWDL_SECURITY_SIGLEN 512
++
++#define GET_FWSECTION_HDR_DL_ADDR(fwhdr)	\
++	le32_get_bits(*((const __le32 *)(fwhdr)), GENMASK(31, 0))
++#define GET_FWSECTION_HDR_SECTIONTYPE(fwhdr)	\
++	le32_get_bits(*((const __le32 *)(fwhdr) + 1), GENMASK(27, 24))
+ #define GET_FWSECTION_HDR_SEC_SIZE(fwhdr)	\
+ 	le32_get_bits(*((const __le32 *)(fwhdr) + 1), GENMASK(23, 0))
+ #define GET_FWSECTION_HDR_CHECKSUM(fwhdr)	\
+ 	le32_get_bits(*((const __le32 *)(fwhdr) + 1), BIT(28))
+ #define GET_FWSECTION_HDR_REDL(fwhdr)	\
+ 	le32_get_bits(*((const __le32 *)(fwhdr) + 1), BIT(29))
+-#define GET_FWSECTION_HDR_DL_ADDR(fwhdr)	\
+-	le32_get_bits(*((const __le32 *)(fwhdr)), GENMASK(31, 0))
++#define GET_FWSECTION_HDR_MSSC(fwhdr)	\
++	le32_get_bits(*((const __le32 *)(fwhdr) + 2), GENMASK(31, 0))
+ 
+ #define GET_FW_HDR_MAJOR_VERSION(fwhdr)	\
+ 	le32_get_bits(*((const __le32 *)(fwhdr) + 1), GENMASK(7, 0))

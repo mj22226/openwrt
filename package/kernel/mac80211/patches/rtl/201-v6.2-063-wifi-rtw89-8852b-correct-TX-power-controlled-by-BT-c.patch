@@ -1,0 +1,63 @@
+From 79ca91a3c1f1e5d871f393791e7538f9386a7711 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Thu, 17 Nov 2022 14:18:32 +0800
+Subject: [PATCH 063/149] wifi: rtw89: 8852b: correct TX power controlled by
+ BT-coexistence
+
+When coexistence mechanism is under free-run mode, it could adjust WiFi
+and BT TX power to avoid interference with each other. For other cases,
+it should keep original TX power from regular predefined tables, so
+set correct values to 255 for these cases.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221117061832.42057-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 30 +++++++++----------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -318,27 +318,27 @@ static const struct rtw89_dig_regs rtw88
+ };
+ 
+ static const struct rtw89_btc_rf_trx_para rtw89_btc_8852b_rf_ul[] = {
+-	{15, 0, 0, 7}, /* 0 -> original */
+-	{15, 2, 0, 7}, /* 1 -> for BT-connected ACI issue && BTG co-rx */
+-	{15, 0, 0, 7}, /* 2 ->reserved for shared-antenna */
+-	{15, 0, 0, 7}, /* 3- >reserved for shared-antenna */
+-	{15, 0, 0, 7}, /* 4 ->reserved for shared-antenna */
+-	{15, 0, 0, 7}, /* the below id is for non-shared-antenna free-run */
++	{255, 0, 0, 7}, /* 0 -> original */
++	{255, 2, 0, 7}, /* 1 -> for BT-connected ACI issue && BTG co-rx */
++	{255, 0, 0, 7}, /* 2 ->reserved for shared-antenna */
++	{255, 0, 0, 7}, /* 3- >reserved for shared-antenna */
++	{255, 0, 0, 7}, /* 4 ->reserved for shared-antenna */
++	{255, 0, 0, 7}, /* the below id is for non-shared-antenna free-run */
+ 	{6, 1, 0, 7},
+ 	{13, 1, 0, 7},
+ 	{13, 1, 0, 7}
+ };
+ 
+ static const struct rtw89_btc_rf_trx_para rtw89_btc_8852b_rf_dl[] = {
+-	{15, 0, 0, 7}, /* 0 -> original */
+-	{15, 2, 0, 7}, /* 1 -> reserved for shared-antenna */
+-	{15, 0, 0, 7}, /* 2 ->reserved for shared-antenna */
+-	{15, 0, 0, 7}, /* 3- >reserved for shared-antenna */
+-	{15, 0, 0, 7}, /* 4 ->reserved for shared-antenna */
+-	{15, 0, 0, 7}, /* the below id is for non-shared-antenna free-run */
+-	{15, 1, 0, 7},
+-	{15, 1, 0, 7},
+-	{15, 1, 0, 7}
++	{255, 0, 0, 7}, /* 0 -> original */
++	{255, 2, 0, 7}, /* 1 -> reserved for shared-antenna */
++	{255, 0, 0, 7}, /* 2 ->reserved for shared-antenna */
++	{255, 0, 0, 7}, /* 3- >reserved for shared-antenna */
++	{255, 0, 0, 7}, /* 4 ->reserved for shared-antenna */
++	{255, 0, 0, 7}, /* the below id is for non-shared-antenna free-run */
++	{255, 1, 0, 7},
++	{255, 1, 0, 7},
++	{255, 1, 0, 7}
+ };
+ 
+ static const struct rtw89_btc_fbtc_mreg rtw89_btc_8852b_mon_reg[] = {
