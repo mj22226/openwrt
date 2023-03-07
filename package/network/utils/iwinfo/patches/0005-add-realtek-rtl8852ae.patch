@@ -1,0 +1,10 @@
+--- a/devices.txt
++++ b/devices.txt
+@@ -194,6 +194,7 @@
+ 0x02d0 0xa9a6 0x0000 0x0000    0      0  "Cypress"  "CYW43455"
+ 0x1ae9 0x0310 0x1ae9 0x0000    0      0  "Wilocity" "Wil6210"
+ 0x02d0 0xa9bf 0x0000 0x0000    0      0  "Broadcom" "BCM43456"
++0x10ec 0x8852 0x1e26 0x007f    0      0  "Realtek" "RTL8852AE"
+ 
+ # USB devices
+ # 0x0000 | 0x0000 | vendor id | product id | ...
