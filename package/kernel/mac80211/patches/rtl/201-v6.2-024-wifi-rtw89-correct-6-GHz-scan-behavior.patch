@@ -20,7 +20,7 @@ Link: https://lore.kernel.org/r/20221007045900.10823-1-pkshih@realtek.com
 
 --- a/drivers/net/wireless/realtek/rtw89/fw.c
 +++ b/drivers/net/wireless/realtek/rtw89/fw.c
-@@ -2565,6 +2565,9 @@ static void rtw89_hw_scan_add_chan(struc
+@@ -2567,6 +2567,9 @@ static void rtw89_hw_scan_add_chan(struc
  				   struct rtw89_mac_chinfo *ch_info)
  {
  	struct rtw89_hw_scan_info *scan_info = &rtwdev->scan_info;
@@ -30,7 +30,7 @@ Link: https://lore.kernel.org/r/20221007045900.10823-1-pkshih@realtek.com
  	struct rtw89_pktofld_info *info;
  	u8 band, probe_count = 0;
  
-@@ -2576,13 +2579,13 @@ static void rtw89_hw_scan_add_chan(struc
+@@ -2578,13 +2581,13 @@ static void rtw89_hw_scan_add_chan(struc
  	ch_info->tx_pwr_idx = 0;
  	ch_info->tx_null = false;
  	ch_info->pause_data = false;
@@ -45,7 +45,7 @@ Link: https://lore.kernel.org/r/20221007045900.10823-1-pkshih@realtek.com
  			ch_info->pkt_id[probe_count] = info->id;
  			if (++probe_count >= ssid_num)
  				break;
-@@ -2591,9 +2594,16 @@ static void rtw89_hw_scan_add_chan(struc
+@@ -2593,9 +2596,16 @@ static void rtw89_hw_scan_add_chan(struc
  			rtw89_err(rtwdev, "SSID num differs from list len\n");
  	}
  
@@ -63,7 +63,7 @@ Link: https://lore.kernel.org/r/20221007045900.10823-1-pkshih@realtek.com
  		ch_info->central_ch = scan_info->op_chan;
  		ch_info->pri_ch = scan_info->op_pri_ch;
  		ch_info->ch_band = scan_info->op_band;
-@@ -2602,8 +2612,9 @@ static void rtw89_hw_scan_add_chan(struc
+@@ -2604,8 +2614,9 @@ static void rtw89_hw_scan_add_chan(struc
  		ch_info->num_pkt = 0;
  		break;
  	case RTW89_CHAN_DFS:
@@ -75,7 +75,7 @@ Link: https://lore.kernel.org/r/20221007045900.10823-1-pkshih@realtek.com
  		ch_info->dwell_time = RTW89_DWELL_TIME;
  		break;
  	case RTW89_CHAN_ACTIVE:
-@@ -2637,8 +2648,13 @@ static int rtw89_hw_scan_add_chan_list(s
+@@ -2639,8 +2650,13 @@ static int rtw89_hw_scan_add_chan_list(s
  			goto out;
  		}
  

@@ -19,7 +19,7 @@ Link: https://lore.kernel.org/r/20221202081224.2779981-11-s.hauer@pengutronix.de
 
 --- a/drivers/net/wireless/realtek/rtw88/Kconfig
 +++ b/drivers/net/wireless/realtek/rtw88/Kconfig
-@@ -71,6 +71,18 @@ config RTW88_8822CE
+@@ -75,6 +75,18 @@ config RTW88_8822CE
  
  	  802.11ac PCIe wireless network adapter
  

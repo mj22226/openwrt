@@ -20,7 +20,7 @@ Link: https://lore.kernel.org/r/20220930134417.10282-2-pkshih@realtek.com
 
 --- a/drivers/net/wireless/realtek/rtw89/debug.c
 +++ b/drivers/net/wireless/realtek/rtw89/debug.c
-@@ -774,13 +774,34 @@ rtw89_debug_priv_mac_mem_dump_get(struct
+@@ -781,13 +781,34 @@ rtw89_debug_priv_mac_mem_dump_get(struct
  {
  	struct rtw89_debugfs_priv *debugfs_priv = m->private;
  	struct rtw89_dev *rtwdev = debugfs_priv->rtwdev;

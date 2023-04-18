@@ -20,7 +20,7 @@ Link: https://lore.kernel.org/r/20221202081224.2779981-9-s.hauer@pengutronix.de
 
 --- a/drivers/net/wireless/realtek/rtw88/Kconfig
 +++ b/drivers/net/wireless/realtek/rtw88/Kconfig
-@@ -83,6 +83,17 @@ config RTW88_8821CE
+@@ -87,6 +87,17 @@ config RTW88_8821CE
  
  	  802.11ac PCIe wireless network adapter
  
@@ -40,7 +40,7 @@ Link: https://lore.kernel.org/r/20221202081224.2779981-9-s.hauer@pengutronix.de
  	depends on RTW88_CORE
 --- a/drivers/net/wireless/realtek/rtw88/Makefile
 +++ b/drivers/net/wireless/realtek/rtw88/Makefile
-@@ -44,5 +44,8 @@ rtw88_8821c-objs		:= rtw8821c.o rtw8821c
+@@ -44,6 +44,9 @@ rtw88_8821c-objs		:= rtw8821c.o rtw8821c
  obj-$(CPTCFG_RTW88_8821CE)	+= rtw88_8821ce.o
  rtw88_8821ce-objs		:= rtw8821ce.o
  
@@ -49,6 +49,7 @@ Link: https://lore.kernel.org/r/20221202081224.2779981-9-s.hauer@pengutronix.de
 +
  obj-$(CPTCFG_RTW88_PCI)		+= rtw88_pci.o
  rtw88_pci-objs			:= pci.o
+ 
 --- a/drivers/net/wireless/realtek/rtw88/rtw8821c.c
 +++ b/drivers/net/wireless/realtek/rtw88/rtw8821c.c
 @@ -26,6 +26,12 @@ static void rtw8821ce_efuse_parsing(stru

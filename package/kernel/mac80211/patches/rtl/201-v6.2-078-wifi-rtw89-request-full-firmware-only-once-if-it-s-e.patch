@@ -33,7 +33,7 @@ Link: https://lore.kernel.org/r/20221202060521.501512-3-pkshih@realtek.com
 
 --- a/drivers/net/wireless/realtek/rtw89/core.c
 +++ b/drivers/net/wireless/realtek/rtw89/core.c
-@@ -3420,6 +3420,7 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
+@@ -3423,6 +3423,7 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
  					   u32 bus_data_size,
  					   const struct rtw89_chip_info *chip)
  {
@@ -41,7 +41,7 @@ Link: https://lore.kernel.org/r/20221202060521.501512-3-pkshih@realtek.com
  	struct ieee80211_hw *hw;
  	struct rtw89_dev *rtwdev;
  	struct ieee80211_ops *ops;
-@@ -3427,7 +3428,7 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
+@@ -3430,7 +3431,7 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
  	u32 early_feat_map = 0;
  	bool no_chanctx;
  
@@ -50,7 +50,7 @@ Link: https://lore.kernel.org/r/20221202060521.501512-3-pkshih@realtek.com
  
  	ops = kmemdup(&rtw89_ops, sizeof(rtw89_ops), GFP_KERNEL);
  	if (!ops)
-@@ -3454,6 +3455,7 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
+@@ -3457,6 +3458,7 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
  	rtwdev->dev = device;
  	rtwdev->ops = ops;
  	rtwdev->chip = chip;
@@ -58,7 +58,7 @@ Link: https://lore.kernel.org/r/20221202060521.501512-3-pkshih@realtek.com
  
  	rtw89_debug(rtwdev, RTW89_DBG_FW, "probe driver %s chanctx\n",
  		    no_chanctx ? "without" : "with");
-@@ -3462,6 +3464,7 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
+@@ -3465,6 +3467,7 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
  
  err:
  	kfree(ops);
@@ -66,7 +66,7 @@ Link: https://lore.kernel.org/r/20221202060521.501512-3-pkshih@realtek.com
  	return NULL;
  }
  EXPORT_SYMBOL(rtw89_alloc_ieee80211_hw);
-@@ -3469,6 +3472,7 @@ EXPORT_SYMBOL(rtw89_alloc_ieee80211_hw);
+@@ -3472,6 +3475,7 @@ EXPORT_SYMBOL(rtw89_alloc_ieee80211_hw);
  void rtw89_free_ieee80211_hw(struct rtw89_dev *rtwdev)
  {
  	kfree(rtwdev->ops);

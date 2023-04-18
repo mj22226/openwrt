@@ -41,7 +41,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-4-pkshih@realtek.com
  				1000, false, rtwdev);
 --- a/drivers/net/wireless/realtek/rtw89/reg.h
 +++ b/drivers/net/wireless/realtek/rtw89/reg.h
-@@ -4039,6 +4039,7 @@
+@@ -4041,6 +4041,7 @@
  #define B_P0_RFM_TX_OPT BIT(6)
  #define B_P0_RFM_BT_EN BIT(5)
  #define B_P0_RFM_OUT GENMASK(4, 0)
@@ -49,7 +49,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-4-pkshih@realtek.com
  #define R_P0_TXDPD 0x58D4
  #define B_P0_TXDPD GENMASK(31, 28)
  #define R_P0_TXPW_RSTB 0x58DC
-@@ -4083,6 +4084,7 @@
+@@ -4085,6 +4086,7 @@
  #define R_P1_RFCTM 0x7864
  #define R_P1_RFCTM_RDY BIT(26)
  #define B_P1_RFCTM_VAL GENMASK(25, 20)

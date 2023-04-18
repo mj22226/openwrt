@@ -76,7 +76,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-7-pkshih@realtek.com
  #define RR_CFGCH_BAND0 GENMASK(9, 8)
  #define CFGCH_BAND0_2G 0
  #define CFGCH_BAND0_5G 1
-@@ -3448,14 +3452,31 @@
+@@ -3450,14 +3454,31 @@
  #define RR_TIA_N6 BIT(8)
  #define RR_MIXER 0x9f
  #define RR_MIXER_GN GENMASK(4, 3)
@@ -108,7 +108,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-7-pkshih@realtek.com
  #define RR_RCKD 0xde
  #define RR_RCKD_POW GENMASK(19, 13)
  #define RR_RCKD_BW BIT(2)
-@@ -3624,6 +3645,8 @@
+@@ -3626,6 +3647,8 @@
  #define R_P0_RFMODE 0x12AC
  #define B_P0_RFMODE_ORI_TXRX_FTM_TX GENMASK(31, 4)
  #define B_P0_RFMODE_MUX GENMASK(11, 4)
@@ -117,7 +117,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-7-pkshih@realtek.com
  #define R_P0_NRBW 0x12B8
  #define B_P0_NRBW_DBG BIT(30)
  #define R_S0_RXDC 0x12D4
-@@ -3717,6 +3740,8 @@
+@@ -3719,6 +3742,8 @@
  #define B_RXCCA_DIS_V1 BIT(0)
  #define R_RXSC 0x237C
  #define B_RXSC_EN BIT(0)
@@ -126,7 +126,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-7-pkshih@realtek.com
  #define R_RXSCOBC 0x23B0
  #define B_RXSCOBC_TH GENMASK(18, 0)
  #define R_RXSCOCCK 0x23B4
-@@ -3733,6 +3758,8 @@
+@@ -3735,6 +3760,8 @@
  #define R_P1_RFMODE 0x32AC
  #define B_P1_RFMODE_ORI_TXRX_FTM_TX GENMASK(31, 4)
  #define B_P1_RFMODE_MUX GENMASK(11, 4)
@@ -135,7 +135,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-7-pkshih@realtek.com
  #define R_P1_DBGMOD 0x32B8
  #define B_P1_DBGMOD_ON BIT(30)
  #define R_S1_RXDC 0x32D4
-@@ -3766,7 +3793,10 @@
+@@ -3768,7 +3795,10 @@
  #define R_T2F_GI_COMB 0x4424
  #define B_T2F_GI_COMB_EN BIT(2)
  #define R_BT_DYN_DC_EST_EN 0x441C
@@ -146,7 +146,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-7-pkshih@realtek.com
  #define R_ASSIGN_SBD_OPT 0x4450
  #define B_ASSIGN_SBD_OPT_EN BIT(24)
  #define R_DCFO_COMP_S0 0x448C
-@@ -3916,20 +3946,42 @@
+@@ -3918,20 +3948,42 @@
  #define R_2P4G_BAND 0x4970
  #define B_2P4G_BAND_SEL BIT(1)
  #define R_FC0_BW 0x4974
@@ -190,7 +190,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-7-pkshih@realtek.com
  #define R_BK_FC0_INV_V1 0x4A1C
  #define B_BK_FC0_INV_MSK_V1 GENMASK(18, 0)
  #define R_CCK_FC0_INV_V1 0x4A20
-@@ -3940,8 +3992,10 @@
+@@ -3942,8 +3994,10 @@
  #define B_P1_AGC_EN BIT(31)
  #define R_PATH1_TIA_INIT_V1 0x4AA8
  #define B_PATH1_TIA_INIT_IDX_MSK_V1 BIT(9)
@@ -201,7 +201,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-7-pkshih@realtek.com
  #define R_PATH1_RXBB_V1 0x4AE0
  #define B_PATH1_RXBB_MSK_V1 GENMASK(31, 0)
  #define R_PATH0_BT_BACKOFF_V1 0x4AE4
-@@ -3957,6 +4011,7 @@
+@@ -3959,6 +4013,7 @@
  #define B_PATH0_NOTCH2_EN BIT(12)
  #define B_PATH0_NOTCH2_VAL GENMASK(11, 0)
  #define R_PATH0_5MDET 0x4C4C
@@ -209,7 +209,7 @@ Link: https://lore.kernel.org/r/20221005083212.45683-7-pkshih@realtek.com
  #define B_PATH0_5MDET_EN BIT(12)
  #define B_PATH0_5MDET_SB2 BIT(8)
  #define B_PATH0_5MDET_SB0 BIT(6)
-@@ -3970,6 +4025,7 @@
+@@ -3972,6 +4027,7 @@
  #define B_PATH1_NOTCH2_EN BIT(12)
  #define B_PATH1_NOTCH2_VAL GENMASK(11, 0)
  #define R_PATH1_5MDET 0x4D10

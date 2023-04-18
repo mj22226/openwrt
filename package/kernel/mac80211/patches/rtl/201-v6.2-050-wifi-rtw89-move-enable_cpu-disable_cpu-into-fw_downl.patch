@@ -35,7 +35,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-3-pkshih@realtek.com
  		return -ENOENT;
 --- a/drivers/net/wireless/realtek/rtw89/mac.c
 +++ b/drivers/net/wireless/realtek/rtw89/mac.c
-@@ -3116,7 +3116,7 @@ static void rtw89_disable_fw_watchdog(st
+@@ -3114,7 +3114,7 @@ static void rtw89_disable_fw_watchdog(st
  	rtw89_mac_mem_write(rtwdev, R_AX_WDT_STATUS, val32, RTW89_MAC_MEM_CPU_LOCAL);
  }
  
@@ -44,7 +44,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-3-pkshih@realtek.com
  {
  	clear_bit(RTW89_FLAG_FW_RDY, rtwdev->flags);
  
-@@ -3131,8 +3131,7 @@ static void rtw89_mac_disable_cpu(struct
+@@ -3129,8 +3129,7 @@ static void rtw89_mac_disable_cpu(struct
  	rtw89_write32_set(rtwdev, R_AX_PLATFORM_ENABLE, B_AX_PLATFORM_EN);
  }
  
@@ -54,7 +54,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-3-pkshih@realtek.com
  {
  	u32 val;
  	int ret;
-@@ -3271,11 +3270,6 @@ int rtw89_mac_partial_init(struct rtw89_
+@@ -3269,11 +3268,6 @@ int rtw89_mac_partial_init(struct rtw89_
  			return ret;
  	}
  

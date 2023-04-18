@@ -43,7 +43,7 @@ Link: https://lore.kernel.org/r/20221021091601.39884-1-pkshih@realtek.com
  static int rtw89_debugfs_single_show(struct seq_file *m, void *v)
  {
  	struct rtw89_debugfs_priv *debugfs_priv = m->private;
-@@ -2379,6 +2395,7 @@ static void rtw89_sta_info_get_iter(void
+@@ -2386,6 +2402,7 @@ static void rtw89_sta_info_get_iter(void
  	else
  		seq_printf(m, "Legacy %d", rate->legacy);
  	seq_printf(m, "%s", rtwsta->ra_report.might_fallback_legacy ? " FB_G" : "");
@@ -51,7 +51,7 @@ Link: https://lore.kernel.org/r/20221021091601.39884-1-pkshih@realtek.com
  	seq_printf(m, "\t(hw_rate=0x%x)", rtwsta->ra_report.hw_rate);
  	seq_printf(m, "\t==> agg_wait=%d (%d)\n", rtwsta->max_agg_wait,
  		   sta->deflink.agg.max_rc_amsdu_len);
-@@ -2404,6 +2421,7 @@ static void rtw89_sta_info_get_iter(void
+@@ -2411,6 +2428,7 @@ static void rtw89_sta_info_get_iter(void
  			   he_gi_str[rate->he_gi] : "N/A");
  		break;
  	}

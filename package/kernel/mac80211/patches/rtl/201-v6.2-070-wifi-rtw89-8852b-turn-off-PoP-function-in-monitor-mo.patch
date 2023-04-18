@@ -19,7 +19,7 @@ Link: https://lore.kernel.org/r/20221125072416.94752-4-pkshih@realtek.com
 
 --- a/drivers/net/wireless/realtek/rtw89/reg.h
 +++ b/drivers/net/wireless/realtek/rtw89/reg.h
-@@ -4236,6 +4236,8 @@
+@@ -4238,6 +4238,8 @@
  #define R_P1_NBIIDX 0x4770
  #define B_P1_NBIIDX_VAL GENMASK(11, 0)
  #define B_P1_NBIIDX_NOTCH_EN BIT(12)

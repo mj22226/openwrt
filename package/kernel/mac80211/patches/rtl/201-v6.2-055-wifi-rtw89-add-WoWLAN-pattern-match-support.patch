@@ -57,7 +57,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-8-pkshih@realtek.com
  };
 --- a/drivers/net/wireless/realtek/rtw89/fw.c
 +++ b/drivers/net/wireless/realtek/rtw89/fw.c
-@@ -3172,3 +3172,55 @@ fail:
+@@ -3174,3 +3174,55 @@ fail:
  
  	return ret;
  }

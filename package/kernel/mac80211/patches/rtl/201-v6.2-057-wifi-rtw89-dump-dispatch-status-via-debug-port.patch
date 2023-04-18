@@ -24,7 +24,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-2-pkshih@realtek.com
 
 --- a/drivers/net/wireless/realtek/rtw89/debug.c
 +++ b/drivers/net/wireless/realtek/rtw89/debug.c
-@@ -1114,6 +1114,303 @@ static const struct rtw89_mac_dbg_port_i
+@@ -1121,6 +1121,303 @@ static const struct rtw89_mac_dbg_port_i
  	.rd_msk = B_AX_PTCL_DBG_INFO_MASK
  };
  
@@ -328,7 +328,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-2-pkshih@realtek.com
  static const struct rtw89_mac_dbg_port_info dbg_port_sch_c0 = {
  	.sel_addr = R_AX_SCH_DBG_SEL,
  	.sel_byte = 1,
-@@ -1603,6 +1900,7 @@ rtw89_debug_mac_dbg_port_sel(struct seq_
+@@ -1610,6 +1907,7 @@ rtw89_debug_mac_dbg_port_sel(struct seq_
  			     struct rtw89_dev *rtwdev, u32 sel)
  {
  	const struct rtw89_mac_dbg_port_info *info;
@@ -336,7 +336,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-2-pkshih@realtek.com
  	u32 val32;
  	u16 val16;
  	u8 val8;
-@@ -1878,6 +2176,235 @@ rtw89_debug_mac_dbg_port_sel(struct seq_
+@@ -1885,6 +2183,235 @@ rtw89_debug_mac_dbg_port_sel(struct seq_
  		info = &dbg_port_pktinfo;
  		seq_puts(m, "Enable pktinfo dump.\n");
  		break;
@@ -572,7 +572,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-2-pkshih@realtek.com
  	case RTW89_DBG_PORT_SEL_PCIE_TXDMA:
  		info = &dbg_port_pcie_txdma;
  		val32 = rtw89_read32(rtwdev, R_AX_DBG_CTRL);
-@@ -1956,6 +2483,10 @@ static bool is_dbg_port_valid(struct rtw
+@@ -1963,6 +2490,10 @@ static bool is_dbg_port_valid(struct rtw
  	    sel >= RTW89_DBG_PORT_SEL_WDE_BUFMGN_FREEPG &&
  	    sel <= RTW89_DBG_PORT_SEL_PKTINFO)
  		return false;
@@ -583,7 +583,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-2-pkshih@realtek.com
  	if (rtw89_mac_check_mac_en(rtwdev, 0, RTW89_CMAC_SEL) &&
  	    sel >= RTW89_DBG_PORT_SEL_PTCL_C0 &&
  	    sel <= RTW89_DBG_PORT_SEL_TXTF_INFOH_C0)
-@@ -2026,6 +2557,50 @@ static int rtw89_debug_mac_dbg_port_dump
+@@ -2033,6 +2564,50 @@ static int rtw89_debug_mac_dbg_port_dump
  	case_DBG_SEL(PLE_QUEMGN_QLNKTBL);
  	case_DBG_SEL(PLE_QUEMGN_QEMPTY);
  	case_DBG_SEL(PKTINFO);

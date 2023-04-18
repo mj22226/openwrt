@@ -40,7 +40,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-3-pkshih@realtek.com
  #include "ps.h"
  #include "reg.h"
  #include "sar.h"
-@@ -988,7 +989,9 @@ static int rtw89_debug_mac_dump_dle_dbg(
+@@ -995,7 +996,9 @@ static int rtw89_debug_mac_dump_dle_dbg(
  static int rtw89_debug_mac_dump_dmac_dbg(struct rtw89_dev *rtwdev,
  					 struct seq_file *m)
  {
@@ -51,7 +51,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-3-pkshih@realtek.com
  
  	ret = rtw89_mac_check_mac_en(rtwdev, 0, RTW89_DMAC_SEL);
  	if (ret) {
-@@ -996,98 +999,347 @@ static int rtw89_debug_mac_dump_dmac_dbg
+@@ -1003,98 +1006,347 @@ static int rtw89_debug_mac_dump_dmac_dbg
  		return ret;
  	}
  
@@ -477,7 +477,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-3-pkshih@realtek.com
  
  	return 0;
  }
-@@ -1821,7 +2073,7 @@ static const struct rtw89_mac_dbg_port_i
+@@ -1828,7 +2080,7 @@ static const struct rtw89_mac_dbg_port_i
  static const struct rtw89_mac_dbg_port_info dbg_port_pcie_txdma = {
  	.sel_addr = R_AX_PCIE_DBG_CTRL,
  	.sel_byte = 2,
@@ -486,7 +486,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-3-pkshih@realtek.com
  	.srt = 0x00,
  	.end = 0x03,
  	.rd_addr = R_AX_DBG_PORT_SEL,
-@@ -1832,7 +2084,7 @@ static const struct rtw89_mac_dbg_port_i
+@@ -1839,7 +2091,7 @@ static const struct rtw89_mac_dbg_port_i
  static const struct rtw89_mac_dbg_port_info dbg_port_pcie_rxdma = {
  	.sel_addr = R_AX_PCIE_DBG_CTRL,
  	.sel_byte = 2,
@@ -495,7 +495,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-3-pkshih@realtek.com
  	.srt = 0x00,
  	.end = 0x04,
  	.rd_addr = R_AX_DBG_PORT_SEL,
-@@ -1843,7 +2095,7 @@ static const struct rtw89_mac_dbg_port_i
+@@ -1850,7 +2102,7 @@ static const struct rtw89_mac_dbg_port_i
  static const struct rtw89_mac_dbg_port_info dbg_port_pcie_cvt = {
  	.sel_addr = R_AX_PCIE_DBG_CTRL,
  	.sel_byte = 2,
@@ -504,7 +504,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-3-pkshih@realtek.com
  	.srt = 0x00,
  	.end = 0x01,
  	.rd_addr = R_AX_DBG_PORT_SEL,
-@@ -1854,7 +2106,7 @@ static const struct rtw89_mac_dbg_port_i
+@@ -1861,7 +2113,7 @@ static const struct rtw89_mac_dbg_port_i
  static const struct rtw89_mac_dbg_port_info dbg_port_pcie_cxpl = {
  	.sel_addr = R_AX_PCIE_DBG_CTRL,
  	.sel_byte = 2,
@@ -513,7 +513,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-3-pkshih@realtek.com
  	.srt = 0x00,
  	.end = 0x05,
  	.rd_addr = R_AX_DBG_PORT_SEL,
-@@ -1865,7 +2117,7 @@ static const struct rtw89_mac_dbg_port_i
+@@ -1872,7 +2124,7 @@ static const struct rtw89_mac_dbg_port_i
  static const struct rtw89_mac_dbg_port_info dbg_port_pcie_io = {
  	.sel_addr = R_AX_PCIE_DBG_CTRL,
  	.sel_byte = 2,
@@ -522,7 +522,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-3-pkshih@realtek.com
  	.srt = 0x00,
  	.end = 0x05,
  	.rd_addr = R_AX_DBG_PORT_SEL,
-@@ -1876,7 +2128,7 @@ static const struct rtw89_mac_dbg_port_i
+@@ -1883,7 +2135,7 @@ static const struct rtw89_mac_dbg_port_i
  static const struct rtw89_mac_dbg_port_info dbg_port_pcie_misc = {
  	.sel_addr = R_AX_PCIE_DBG_CTRL,
  	.sel_byte = 2,
@@ -531,7 +531,7 @@ Link: https://lore.kernel.org/r/20221102014300.14091-3-pkshih@realtek.com
  	.srt = 0x00,
  	.end = 0x06,
  	.rd_addr = R_AX_DBG_PORT_SEL,
-@@ -2457,7 +2709,7 @@ rtw89_debug_mac_dbg_port_sel(struct seq_
+@@ -2464,7 +2716,7 @@ rtw89_debug_mac_dbg_port_sel(struct seq_
  		info = &dbg_port_pcie_misc2;
  		val16 = rtw89_read16(rtwdev, R_AX_PCIE_DBG_CTRL);
  		val16 = u16_replace_bits(val16, PCIE_MISC2_DBG_SEL,

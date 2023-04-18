@@ -141,7 +141,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-6-pkshih@realtek.com
  #define H2C_GENERAL_PKT_LEN 6
  #define H2C_GENERAL_PKT_ID_UND 0xff
  int rtw89_fw_h2c_general_pkt(struct rtw89_dev *rtwdev, u8 macid)
-@@ -2943,3 +2993,182 @@ fail:
+@@ -2945,3 +2995,182 @@ fail:
  	dev_kfree_skb_any(skb);
  	return ret;
  }

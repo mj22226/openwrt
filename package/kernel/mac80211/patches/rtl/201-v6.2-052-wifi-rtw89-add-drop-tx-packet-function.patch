@@ -44,7 +44,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-5-pkshih@realtek.com
  struct rtw89_pkt_stat {
 --- a/drivers/net/wireless/realtek/rtw89/fw.c
 +++ b/drivers/net/wireless/realtek/rtw89/fw.c
-@@ -2900,6 +2900,7 @@ int rtw89_fw_h2c_pkt_drop(struct rtw89_d
+@@ -2902,6 +2902,7 @@ int rtw89_fw_h2c_pkt_drop(struct rtw89_d
  	case RTW89_PKT_DROP_SEL_MACID_BK_ONCE:
  	case RTW89_PKT_DROP_SEL_MACID_VI_ONCE:
  	case RTW89_PKT_DROP_SEL_MACID_VO_ONCE:
@@ -52,7 +52,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-5-pkshih@realtek.com
  		break;
  	default:
  		rtw89_debug(rtwdev, RTW89_DBG_FW,
-@@ -2915,6 +2916,14 @@ int rtw89_fw_h2c_pkt_drop(struct rtw89_d
+@@ -2917,6 +2918,14 @@ int rtw89_fw_h2c_pkt_drop(struct rtw89_d
  	RTW89_SET_FWCMD_PKT_DROP_PORT(skb->data, params->port);
  	RTW89_SET_FWCMD_PKT_DROP_MBSSID(skb->data, params->mbssid);
  	RTW89_SET_FWCMD_PKT_DROP_ROLE_A_INFO_TF_TRS(skb->data, params->tf_trs);
@@ -159,7 +159,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-5-pkshih@realtek.com
  static inline u32 dle_used_size(const struct rtw89_dle_size *wde,
  				const struct rtw89_dle_size *ple)
  {
-@@ -4893,3 +4947,24 @@ void rtw89_mac_pkt_drop_vif(struct rtw89
+@@ -4891,3 +4945,24 @@ void rtw89_mac_pkt_drop_vif(struct rtw89
  					  rtw89_mac_pkt_drop_vif_iter,
  					  rtwvif);
  }

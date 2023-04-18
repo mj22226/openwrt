@@ -20,7 +20,7 @@ Link: https://lore.kernel.org/r/20220928084336.34981-7-pkshih@realtek.com
 
 --- a/drivers/net/wireless/realtek/rtw89/mac.c
 +++ b/drivers/net/wireless/realtek/rtw89/mac.c
-@@ -4819,6 +4819,7 @@ int rtw89_mac_read_xtal_si(struct rtw89_
+@@ -4817,6 +4817,7 @@ int rtw89_mac_read_xtal_si(struct rtw89_
  
  	return 0;
  }
@@ -38,7 +38,7 @@ Link: https://lore.kernel.org/r/20220928084336.34981-7-pkshih@realtek.com
  #define B_AX_FORCE_PWR_BY_RATE_EN BIT(9)
  #define B_AX_FORCE_PWR_BY_RATE_VALUE_MASK GENMASK(8, 0)
  
-@@ -3770,6 +3771,7 @@
+@@ -3772,6 +3773,7 @@
  #define B_DCFO_WEIGHT_MSK GENMASK(27, 24)
  #define R_DCFO_OPT 0x4494
  #define B_DCFO_OPT_EN BIT(29)
@@ -46,7 +46,7 @@ Link: https://lore.kernel.org/r/20220928084336.34981-7-pkshih@realtek.com
  #define R_BANDEDGE 0x4498
  #define B_BANDEDGE_EN BIT(30)
  #define R_TXPATH_SEL 0x458C
-@@ -4003,6 +4005,9 @@
+@@ -4005,6 +4007,9 @@
  #define B_TXPWRB_VAL GENMASK(27, 19)
  #define R_DPD_OFT_EN 0x5800
  #define B_DPD_OFT_EN BIT(28)

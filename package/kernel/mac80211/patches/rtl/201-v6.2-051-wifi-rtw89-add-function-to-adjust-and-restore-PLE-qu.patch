@@ -41,7 +41,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-4-pkshih@realtek.com
  };
  EXPORT_SYMBOL(rtw89_mac_size);
  
-@@ -1478,6 +1480,36 @@ static void ple_quota_cfg(struct rtw89_d
+@@ -1476,6 +1478,36 @@ static void ple_quota_cfg(struct rtw89_d
  		SET_QUOTA(tx_rpt, PLE, 11);
  }
  

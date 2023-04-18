@@ -19,11 +19,11 @@ Link: https://lore.kernel.org/r/20230309021636.528601-1-dzm91@hust.edu.cn
 --- a/drivers/net/wireless/realtek/rtw88/usb.c
 +++ b/drivers/net/wireless/realtek/rtw88/usb.c
 @@ -808,7 +808,7 @@ int rtw_usb_probe(struct usb_interface *
-
+ 
  	ret = rtw_usb_alloc_rx_bufs(rtwusb);
  	if (ret)
 -		return ret;
 +		goto err_release_hw;
-
+ 
  	ret = rtw_core_init(rtwdev);
  	if (ret)

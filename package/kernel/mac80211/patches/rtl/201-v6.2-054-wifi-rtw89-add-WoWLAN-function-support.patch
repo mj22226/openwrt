@@ -70,7 +70,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-7-pkshih@realtek.com
  	INIT_WORK(&rtwdev->ba_work, rtw89_core_ba_work);
  	INIT_WORK(&rtwdev->txq_work, rtw89_core_txq_work);
  	INIT_DELAYED_WORK(&rtwdev->txq_reinvoke_work, rtw89_core_txq_reinvoke_work);
-@@ -3273,6 +3277,10 @@ static int rtw89_core_register_hw(struct
+@@ -3276,6 +3280,10 @@ static int rtw89_core_register_hw(struct
  	hw->wiphy->max_scan_ssids = RTW89_SCANOFLD_MAX_SSID;
  	hw->wiphy->max_scan_ie_len = RTW89_SCANOFLD_MAX_IE_LEN;
  
@@ -207,7 +207,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-7-pkshih@realtek.com
  };
 --- a/drivers/net/wireless/realtek/rtw89/mac.c
 +++ b/drivers/net/wireless/realtek/rtw89/mac.c
-@@ -1566,6 +1566,16 @@ int rtw89_mac_resize_ple_rx_quota(struct
+@@ -1564,6 +1564,16 @@ int rtw89_mac_resize_ple_rx_quota(struct
  }
  #undef SET_QUOTA
  
@@ -224,7 +224,7 @@ Link: https://lore.kernel.org/r/20221027052707.14605-7-pkshih@realtek.com
  static void dle_quota_cfg(struct rtw89_dev *rtwdev,
  			  const struct rtw89_dle_mem *cfg,
  			  u16 ext_wde_min_qt_wcpu)
-@@ -1915,10 +1925,10 @@ static int scheduler_init(struct rtw89_d
+@@ -1913,10 +1923,10 @@ static int scheduler_init(struct rtw89_d
  	return 0;
  }
  

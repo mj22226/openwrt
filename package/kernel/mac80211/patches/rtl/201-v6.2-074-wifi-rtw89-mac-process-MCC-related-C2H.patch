@@ -22,7 +22,7 @@ Link: https://lore.kernel.org/r/20221129083130.45708-5-pkshih@realtek.com
 
 --- a/drivers/net/wireless/realtek/rtw89/core.c
 +++ b/drivers/net/wireless/realtek/rtw89/core.c
-@@ -3130,6 +3130,8 @@ int rtw89_core_init(struct rtw89_dev *rt
+@@ -3132,6 +3132,8 @@ int rtw89_core_init(struct rtw89_dev *rt
  	mutex_init(&rtwdev->rf_mutex);
  	rtwdev->total_sta_assoc = 0;
  

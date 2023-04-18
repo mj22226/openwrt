@@ -18,7 +18,7 @@ Link: https://lore.kernel.org/r/20221009125403.19662-8-pkshih@realtek.com
 
 --- a/drivers/net/wireless/realtek/rtw89/reg.h
 +++ b/drivers/net/wireless/realtek/rtw89/reg.h
-@@ -3666,6 +3666,8 @@
+@@ -3668,6 +3668,8 @@
  #define B_P0_RFMODE_MUX GENMASK(11, 4)
  #define R_P0_RFMODE_ORI_RX 0x12AC
  #define B_P0_RFMODE_ORI_RX_ALL GENMASK(23, 12)
@@ -27,7 +27,7 @@ Link: https://lore.kernel.org/r/20221009125403.19662-8-pkshih@realtek.com
  #define R_P0_NRBW 0x12B8
  #define B_P0_NRBW_DBG BIT(30)
  #define R_S0_RXDC 0x12D4
-@@ -3779,6 +3781,8 @@
+@@ -3781,6 +3783,8 @@
  #define B_P1_RFMODE_MUX GENMASK(11, 4)
  #define R_P1_RFMODE_ORI_RX 0x32AC
  #define B_P1_RFMODE_ORI_RX_ALL GENMASK(23, 12)

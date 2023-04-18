@@ -49,7 +49,7 @@
  CPTCFG_SSB_PCMCIAHOST=y
 --- a/local-symbols
 +++ b/local-symbols
-@@ -369,13 +369,18 @@ RTL8XXXU_UNTESTED=
+@@ -375,13 +375,18 @@ RTL8XXXU_UNTESTED=
  RTW88=
  RTW88_CORE=
  RTW88_PCI=

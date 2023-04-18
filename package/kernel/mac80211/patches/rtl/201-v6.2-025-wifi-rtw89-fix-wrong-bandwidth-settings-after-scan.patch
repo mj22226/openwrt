@@ -17,7 +17,7 @@ Link: https://lore.kernel.org/r/20221007045900.10823-2-pkshih@realtek.com
 
 --- a/drivers/net/wireless/realtek/rtw89/fw.c
 +++ b/drivers/net/wireless/realtek/rtw89/fw.c
-@@ -2773,6 +2773,7 @@ void rtw89_hw_scan_complete(struct rtw89
+@@ -2775,6 +2775,7 @@ void rtw89_hw_scan_complete(struct rtw89
  
  	if (rtwvif->net_type != RTW89_NET_TYPE_NO_LINK)
  		rtw89_store_op_chan(rtwdev, false);

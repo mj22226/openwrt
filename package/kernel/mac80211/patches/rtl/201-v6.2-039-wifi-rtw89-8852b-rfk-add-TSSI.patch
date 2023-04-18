@@ -73,7 +73,7 @@ Link: https://lore.kernel.org/r/20221012083234.20224-6-pkshih@realtek.com
  #define RR_GAINTX 0x56
  #define RR_GAINTX_ALL GENMASK(15, 0)
  #define RR_GAINTX_PAD GENMASK(9, 5)
-@@ -3730,6 +3732,9 @@
+@@ -3732,6 +3734,9 @@
  #define B_TXAGC_TP GENMASK(2, 0)
  #define R_TSSI_THER 0x1C10
  #define B_TSSI_THER GENMASK(29, 24)
@@ -83,7 +83,7 @@ Link: https://lore.kernel.org/r/20221012083234.20224-6-pkshih@realtek.com
  #define R_TXAGC_BTP 0x1CA0
  #define B_TXAGC_BTP GENMASK(31, 24)
  #define R_TXAGC_BB 0x1C60
-@@ -4092,6 +4097,20 @@
+@@ -4094,6 +4099,20 @@
  #define B_CFO_COMP_VALID_BIT BIT(29)
  #define B_CFO_COMP_WEIGHT_MSK GENMASK(27, 24)
  #define B_CFO_COMP_VAL_MSK GENMASK(11, 0)
@@ -104,7 +104,7 @@ Link: https://lore.kernel.org/r/20221012083234.20224-6-pkshih@realtek.com
  #define R_UPD_CLK 0x5670
  #define B_DAC_VAL BIT(31)
  #define B_ACK_VAL GENMASK(30, 29)
-@@ -4106,6 +4125,8 @@
+@@ -4108,6 +4127,8 @@
  #define B_DPD_TSSI_CW GENMASK(26, 18)
  #define B_DPD_PWR_CW GENMASK(17, 9)
  #define B_DPD_REF GENMASK(8, 0)
@@ -113,7 +113,7 @@ Link: https://lore.kernel.org/r/20221012083234.20224-6-pkshih@realtek.com
  #define R_DPD_OFT_ADDR 0x5804
  #define B_DPD_OFT_ADDR GENMASK(31, 27)
  #define R_TXPWRB_H 0x580c
-@@ -4114,11 +4135,15 @@
+@@ -4116,11 +4137,15 @@
  #define B_P0_TMETER GENMASK(15, 10)
  #define B_P0_TMETER_DIS BIT(16)
  #define B_P0_TMETER_TRK BIT(24)
@@ -129,7 +129,7 @@ Link: https://lore.kernel.org/r/20221012083234.20224-6-pkshih@realtek.com
  #define B_P0_TSSI_AVG GENMASK(15, 12)
  #define R_P0_RFCTM 0x5864
  #define B_P0_RFCTM_EN BIT(29)
-@@ -4141,7 +4166,9 @@
+@@ -4143,7 +4168,9 @@
  #define B_P0_TXPW_RSTB_MANON BIT(30)
  #define B_P0_TXPW_RSTB_TSSI BIT(31)
  #define R_P0_TSSI_MV_AVG 0x58E4
@@ -139,7 +139,7 @@ Link: https://lore.kernel.org/r/20221012083234.20224-6-pkshih@realtek.com
  #define R_TXGAIN_SCALE 0x58F0
  #define B_TXGAIN_SCALE_EN BIT(19)
  #define B_TXGAIN_SCALE_OFT GENMASK(31, 24)
-@@ -4166,25 +4193,41 @@
+@@ -4168,25 +4195,41 @@
  #define B_S0_DACKQ8_K GENMASK(15, 8)
  #define R_RPL_BIAS_COMP1 0x6DF0
  #define B_RPL_BIAS_COMP1_MASK GENMASK(7, 0)

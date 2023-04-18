@@ -18,7 +18,7 @@ Link: https://lore.kernel.org/r/20221214091952.42792-1-pkshih@realtek.com
 
 --- a/drivers/net/wireless/realtek/rtw89/fw.c
 +++ b/drivers/net/wireless/realtek/rtw89/fw.c
-@@ -2749,7 +2749,7 @@ static void rtw89_hw_scan_add_chan(struc
+@@ -2751,7 +2751,7 @@ static void rtw89_hw_scan_add_chan(struc
  		if (ssid_num == 1 && req->ssids[0].ssid_len == 0) {
  			ch_info->tx_pkt = false;
  			if (!req->duration_mandatory)
@@ -27,7 +27,7 @@ Link: https://lore.kernel.org/r/20221214091952.42792-1-pkshih@realtek.com
  		}
  	}
  
-@@ -2802,7 +2802,8 @@ static int rtw89_hw_scan_add_chan_list(s
+@@ -2804,7 +2804,8 @@ static int rtw89_hw_scan_add_chan_list(s
  		if (req->duration_mandatory)
  			ch_info->period = req->duration;
  		else if (channel->band == NL80211_BAND_6GHZ)

@@ -37,7 +37,7 @@ Link: https://lore.kernel.org/r/20221125072416.94752-2-pkshih@realtek.com
  	default:
  		WARN_ON(1);
  		break;
-@@ -3266,6 +3271,7 @@ static int rtw89_core_register_hw(struct
+@@ -3269,6 +3274,7 @@ static int rtw89_core_register_hw(struct
  	ieee80211_hw_set(hw, SUPPORTS_DYNAMIC_PS);
  	ieee80211_hw_set(hw, SINGLE_SCAN_ON_ALL_BANDS);
  	ieee80211_hw_set(hw, SUPPORTS_MULTI_BSSID);

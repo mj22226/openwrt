@@ -111,7 +111,7 @@ Link: https://lore.kernel.org/r/20221129083130.45708-2-pkshih@realtek.com
  	rtw89_phy_write32_mask(rtwdev, R_COEF_SEL + (path << 8), B_COEF_SEL_IQC, idx);
  	rtw89_phy_write32_mask(rtwdev, R_CFIR_LUT + (path << 8), B_CFIR_LUT_G3, idx);
  	rtw89_write_rf(rtwdev, path, RR_RSV1, RR_RSV1_RST, 0x0);
-@@ -3824,20 +3824,20 @@ void rtw8852c_set_channel_rf(struct rtw8
+@@ -3823,20 +3823,20 @@ void rtw8852c_set_channel_rf(struct rtw8
  void rtw8852c_mcc_get_ch_info(struct rtw89_dev *rtwdev, enum rtw89_phy_idx phy_idx)
  {
  	const struct rtw89_chan *chan = rtw89_chan_get(rtwdev, RTW89_SUB_ENTITY_0);

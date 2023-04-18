@@ -1,5 +1,3 @@
-diff --git a/Kconfig.local b/Kconfig.local
-index 2e39a36..8798af6 100644
 --- a/Kconfig.local
 +++ b/Kconfig.local
 @@ -1192,12 +1192,18 @@ config BACKPORTED_RTW89_PCI
@@ -21,8 +19,6 @@ index 2e39a36..8798af6 100644
  config BACKPORTED_RTW89_8852CE
  	tristate
  	default RTW89_8852CE
-diff --git a/defconfigs/wifi b/defconfigs/wifi
-index 0f7d5e8..49b79a8 100644
 --- a/defconfigs/wifi
 +++ b/defconfigs/wifi
 @@ -129,6 +129,7 @@ CPTCFG_RTW88_8822CE=m
@@ -33,8 +29,6 @@ index 0f7d5e8..49b79a8 100644
  CPTCFG_RTW89_8852CE=m
  CPTCFG_RTW89=m
  CPTCFG_SSB=m
-diff --git a/local-symbols b/local-symbols
-index e6806a2..8ea8975 100644
 --- a/local-symbols
 +++ b/local-symbols
 @@ -394,8 +394,10 @@ RTW89=
