@@ -45,6 +45,16 @@ define Device/friendlyarm_nanopi-r4s
 endef
 TARGET_DEVICES += friendlyarm_nanopi-r4s
 
+define Device/friendlyelec_nanopi-r5c
+  DEVICE_VENDOR := Friendlyelec
+  DEVICE_MODEL := NanoPi R5C
+  SOC := rk3568
+  UBOOT_DEVICE_NAME := nanopi-r5c-rk3568
+  IMAGE/sysupgrade.img.gz := boot-common | boot-script nanopi-r5s | pine64-img | gzip | append-metadata
+  DEVICE_PACKAGES := kmod-r8169
+endef
+TARGET_DEVICES += friendlyelec_nanopi-r5c
+
 define Device/friendlyelec_nanopi-r5s
   DEVICE_VENDOR := Friendlyelec
   DEVICE_MODEL := NanoPi R5S

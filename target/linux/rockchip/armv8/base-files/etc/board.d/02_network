@@ -11,6 +11,9 @@ rockchip_setup_interfaces()
 	friendlyarm,nanopi-r4s)
 		ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
 		;;
+	friendlyelec,nanopi-r5c)
+		ucidef_set_interfaces_lan_wan 'eth0' 'eth1'
+		;;
 	friendlyelec,nanopi-r5s)
 		ucidef_set_interfaces_lan_wan 'eth1 eth2' 'eth0'
 		;;
@@ -73,6 +76,7 @@ rockchip_setup_macs()
 		wan_mac=$(nanopi_r4s_get_mac wan)
 		lan_mac=$(nanopi_r4s_get_mac lan)
 		;;
+	friendlyelec,nanopi-r5c|\
 	friendlyelec,nanopi-r5s|\
 	rockchip,rk3568-bpi-r2pro)
 		wan_mac=$(bpi_r2pro_generate_mac)
