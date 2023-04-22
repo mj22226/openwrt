@@ -21,8 +21,8 @@ config-y += RTL8XXXU_UNTESTED
 config-$(call config_package,rtl8723bs) += RTL8723BS
 config-y += STAGING
 
-config-$(call config_package,rtw88) += RTW88 RTW88_CORE RTW88_PCI
-config-y += RTW88_8822BE RTW88_8822CE RTW88_8723DE
+config-$(call config_package,rtw88) += RTW88 RTW88_CORE RTW88_PCI RTW88_USB
+config-y += RTW88_8821CE RTW88_8821CU RTW88_8822CU RTW88_8822BE RTW88_8822BU RTW88_8822CE RTW88_8723DE RTW88_8723DU
 config-$(CONFIG_PACKAGE_RTW88_DEBUG) += RTW88_DEBUG
 config-$(CONFIG_PACKAGE_RTW88_DEBUGFS) += RTW88_DEBUGFS
 
@@ -168,18 +168,25 @@ endef
 
 define KernelPackage/rtw88
   $(call KernelPackage/mac80211/Default)
-  TITLE:=Realtek RTL8822BE/RTL8822CE/RTL8723DE
-  DEPENDS+= @(PCI_SUPPORT) +kmod-mac80211 +@DRIVER_11AC_SUPPORT
+  TITLE:=Realtek RTL8822BE/BU/RTL8822CE/BU/RTL8723DE/DU/RTL8821CU
+  DEPENDS+= @(PCI_SUPPORT) +kmod-mac80211 +@DRIVER_11AC_SUPPORT +@USB_SUPPORT +kmod-usb-core
   FILES:=\
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8821c.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8821ce.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8821cu.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8822be.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8822b.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8822bu.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8822ce.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8822cu.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8822c.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8723de.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8723d.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_8723du.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_core.ko \
-	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_pci.ko
-  AUTOLOAD:=$(call AutoProbe,rtw88_8822be rtw88_8822ce rtw88_8723de)
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_pci.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw88/rtw88_usb.ko
+  AUTOLOAD:=$(call AutoProbe,rtw88_8821ce rtw88_8821cu rtw88_8822cu rtw88_8822be rtw88_8822ce rtw88_8723de rtw88_8822bu rtw88_8723du)
 endef
 
 define KernelPackage/rtl8723bs

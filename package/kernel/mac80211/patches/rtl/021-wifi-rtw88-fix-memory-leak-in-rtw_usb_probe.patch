@@ -1,0 +1,29 @@
+From 48181d285623198c33bb9698992502687b258efa Mon Sep 17 00:00:00 2001
+From: Dongliang Mu <dzm91@hust.edu.cn>
+Date: Thu, 9 Mar 2023 10:16:36 +0800
+Subject: [PATCH] wifi: rtw88: fix memory leak in rtw_usb_probe()
+
+drivers/net/wireless/realtek/rtw88/usb.c:876 rtw_usb_probe()
+warn: 'hw' from ieee80211_alloc_hw() not released on lines: 811
+
+Fix this by modifying return to a goto statement.
+
+Signed-off-by: Dongliang Mu <dzm91@hust.edu.cn>
+Reviewed-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230309021636.528601-1-dzm91@hust.edu.cn
+---
+ drivers/net/wireless/realtek/rtw88/usb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw88/usb.c
++++ b/drivers/net/wireless/realtek/rtw88/usb.c
+@@ -808,7 +808,7 @@ int rtw_usb_probe(struct usb_interface *
+
+ 	ret = rtw_usb_alloc_rx_bufs(rtwusb);
+ 	if (ret)
+-		return ret;
++		goto err_release_hw;
+
+ 	ret = rtw_core_init(rtwdev);
+ 	if (ret)
