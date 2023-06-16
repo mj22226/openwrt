@@ -23,6 +23,9 @@ rockchip_setup_interfaces()
 	friendlyelec,nanopi-r6s)
 		ucidef_set_interfaces_lan_wan 'eth1 eth0' 'eth2'
 		;;
+	friendlyelec,nanopi-r6c-plus)
+		ucidef_set_interfaces_lan_wan 'eth0 eth1 eth3' 'eth2'
+		;;
 	pine64,rockpro64|\
 	pine64,rockpro64-v2.1|\
 	pine64,quartz64-a|\
@@ -80,6 +83,7 @@ rockchip_setup_macs()
 		;;
 	friendlyelec,nanopi-r6c|\
 	friendlyelec,nanopi-r6s|\
+	friendlyelec,nanopi-r6c-plus|\
 	friendlyarm,nanopi-r4s)
 		wan_mac=$(nanopi_r4s_get_mac wan)
 		lan_mac=$(nanopi_r4s_get_mac lan)
