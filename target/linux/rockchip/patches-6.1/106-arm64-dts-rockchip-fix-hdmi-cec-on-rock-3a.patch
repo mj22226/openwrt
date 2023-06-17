@@ -1,0 +1,33 @@
+From 6b7d515e904851a2c7939bd08740eb0359bc89d0 Mon Sep 17 00:00:00 2001
+From: Jonas Karlman <jonas@kwiboo.se>
+Date: Tue, 10 Jan 2023 22:55:59 +0000
+Subject: [PATCH 106/383] arm64: dts: rockchip: fix hdmi cec on rock-3a
+
+HDMI CEC is configured to select HDMITX_CEC_M0 function of GPIO0_C7 by
+default in rk356x.dtsi. On Radxa ROCK 3 Model A it is routed to
+HDMITX_CEC_M1 according to board schematic [1].
+
+Fix HDMI CEC by overriding pinctrl in hdmi node to select HDMITX_CEC_M1.
+
+[1] https://dl.radxa.com/rock3/docs/hw/3a/ROCK-3A-V1.3-SCH.pdf
+
+Signed-off-by: Jonas Karlman <jonas@kwiboo.se>
+Link: https://lore.kernel.org/r/20230110225547.1563119-3-jonas@kwiboo.se
+[added pinctrl-names duplicate]
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3568-rock-3a.dts | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3568-rock-3a.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3568-rock-3a.dts
+@@ -279,6 +279,8 @@
+ &hdmi {
+ 	avdd-0v9-supply = <&vdda0v9_image>;
+ 	avdd-1v8-supply = <&vcca1v8_image>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&hdmitx_scl &hdmitx_sda &hdmitxm1_cec>;
+ 	status = "okay";
+ };
+ 

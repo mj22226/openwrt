@@ -1,0 +1,60 @@
+From 318a88119531fb14c7a2cc8b263219130baf61f6 Mon Sep 17 00:00:00 2001
+From: Randy Dunlap <rdunlap@infradead.org>
+Date: Thu, 12 Jan 2023 22:45:00 -0800
+Subject: [PATCH 337/383] thermal/drivers/rockchip: Fix kernel-doc warnings
+
+Don't use "/**" to begin non-kernel-doc comments.
+Convert one function description to kernel-doc format.
+Prevents these kernel-doc warnings:
+
+drivers/thermal/rockchip_thermal.c:64: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
+ * The max sensors is two in rockchip SoCs.
+drivers/thermal/rockchip_thermal.c:179: warning: expecting prototype for TSADC Sensor Register description(). Prototype was for TSADCV2_USER_CON() instead
+drivers/thermal/rockchip_thermal.c:1342: warning: This comment starts with '/**', but isn't a kernel-doc comment. Refer Documentation/doc-guide/kernel-doc.rst
+ * Reset TSADC Controller, reset all tsadc registers.
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Amit Kucheria <amitk@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Heiko Stuebner <heiko@sntech.de>
+Cc: linux-pm@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-rockchip@lists.infradead.org
+Link: https://lore.kernel.org/r/20230113064500.16103-1-rdunlap@infradead.org
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/thermal/rockchip_thermal.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- a/drivers/thermal/rockchip_thermal.c
++++ b/drivers/thermal/rockchip_thermal.c
+@@ -60,7 +60,7 @@ enum adc_sort_mode {
+ 
+ #include "thermal_hwmon.h"
+ 
+-/**
++/*
+  * The max sensors is two in rockchip SoCs.
+  * Two sensors: CPU and GPU sensor.
+  */
+@@ -169,7 +169,7 @@ struct rockchip_thermal_data {
+ 	enum tshut_polarity tshut_polarity;
+ };
+ 
+-/**
++/*
+  * TSADC Sensor Register description:
+  *
+  * TSADCV2_* are used for RK3288 SoCs, the other chips can reuse it.
+@@ -1339,7 +1339,7 @@ rockchip_thermal_register_sensor(struct
+ }
+ 
+ /**
+- * Reset TSADC Controller, reset all tsadc registers.
++ * rockchip_thermal_reset_controller - Reset TSADC Controller, reset all tsadc registers.
+  * @reset: the reset controller of tsadc
+  */
+ static void rockchip_thermal_reset_controller(struct reset_control *reset)

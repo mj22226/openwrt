@@ -1,0 +1,31 @@
+From 6d5b834b49c996c71bed2d005fefc48813931e75 Mon Sep 17 00:00:00 2001
+From: Corentin Labbe <clabbe@baylibre.com>
+Date: Tue, 27 Sep 2022 07:54:54 +0000
+Subject: [PATCH 305/383] crypto: rockchip: add myself as maintainer
+
+Nobody is set as maintainer of rockchip crypto, I propose to do it as I
+have already reworked lot of this code.
+
+Reviewed-by: John Keeping <john@metanate.com>
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -17795,6 +17795,13 @@ F:	Documentation/ABI/*/sysfs-driver-hid-
+ F:	drivers/hid/hid-roccat*
+ F:	include/linux/hid-roccat*
+ 
++ROCKCHIP CRYPTO DRIVERS
++M:	Corentin Labbe <clabbe@baylibre.com>
++L:	linux-crypto@vger.kernel.org
++S:	Maintained
++F:	Documentation/devicetree/bindings/crypto/rockchip,rk3288-crypto.yaml
++F:	drivers/crypto/rockchip/
++
+ ROCKCHIP I2S TDM DRIVER
+ M:	Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+ L:	linux-rockchip@lists.infradead.org

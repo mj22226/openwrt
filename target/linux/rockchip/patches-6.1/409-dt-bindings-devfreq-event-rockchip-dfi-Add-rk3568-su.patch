@@ -1,0 +1,50 @@
+From cac156a68588ae687fd0be8615fc9918e9b2fe86 Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:49 +0200
+Subject: [PATCH 409/414] dt-bindings: devfreq: event: rockchip,dfi: Add rk3568
+ support
+
+This adds the rockchip,rk3568-dfi compatible to the binding. Make clocks
+optional for this SoC as the RK3568 doesn't have a kernel controllable
+PCLK.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Reviewed-by: Conor Dooley <conor.dooley@microchip.com>
+---
+ .../bindings/devfreq/event/rockchip,dfi.yaml      | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+--- a/Documentation/devicetree/bindings/devfreq/event/rockchip,dfi.yaml
++++ b/Documentation/devicetree/bindings/devfreq/event/rockchip,dfi.yaml
+@@ -13,6 +13,7 @@ properties:
+   compatible:
+     enum:
+       - rockchip,rk3399-dfi
++      - rockchip,rk3568-dfi
+ 
+   clocks:
+     maxItems: 1
+@@ -34,11 +35,21 @@ properties:
+ 
+ required:
+   - compatible
+-  - clocks
+-  - clock-names
+   - interrupts
+   - reg
+ 
++if:
++  properties:
++    compatible:
++      contains:
++        enum:
++          - rockchip,rk3399-dfi
++
++then:
++  required:
++    - clocks
++    - clock-names
++
+ additionalProperties: false
+ 
+ examples:

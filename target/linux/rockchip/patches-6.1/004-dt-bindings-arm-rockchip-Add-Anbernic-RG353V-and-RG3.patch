@@ -1,0 +1,36 @@
+From 1ccf8e2e01f9a55cbef202730e6387718cf7808d Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Fri, 28 Oct 2022 13:40:42 -0500
+Subject: [PATCH 004/383] dt-bindings: arm: rockchip: Add Anbernic RG353V and
+ RG353VS
+
+Add entry for the Anbernic RG353V and RG353VS handheld devices.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20221028184045.13113-2-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -35,6 +35,16 @@ properties:
+           - const: anbernic,rg353p
+           - const: rockchip,rk3566
+ 
++      - description: Anbernic RG353V
++        items:
++          - const: anbernic,rg353v
++          - const: rockchip,rk3566
++
++      - description: Anbernic RG353VS
++        items:
++          - const: anbernic,rg353vs
++          - const: rockchip,rk3566
++
+       - description: Anbernic RG503
+         items:
+           - const: anbernic,rg503

@@ -1,0 +1,48 @@
+From 2ac45c4f5a98cb76d6be3c8ddb872c99e4f5d4d9 Mon Sep 17 00:00:00 2001
+From: Lucas Tanure <lucas.tanure@collabora.com>
+Date: Tue, 28 Feb 2023 14:40:59 +0000
+Subject: [PATCH 277/383] arm64: dts: rockchip: RK3588s: Enable PCIE2.0x1
+ @fe190000
+
+Enable PCIE2.0x1 @fe190000 for RTL8125 network controller in
+Rock 5B board.
+
+Signed-off-by: Lucas Tanure <lucas.tanure@collabora.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3588-rock-5b.dts      | 20 +++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts
+@@ -77,6 +77,15 @@
+ 		regulator-max-microvolt = <1100000>;
+ 		vin-supply = <&vcc5v0_sys>;
+ 	};
++
++	vcc3v3_pcie2x1l2: vcc3v3-pcie2x1l2 {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc3v3_pcie2x1l2";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		startup-delay-us = <5000>;
++		vin-supply = <&vcc_3v3_s3>;
++	};
+ };
+ 
+ &cpu_b0 {
+@@ -279,3 +288,14 @@
+ 		};
+ 	};
+ };
++
++&combphy0_ps {
++	status = "okay";
++};
++
++&pcie2x1l2 {
++	reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_HIGH>;
++	vpcie3v3-supply = <&vcc3v3_pcie2x1l2>;
++	status = "okay";
++
++};

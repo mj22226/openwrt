@@ -1,0 +1,33 @@
+From af3c0f7f051205118c47f893e1e65e4b8b7fa120 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <rafal@milecki.pl>
+Date: Tue, 28 Feb 2023 16:21:05 +0100
+Subject: [PATCH 240/383] dt-bindings: usb: allow evaluated properties in OHCI
+ controllers
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This binding uses usb-hcd.yaml so replace additionalProperties with
+unevaluatedProperties to allow generic USB HCD properties. It's how EHCI
+and XHCI bindings work too.
+
+Signed-off-by: Rafał Miłecki <rafal@milecki.pl>
+Acked-by: Rob Herring <robh@kernel.org>
+Link: https://lore.kernel.org/r/20230228152105.25358-1-zajec5@gmail.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/usb/generic-ohci.yaml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/Documentation/devicetree/bindings/usb/generic-ohci.yaml
++++ b/Documentation/devicetree/bindings/usb/generic-ohci.yaml
+@@ -148,7 +148,7 @@ allOf:
+       properties:
+         transceiver: false
+ 
+-additionalProperties: false
++unevaluatedProperties: false
+ 
+ examples:
+   - |

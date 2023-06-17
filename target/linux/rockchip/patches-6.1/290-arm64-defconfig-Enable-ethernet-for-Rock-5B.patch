@@ -1,0 +1,29 @@
+From f00922dce0f289208c65e175c8c47e1ceb5b3216 Mon Sep 17 00:00:00 2001
+From: Lucas Tanure <lucas.tanure@collabora.com>
+Date: Thu, 23 Mar 2023 12:27:19 +0000
+Subject: [PATCH 290/383] arm64: defconfig: Enable ethernet for Rock 5B
+
+Signed-off-by: Lucas Tanure <lucas.tanure@collabora.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/configs/defconfig | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -230,6 +230,7 @@ CONFIG_PCIE_ALTERA=y
+ CONFIG_PCIE_ALTERA_MSI=y
+ CONFIG_PCI_HOST_THUNDER_PEM=y
+ CONFIG_PCI_HOST_THUNDER_ECAM=y
++CONFIG_PCIE_ROCKCHIP_DW_HOST=y
+ CONFIG_PCIE_ROCKCHIP_HOST=m
+ CONFIG_PCIE_BRCMSTB=m
+ CONFIG_PCI_IMX6=y
+@@ -1244,6 +1245,7 @@ CONFIG_PHY_RCAR_GEN3_PCIE=y
+ CONFIG_PHY_RCAR_GEN3_USB2=y
+ CONFIG_PHY_RCAR_GEN3_USB3=m
+ CONFIG_PHY_ROCKCHIP_EMMC=y
++CONFIG_PHY_ROCKCHIP_NANENG_COMBO_PHY=y
+ CONFIG_PHY_ROCKCHIP_INNO_HDMI=m
+ CONFIG_PHY_ROCKCHIP_INNO_USB2=y
+ CONFIG_PHY_ROCKCHIP_INNO_DSIDPHY=m

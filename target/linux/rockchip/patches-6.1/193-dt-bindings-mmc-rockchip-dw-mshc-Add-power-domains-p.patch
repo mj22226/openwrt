@@ -1,0 +1,31 @@
+From 753897a422de6bbb7d517fd479d3700408db8262 Mon Sep 17 00:00:00 2001
+From: Jagan Teki <jagan@edgeble.ai>
+Date: Tue, 8 Nov 2022 09:43:52 +0530
+Subject: [PATCH 193/383] dt-bindings: mmc: rockchip-dw-mshc: Add power-domains
+ property
+
+Document power-domains property in rockchip dw controller.
+
+RV1126 is using eMMC and SDIO power domains but SDMMC is not.
+
+Signed-off-by: Jagan Teki <jagan@edgeble.ai>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20221108041400.157052-3-jagan@edgeble.ai
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/mmc/rockchip-dw-mshc.yaml | 3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/Documentation/devicetree/bindings/mmc/rockchip-dw-mshc.yaml
++++ b/Documentation/devicetree/bindings/mmc/rockchip-dw-mshc.yaml
+@@ -71,6 +71,9 @@ properties:
+       to control the clock phases, "ciu-sample" is required for tuning
+       high speed modes.
+ 
++  power-domains:
++    maxItems: 1
++
+   rockchip,default-sample-phase:
+     $ref: /schemas/types.yaml#/definitions/uint32
+     minimum: 0

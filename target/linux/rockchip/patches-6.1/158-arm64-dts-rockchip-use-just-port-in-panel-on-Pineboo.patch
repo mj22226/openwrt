@@ -1,0 +1,44 @@
+From 6c28de010652ee73b2480688d79e004127ec132b Mon Sep 17 00:00:00 2001
+From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Date: Sun, 26 Mar 2023 22:45:19 +0200
+Subject: [PATCH 158/383] arm64: dts: rockchip: use just "port" in panel on
+ Pinebook Pro
+
+The panel bindings expect to have only one port, thus they do not allow
+to use "ports" node:
+
+  rk3399-pinebook-pro.dtb: edp-panel: 'ports' does not match any of the regexes: 'pinctrl-[0-9]+'
+
+Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20230326204520.80859-2-krzysztof.kozlowski@linaro.org
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3399-pinebook-pro.dts    | 16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-pinebook-pro.dts
+@@ -50,19 +50,9 @@
+ 		pinctrl-0 = <&panel_en_pin>;
+ 		power-supply = <&vcc3v3_panel>;
+ 
+-		ports {
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-
+-			port@0 {
+-				reg = <0>;
+-				#address-cells = <1>;
+-				#size-cells = <0>;
+-
+-				panel_in_edp: endpoint@0 {
+-					reg = <0>;
+-					remote-endpoint = <&edp_out_panel>;
+-				};
++		port {
++			panel_in_edp: endpoint {
++				remote-endpoint = <&edp_out_panel>;
+ 			};
+ 		};
+ 	};

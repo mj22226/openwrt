@@ -1,0 +1,38 @@
+From d4d853398c3641c0e495f98fa9ff19a096905386 Mon Sep 17 00:00:00 2001
+From: ye xingchen <ye.xingchen@zte.com.cn>
+Date: Wed, 18 Jan 2023 16:39:30 +0800
+Subject: [PATCH 338/383] thermal/drivers/rockchip: Use
+ devm_platform_get_and_ioremap_resource()
+
+Convert platform_get_resource(), devm_ioremap_resource() to a single
+call to devm_platform_get_and_ioremap_resource(), as this is exactly
+what this function does.
+
+Signed-off-by: ye xingchen <ye.xingchen@zte.com.cn>
+Link: https://lore.kernel.org/r/202301181639300333679@zte.com.cn
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/thermal/rockchip_thermal.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+--- a/drivers/thermal/rockchip_thermal.c
++++ b/drivers/thermal/rockchip_thermal.c
+@@ -1354,7 +1354,6 @@ static int rockchip_thermal_probe(struct
+ 	struct device_node *np = pdev->dev.of_node;
+ 	struct rockchip_thermal_data *thermal;
+ 	const struct of_device_id *match;
+-	struct resource *res;
+ 	int irq;
+ 	int i;
+ 	int error;
+@@ -1378,8 +1377,7 @@ static int rockchip_thermal_probe(struct
+ 	if (!thermal->chip)
+ 		return -EINVAL;
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	thermal->regs = devm_ioremap_resource(&pdev->dev, res);
++	thermal->regs = devm_platform_get_and_ioremap_resource(pdev, 0, NULL);
+ 	if (IS_ERR(thermal->regs))
+ 		return PTR_ERR(thermal->regs);
+ 

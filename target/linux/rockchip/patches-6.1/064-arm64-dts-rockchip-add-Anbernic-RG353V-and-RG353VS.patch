@@ -1,0 +1,575 @@
+From e45318fbf5941fc16483e9da65da867643b4cf91 Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Fri, 28 Oct 2022 13:40:43 -0500
+Subject: [PATCH 064/383] arm64: dts: rockchip: add Anbernic RG353V and RG353VS
+
+Anbernic RG353V and RG353VS are both RK3566 based handheld gaming devices
+from Anbernic.
+
+They are functionally very similar to the RG353P with the following
+distinct differences:
+ - The battery size of the RG353V and RG353VS is 3200mAh instead of
+   3500mAh.
+ - The audio uses the PMIC's internal amplifier for a mono speaker
+   instead of an external amplifier with stereo speakers.
+ - The GPIOs for the R1 and R2 buttons are switched.
+
+As for the differences between the RG353V and RG353VS, they are as
+follows:
+ - The RG353VS has no touchscreen on i2c2.
+ - The RG353VS has no eMMC.
+ - The RG353VS has 1GB of RAM instead of 2GB.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Link: https://lore.kernel.org/r/20221028184045.13113-3-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/Makefile         |   2 +
+ .../dts/rockchip/rk3566-anbernic-rg353p.dts   |  83 +++++++------
+ .../dts/rockchip/rk3566-anbernic-rg353v.dts   | 114 ++++++++++++++++++
+ .../dts/rockchip/rk3566-anbernic-rg353vs.dts  |  87 +++++++++++++
+ .../dts/rockchip/rk3566-anbernic-rg353x.dtsi  |  60 +++++++++
+ .../dts/rockchip/rk3566-anbernic-rg503.dts    |  51 ++++++++
+ .../dts/rockchip/rk3566-anbernic-rgxx3.dtsi   |  46 -------
+ 7 files changed, 358 insertions(+), 85 deletions(-)
+ create mode 100644 arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353v.dts
+ create mode 100644 arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353vs.dts
+ create mode 100644 arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353x.dtsi
+
+--- a/arch/arm64/boot/dts/rockchip/Makefile
++++ b/arch/arm64/boot/dts/rockchip/Makefile
+@@ -63,6 +63,8 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-sa
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-sapphire-excavator.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399pro-rock-pi-n10.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3566-anbernic-rg353p.dtb
++dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3566-anbernic-rg353v.dtb
++dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3566-anbernic-rg353vs.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3566-anbernic-rg503.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3566-pinenote-v1.1.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3566-pinenote-v1.2.dtb
+--- a/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353p.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353p.dts
+@@ -5,7 +5,7 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/linux-event-codes.h>
+ #include <dt-bindings/pinctrl/rockchip.h>
+-#include "rk3566-anbernic-rgxx3.dtsi"
++#include "rk3566-anbernic-rg353x.dtsi"
+ 
+ / {
+ 	model = "RG353P";
+@@ -18,26 +18,47 @@
+ 		mmc3 = &sdmmc2;
+ 	};
+ 
+-	backlight: backlight {
+-		compatible = "pwm-backlight";
+-		power-supply = <&vcc_sys>;
+-		pwms = <&pwm4 0 25000 0>;
++	/* Channels reversed for both headphones and speakers. */
++	sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "rk817_ext";
++		simple-audio-card,aux-devs = <&spk_amp>;
++		simple-audio-card,format = "i2s";
++		simple-audio-card,hp-det-gpio = <&gpio4 RK_PC6 GPIO_ACTIVE_HIGH>;
++		simple-audio-card,mclk-fs = <256>;
++		simple-audio-card,widgets =
++			"Microphone", "Mic Jack",
++			"Headphone", "Headphones",
++			"Speaker", "Internal Speakers";
++		simple-audio-card,routing =
++			"MICL", "Mic Jack",
++			"Headphones", "HPOL",
++			"Headphones", "HPOR",
++			"Internal Speakers", "Speaker Amp OUTL",
++			"Internal Speakers", "Speaker Amp OUTR",
++			"Speaker Amp INL", "HPOL",
++			"Speaker Amp INR", "HPOR";
++		simple-audio-card,pin-switches = "Internal Speakers";
++
++		simple-audio-card,codec {
++			sound-dai = <&rk817>;
++		};
++
++		simple-audio-card,cpu {
++			sound-dai = <&i2s1_8ch>;
++		};
++	};
++
++	spk_amp: audio-amplifier {
++		compatible = "simple-audio-amplifier";
++		enable-gpios = <&gpio4 RK_PC2 GPIO_ACTIVE_HIGH>;
++		pinctrl-0 = <&spk_amp_enable_h>;
++		pinctrl-names = "default";
++		sound-name-prefix = "Speaker Amp";
+ 	};
+ };
+ 
+ &gpio_keys_control {
+-	button-a {
+-		gpios = <&gpio3 RK_PC2 GPIO_ACTIVE_LOW>;
+-		label = "EAST";
+-		linux,code = <BTN_EAST>;
+-	};
+-
+-	button-left {
+-		gpios = <&gpio3 RK_PA6 GPIO_ACTIVE_LOW>;
+-		label = "DPAD-LEFT";
+-		linux,code = <BTN_DPAD_LEFT>;
+-	};
+-
+ 	button-r1 {
+ 		gpios = <&gpio3 RK_PB4 GPIO_ACTIVE_LOW>;
+ 		label = "TR";
+@@ -49,27 +70,6 @@
+ 		label = "TR2";
+ 		linux,code = <BTN_TR2>;
+ 	};
+-
+-	button-right {
+-		gpios = <&gpio3 RK_PA5 GPIO_ACTIVE_LOW>;
+-		label = "DPAD-RIGHT";
+-		linux,code = <BTN_DPAD_RIGHT>;
+-	};
+-
+-	button-y {
+-		gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_LOW>;
+-		label = "WEST";
+-		linux,code = <BTN_WEST>;
+-	};
+-};
+-
+-&i2c0 {
+-	/* This hardware is physically present but unused. */
+-	power-monitor@62 {
+-		compatible = "cellwise,cw2015";
+-		reg = <0x62>;
+-		status = "disabled";
+-	};
+ };
+ 
+ &i2c2 {
+@@ -78,8 +78,13 @@
+ 	status = "okay";
+ };
+ 
+-&pwm4 {
+-	status = "okay";
++&pinctrl {
++	audio-amplifier {
++		spk_amp_enable_h: spk-amp-enable-h {
++			rockchip,pins =
++				<4 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
+ };
+ 
+ &sdhci {
+--- /dev/null
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353v.dts
+@@ -0,0 +1,114 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++
++/dts-v1/;
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/linux-event-codes.h>
++#include <dt-bindings/pinctrl/rockchip.h>
++#include "rk3566-anbernic-rg353x.dtsi"
++
++/ {
++	model = "RG353V";
++	compatible = "anbernic,rg353v", "rockchip,rk3566";
++
++	aliases {
++		mmc0 = &sdhci;
++		mmc1 = &sdmmc0;
++		mmc2 = &sdmmc1;
++		mmc3 = &sdmmc2;
++	};
++
++	battery: battery {
++		compatible = "simple-battery";
++		charge-full-design-microamp-hours = <3151000>;
++		charge-term-current-microamp = <300000>;
++		constant-charge-current-max-microamp = <2000000>;
++		constant-charge-voltage-max-microvolt = <4200000>;
++		factory-internal-resistance-micro-ohms = <117000>;
++		voltage-max-design-microvolt = <4172000>;
++		voltage-min-design-microvolt = <3400000>;
++
++		ocv-capacity-celsius = <20>;
++		ocv-capacity-table-0 =  <4172000 100>, <4054000 95>, <3984000 90>, <3926000 85>,
++					<3874000 80>, <3826000 75>, <3783000 70>, <3746000 65>,
++					<3714000 60>, <3683000 55>, <3650000 50>, <3628000 45>,
++					<3612000 40>, <3600000 35>, <3587000 30>, <3571000 25>,
++					<3552000 20>, <3525000 15>, <3492000 10>, <3446000 5>,
++					<3400000 0>;
++	};
++
++	/* Channels reversed for headphones. */
++	sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "rk817_int";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,hp-det-gpio = <&gpio4 RK_PC6 GPIO_ACTIVE_HIGH>;
++		simple-audio-card,mclk-fs = <256>;
++		simple-audio-card,widgets =
++			"Microphone", "Mic Jack",
++			"Headphone", "Headphones",
++			"Speaker", "Internal Speakers";
++		simple-audio-card,routing =
++			"MICL", "Mic Jack",
++			"Headphones", "HPOL",
++			"Headphones", "HPOR",
++			"Internal Speakers", "SPKO";
++
++		simple-audio-card,codec {
++			sound-dai = <&rk817>;
++		};
++
++		simple-audio-card,cpu {
++			sound-dai = <&i2s1_8ch>;
++		};
++	};
++};
++
++&gpio_keys_control {
++	button-r1 {
++		gpios = <&gpio3 RK_PB3 GPIO_ACTIVE_LOW>;
++		label = "TR";
++		linux,code = <BTN_TR>;
++	};
++
++	button-r2 {
++		gpios = <&gpio3 RK_PB4 GPIO_ACTIVE_LOW>;
++		label = "TR2";
++		linux,code = <BTN_TR2>;
++	};
++};
++
++&i2c2 {
++	pintctrl-names = "default";
++	pinctrl-0 = <&i2c2m1_xfer>;
++	status = "okay";
++};
++
++&pinctrl {
++	touch {
++		touch_rst: touch-rst {
++			rockchip,pins =
++				<4 RK_PA6 RK_FUNC_GPIO &pcfg_pull_up>;
++		};
++	};
++};
++
++&rk817 {
++	rk817_charger: charger {
++		monitored-battery = <&battery>;
++		rockchip,resistor-sense-micro-ohms = <10000>;
++		rockchip,sleep-enter-current-microamp = <300000>;
++		rockchip,sleep-filter-current-microamp = <100000>;
++	};
++};
++
++&sdhci {
++	pinctrl-0 = <&emmc_bus8>, <&emmc_clk>, <&emmc_cmd>, <&emmc_datastrobe>, <&emmc_rstnout>;
++	pinctrl-names = "default";
++	bus-width = <8>;
++	mmc-hs200-1_8v;
++	non-removable;
++	vmmc-supply = <&vcc_3v3>;
++	vqmmc-supply = <&vcc_1v8>;
++	status = "okay";
++};
+--- /dev/null
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353vs.dts
+@@ -0,0 +1,87 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++
++/dts-v1/;
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/linux-event-codes.h>
++#include <dt-bindings/pinctrl/rockchip.h>
++#include "rk3566-anbernic-rg353x.dtsi"
++
++/ {
++	model = "RG353VS";
++	compatible = "anbernic,rg353vs", "rockchip,rk3566";
++
++	aliases {
++		mmc0 = &sdmmc0;
++		mmc1 = &sdmmc1;
++		mmc2 = &sdmmc2;
++	};
++
++	battery: battery {
++		compatible = "simple-battery";
++		charge-full-design-microamp-hours = <3151000>;
++		charge-term-current-microamp = <300000>;
++		constant-charge-current-max-microamp = <2000000>;
++		constant-charge-voltage-max-microvolt = <4200000>;
++		factory-internal-resistance-micro-ohms = <117000>;
++		voltage-max-design-microvolt = <4172000>;
++		voltage-min-design-microvolt = <3400000>;
++
++		ocv-capacity-celsius = <20>;
++		ocv-capacity-table-0 =  <4172000 100>, <4054000 95>, <3984000 90>, <3926000 85>,
++					<3874000 80>, <3826000 75>, <3783000 70>, <3746000 65>,
++					<3714000 60>, <3683000 55>, <3650000 50>, <3628000 45>,
++					<3612000 40>, <3600000 35>, <3587000 30>, <3571000 25>,
++					<3552000 20>, <3525000 15>, <3492000 10>, <3446000 5>,
++					<3400000 0>;
++	};
++
++	/* Channels reversed for headphones. */
++	sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "rk817_int";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,hp-det-gpio = <&gpio4 RK_PC6 GPIO_ACTIVE_HIGH>;
++		simple-audio-card,mclk-fs = <256>;
++		simple-audio-card,widgets =
++			"Microphone", "Mic Jack",
++			"Headphone", "Headphones",
++			"Speaker", "Internal Speakers";
++		simple-audio-card,routing =
++			"MICL", "Mic Jack",
++			"Headphones", "HPOL",
++			"Headphones", "HPOR",
++			"Internal Speakers", "SPKO";
++
++		simple-audio-card,codec {
++			sound-dai = <&rk817>;
++		};
++
++		simple-audio-card,cpu {
++			sound-dai = <&i2s1_8ch>;
++		};
++	};
++};
++
++&gpio_keys_control {
++	button-r1 {
++		gpios = <&gpio3 RK_PB3 GPIO_ACTIVE_LOW>;
++		label = "TR";
++		linux,code = <BTN_TR>;
++	};
++
++	button-r2 {
++		gpios = <&gpio3 RK_PB4 GPIO_ACTIVE_LOW>;
++		label = "TR2";
++		linux,code = <BTN_TR2>;
++	};
++};
++
++&rk817 {
++	rk817_charger: charger {
++		monitored-battery = <&battery>;
++		rockchip,resistor-sense-micro-ohms = <10000>;
++		rockchip,sleep-enter-current-microamp = <300000>;
++		rockchip,sleep-filter-current-microamp = <100000>;
++	};
++};
+--- /dev/null
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353x.dtsi
+@@ -0,0 +1,60 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++
++/dts-v1/;
++
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/linux-event-codes.h>
++#include <dt-bindings/pinctrl/rockchip.h>
++#include "rk3566-anbernic-rgxx3.dtsi"
++
++/ {
++	backlight: backlight {
++		compatible = "pwm-backlight";
++		power-supply = <&vcc_sys>;
++		pwms = <&pwm4 0 25000 0>;
++	};
++};
++
++&cru {
++	assigned-clocks = <&cru PLL_GPLL>, <&pmucru PLL_PPLL>, <&cru PLL_VPLL>;
++	assigned-clock-rates = <1200000000>, <200000000>, <241500000>;
++};
++
++&gpio_keys_control {
++	button-a {
++		gpios = <&gpio3 RK_PC2 GPIO_ACTIVE_LOW>;
++		label = "EAST";
++		linux,code = <BTN_EAST>;
++	};
++
++	button-left {
++		gpios = <&gpio3 RK_PA6 GPIO_ACTIVE_LOW>;
++		label = "DPAD-LEFT";
++		linux,code = <BTN_DPAD_LEFT>;
++	};
++
++	button-right {
++		gpios = <&gpio3 RK_PA5 GPIO_ACTIVE_LOW>;
++		label = "DPAD-RIGHT";
++		linux,code = <BTN_DPAD_RIGHT>;
++	};
++
++	button-y {
++		gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_LOW>;
++		label = "WEST";
++		linux,code = <BTN_WEST>;
++	};
++};
++
++&i2c0 {
++	/* This hardware is physically present but unused. */
++	power-monitor@62 {
++		compatible = "cellwise,cw2015";
++		reg = <0x62>;
++		status = "disabled";
++	};
++};
++
++&pwm4 {
++	status = "okay";
++};
+--- a/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg503.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg503.dts
+@@ -29,6 +29,50 @@
+ 		cs-gpios = <&gpio4 RK_PA7 GPIO_ACTIVE_HIGH>;
+ 		num-chipselects = <0>;
+ 	};
++
++	/* Channels reversed for both headphones and speakers. */
++	sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "rk817_ext";
++		simple-audio-card,aux-devs = <&spk_amp>;
++		simple-audio-card,format = "i2s";
++		simple-audio-card,hp-det-gpio = <&gpio4 RK_PC6 GPIO_ACTIVE_HIGH>;
++		simple-audio-card,mclk-fs = <256>;
++		simple-audio-card,widgets =
++			"Microphone", "Mic Jack",
++			"Headphone", "Headphones",
++			"Speaker", "Internal Speakers";
++		simple-audio-card,routing =
++			"MICL", "Mic Jack",
++			"Headphones", "HPOL",
++			"Headphones", "HPOR",
++			"Internal Speakers", "Speaker Amp OUTL",
++			"Internal Speakers", "Speaker Amp OUTR",
++			"Speaker Amp INL", "HPOL",
++			"Speaker Amp INR", "HPOR";
++		simple-audio-card,pin-switches = "Internal Speakers";
++
++		simple-audio-card,codec {
++			sound-dai = <&rk817>;
++		};
++
++		simple-audio-card,cpu {
++			sound-dai = <&i2s1_8ch>;
++		};
++	};
++
++	spk_amp: audio-amplifier {
++		compatible = "simple-audio-amplifier";
++		enable-gpios = <&gpio4 RK_PC2 GPIO_ACTIVE_HIGH>;
++		pinctrl-0 = <&spk_amp_enable_h>;
++		pinctrl-names = "default";
++		sound-name-prefix = "Speaker Amp";
++	};
++};
++
++&cru {
++	assigned-clocks = <&cru PLL_GPLL>, <&pmucru PLL_PPLL>, <&cru PLL_VPLL>;
++	assigned-clock-rates = <1200000000>, <200000000>, <500000000>;
+ };
+ 
+ &gpio_keys_control {
+@@ -76,6 +120,13 @@
+ };
+ 
+ &pinctrl {
++	audio-amplifier {
++		spk_amp_enable_h: spk-amp-enable-h {
++			rockchip,pins =
++				<4 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	gpio-spi {
+ 		spi_pins: spi-pins {
+ 			rockchip,pins =
+--- a/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rgxx3.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rgxx3.dtsi
+@@ -217,37 +217,6 @@
+ 		};
+ 	};
+ 
+-	/* Channels reversed for both headphones and speakers. */
+-	sound {
+-		compatible = "simple-audio-card";
+-		simple-audio-card,name = "anbernic_rk817";
+-		simple-audio-card,aux-devs = <&spk_amp>;
+-		simple-audio-card,format = "i2s";
+-		simple-audio-card,hp-det-gpio = <&gpio4 RK_PC6 GPIO_ACTIVE_HIGH>;
+-		simple-audio-card,mclk-fs = <256>;
+-		simple-audio-card,widgets =
+-			"Microphone", "Mic Jack",
+-			"Headphone", "Headphones",
+-			"Speaker", "Internal Speakers";
+-		simple-audio-card,routing =
+-			"MICL", "Mic Jack",
+-			"Headphones", "HPOL",
+-			"Headphones", "HPOR",
+-			"Internal Speakers", "Speaker Amp OUTL",
+-			"Internal Speakers", "Speaker Amp OUTR",
+-			"Speaker Amp INL", "HPOL",
+-			"Speaker Amp INR", "HPOR";
+-		simple-audio-card,pin-switches = "Internal Speakers";
+-
+-		simple-audio-card,codec {
+-			sound-dai = <&rk817>;
+-		};
+-
+-		simple-audio-card,cpu {
+-			sound-dai = <&i2s1_8ch>;
+-		};
+-	};
+-
+ 	sdio_pwrseq: sdio-pwrseq {
+ 		compatible = "mmc-pwrseq-simple";
+ 		clocks = <&rk817 1>;
+@@ -258,14 +227,6 @@
+ 		reset-gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_LOW>;
+ 	};
+ 
+-	spk_amp: audio-amplifier {
+-		compatible = "simple-audio-amplifier";
+-		enable-gpios = <&gpio4 RK_PC2 GPIO_ACTIVE_HIGH>;
+-		pinctrl-0 = <&spk_amp_enable_h>;
+-		pinctrl-names = "default";
+-		sound-name-prefix = "Speaker Amp";
+-	};
+-
+ 	vcc3v3_lcd0_n: regulator-vcc3v3-lcd0 {
+ 		compatible = "regulator-fixed";
+ 		gpio = <&gpio0 RK_PC2 GPIO_ACTIVE_HIGH>;
+@@ -607,13 +568,6 @@
+ };
+ 
+ &pinctrl {
+-	audio-amplifier {
+-		spk_amp_enable_h: spk-amp-enable-h {
+-			rockchip,pins =
+-				<4 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+-		};
+-	};
+-
+ 	gpio-btns {
+ 		btn_pins_ctrl: btn-pins-ctrl {
+ 			rockchip,pins =

@@ -1,0 +1,33 @@
+From c1a47d26199aa55b018c5bd4c6544db8dfec03f2 Mon Sep 17 00:00:00 2001
+From: Jagan Teki <jagan@edgeble.ai>
+Date: Tue, 16 May 2023 22:04:52 +0530
+Subject: [PATCH 359/383] arm64: dts: rockchip: Add Rockchip RK3588J
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Rockchip RK3588J is the industrial-grade version of RK3588 SoC and
+is operated with -40 °C to +85 °C temparature.
+
+Add rk3588j specific dtsi for adding rk3588j specific operating points
+and other changes to be add in future.
+
+Signed-off-by: Jagan Teki <jagan@edgeble.ai>
+Link: https://lore.kernel.org/r/20230516163454.997736-2-jagan@edgeble.ai
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3588j.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
+ create mode 100644 arch/arm64/boot/dts/rockchip/rk3588j.dtsi
+
+--- /dev/null
++++ b/arch/arm64/boot/dts/rockchip/rk3588j.dtsi
+@@ -0,0 +1,7 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
++ *
++ */
++
++#include "rk3588.dtsi"

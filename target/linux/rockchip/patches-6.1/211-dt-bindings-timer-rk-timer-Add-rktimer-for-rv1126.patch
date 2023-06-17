@@ -1,0 +1,26 @@
+From e8cb207d78a65204ce7ba71af460dec49ee587bd Mon Sep 17 00:00:00 2001
+From: Jagan Teki <jagan@edgeble.ai>
+Date: Thu, 24 Nov 2022 00:01:18 +0530
+Subject: [PATCH 211/383] dt-bindings: timer: rk-timer: Add rktimer for rv1126
+
+Add rockchip timer compatible string for rockchip rv1126.
+
+Signed-off-by: Jagan Teki <jagan@edgeble.ai>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20221123183124.6911-3-jagan@edgeble.ai
+Signed-off-by: Daniel Lezcano <daniel.lezcano@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/timer/rockchip,rk-timer.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/Documentation/devicetree/bindings/timer/rockchip,rk-timer.yaml
++++ b/Documentation/devicetree/bindings/timer/rockchip,rk-timer.yaml
+@@ -17,6 +17,7 @@ properties:
+       - items:
+           - enum:
+               - rockchip,rv1108-timer
++              - rockchip,rv1126-timer
+               - rockchip,rk3036-timer
+               - rockchip,rk3128-timer
+               - rockchip,rk3188-timer

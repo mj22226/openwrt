@@ -1,0 +1,24 @@
+From 6bda3afaebc2e69491f09e469dd5d72b94547a09 Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:51 +0200
+Subject: [PATCH 411/414] arm64: dts: rockchip: rk3399: Enable DFI
+
+the DFI unit can provide useful data for measuring DDR utilization
+and works without any configuration from the board, so enable it in the
+dtsi file directly.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -1331,7 +1331,6 @@
+ 		interrupts = <GIC_SPI 131 IRQ_TYPE_LEVEL_HIGH 0>;
+ 		clocks = <&cru PCLK_DDR_MON>;
+ 		clock-names = "pclk_ddr_mon";
+-		status = "disabled";
+ 	};
+ 
+ 	vpu: video-codec@ff650000 {

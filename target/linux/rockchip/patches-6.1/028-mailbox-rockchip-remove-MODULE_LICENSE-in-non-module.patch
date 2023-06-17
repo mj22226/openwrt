@@ -1,0 +1,42 @@
+From 1b4ad47fe5b9952fe49c7f3aef9cc29cac1d46d4 Mon Sep 17 00:00:00 2001
+From: Nick Alcock <nick.alcock@oracle.com>
+Date: Tue, 7 Mar 2023 18:01:40 +0000
+Subject: [PATCH 028/383] mailbox: rockchip: remove MODULE_LICENSE in
+ non-modules
+
+Since commit 8b41fc4454e ("kbuild: create modules.builtin without
+Makefile.modbuiltin or tristate.conf"), MODULE_LICENSE declarations
+are used to identify modules. As a consequence, uses of the macro
+in non-modules will cause modprobe to misidentify their containing
+object file as a module when it is not (false positives), and modprobe
+might succeed rather than failing with a suitable error message.
+
+So remove it in the files in this commit, none of which can be built as
+modules.
+
+Signed-off-by: Nick Alcock <nick.alcock@oracle.com>
+Suggested-by: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: linux-modules@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: Hitomi Hasegawa <hasegawa-hitomi@fujitsu.com>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: Heiko Stuebner <heiko@sntech.de>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-rockchip@lists.infradead.org
+Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/mailbox/rockchip-mailbox.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/drivers/mailbox/rockchip-mailbox.c
++++ b/drivers/mailbox/rockchip-mailbox.c
+@@ -254,7 +254,6 @@ static struct platform_driver rockchip_m
+ 
+ module_platform_driver(rockchip_mbox_driver);
+ 
+-MODULE_LICENSE("GPL v2");
+ MODULE_DESCRIPTION("Rockchip mailbox: communicate between CPU cores and MCU");
+ MODULE_AUTHOR("Addy Ke <addy.ke@rock-chips.com>");
+ MODULE_AUTHOR("Caesar Wang <wxt@rock-chips.com>");

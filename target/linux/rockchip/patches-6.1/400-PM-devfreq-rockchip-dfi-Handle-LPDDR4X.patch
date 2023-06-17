@@ -1,0 +1,35 @@
+From 192bbf5cd0c46e1abf02c629e2ea28739b039465 Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:40 +0200
+Subject: [PATCH 400/414] PM / devfreq: rockchip-dfi: Handle LPDDR4X
+
+In the DFI driver LPDDR4X can be handled in the same way as LPDDR4. Add
+the missing case.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ drivers/devfreq/event/rockchip-dfi.c | 1 +
+ include/soc/rockchip/rockchip_grf.h  | 1 +
+ 2 files changed, 2 insertions(+)
+
+--- a/drivers/devfreq/event/rockchip-dfi.c
++++ b/drivers/devfreq/event/rockchip-dfi.c
+@@ -89,6 +89,7 @@ static void rockchip_dfi_start_hardware_
+ 			       dfi_regs + DDRMON_CTRL);
+ 		break;
+ 	case ROCKCHIP_DDRTYPE_LPDDR4:
++	case ROCKCHIP_DDRTYPE_LPDDR4X:
+ 		writel_relaxed(HIWORD_UPDATE(DDRMON_CTRL_LPDDR4, DDRMON_CTRL_DDR_TYPE_MASK),
+ 			       dfi_regs + DDRMON_CTRL);
+ 		break;
+--- a/include/soc/rockchip/rockchip_grf.h
++++ b/include/soc/rockchip/rockchip_grf.h
+@@ -12,6 +12,7 @@ enum {
+ 	ROCKCHIP_DDRTYPE_LPDDR2	= 5,
+ 	ROCKCHIP_DDRTYPE_LPDDR3	= 6,
+ 	ROCKCHIP_DDRTYPE_LPDDR4	= 7,
++	ROCKCHIP_DDRTYPE_LPDDR4X = 8,
+ };
+ 
+ #endif /* __SOC_ROCKCHIP_GRF_H */

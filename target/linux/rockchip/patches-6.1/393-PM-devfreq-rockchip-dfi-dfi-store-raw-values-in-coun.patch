@@ -1,0 +1,36 @@
+From d019e53c06c97c9dba462ad5ea691579c4a38c8a Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:33 +0200
+Subject: [PATCH 393/414] PM / devfreq: rockchip-dfi: dfi store raw values in
+ counter struct
+
+When adding perf support to the DFI driver the perf part will
+need the raw counter values, so move the fixed * 4 factor to
+rockchip_dfi_get_event().
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ drivers/devfreq/event/rockchip-dfi.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/drivers/devfreq/event/rockchip-dfi.c
++++ b/drivers/devfreq/event/rockchip-dfi.c
+@@ -97,7 +97,7 @@ static int rockchip_dfi_get_busier_ch(st
+ 	/* Find out which channel is busier */
+ 	for (i = 0; i < RK3399_DMC_NUM_CH; i++) {
+ 		dfi->ch_usage[i].access = readl_relaxed(dfi_regs +
+-				DDRMON_CH0_DFI_ACCESS_NUM + i * 20) * 4;
++				DDRMON_CH0_DFI_ACCESS_NUM + i * 20);
+ 		dfi->ch_usage[i].total = readl_relaxed(dfi_regs +
+ 				DDRMON_CH0_COUNT_NUM + i * 20);
+ 		tmp = dfi->ch_usage[i].access;
+@@ -149,7 +149,7 @@ static int rockchip_dfi_get_event(struct
+ 
+ 	busier_ch = rockchip_dfi_get_busier_ch(edev);
+ 
+-	edata->load_count = dfi->ch_usage[busier_ch].access;
++	edata->load_count = dfi->ch_usage[busier_ch].access * 4;
+ 	edata->total_count = dfi->ch_usage[busier_ch].total;
+ 
+ 	return 0;

@@ -1,0 +1,41 @@
+From eda2c77e5dcd500c548f183e0c1a652d28919c64 Mon Sep 17 00:00:00 2001
+From: Jagan Teki <jagan@edgeble.ai>
+Date: Tue, 10 Jan 2023 19:16:56 +0530
+Subject: [PATCH 016/383] dt-bindings: arm: rockchip: Add Edgeble Neural
+ Compute Module 6
+
+Neural Compute Module 6(Neu6) is a 96boards SoM-CB compute module
+based on Rockchip RK3588 from Edgeble AI.
+
+Edgeble Neural Compute Module 6(Neu6) IO board is an industrial
+form factor evaluation board from Edgeble AI.
+
+Neu6 needs to mount on top of this IO board in order to create complete
+Edgeble Neural Compute Module 6(Neu6) IO platform.
+
+This patch add dt-bindings for Edgeble Neu6 Model A SoM based IO board.
+
+Signed-off-by: Jagan Teki <jagan@edgeble.ai>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20230110134658.820691-1-jagan@edgeble.ai
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -96,6 +96,12 @@ properties:
+           - const: edgeble,neural-compute-module-2      # Edgeble Neural Compute Module 2 SoM
+           - const: rockchip,rv1126
+ 
++      - description: Edgeble Neural Compute Module 6(Neu6) Model A SoM based boards
++        items:
++          - const: edgeble,neural-compute-module-6a-io  # Edgeble Neural Compute Module 6A IO Board
++          - const: edgeble,neural-compute-module-6a     # Edgeble Neural Compute Module 6A SoM
++          - const: rockchip,rk3588
++
+       - description: Elgin RV1108 R1
+         items:
+           - const: elgin,rv1108-r1

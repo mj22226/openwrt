@@ -1,0 +1,31 @@
+From f16649f16a9c7321897bf4b11a6b3f78f97a76f8 Mon Sep 17 00:00:00 2001
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Date: Sun, 2 Apr 2023 11:42:06 +0200
+Subject: [PATCH 222/383] clk: rockchip: Remove values for mmask and nmask in
+ struct clk_fractional_divider
+
+Now that fractional_divider clk computes mmask and nmask when needed, there
+is no more need to provide them explicitly anymore.
+
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Link: https://lore.kernel.org/r/58e1950566e40e2fbb31004baee57a164ca6a390.1680423909.git.christophe.jaillet@wanadoo.fr
+Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Stephen Boyd <sboyd@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/clk/rockchip/clk.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+--- a/drivers/clk/rockchip/clk.c
++++ b/drivers/clk/rockchip/clk.c
+@@ -244,10 +244,8 @@ static struct clk *rockchip_clk_register
+ 	div->reg = base + muxdiv_offset;
+ 	div->mshift = 16;
+ 	div->mwidth = 16;
+-	div->mmask = GENMASK(div->mwidth - 1, 0) << div->mshift;
+ 	div->nshift = 0;
+ 	div->nwidth = 16;
+-	div->nmask = GENMASK(div->nwidth - 1, 0) << div->nshift;
+ 	div->lock = lock;
+ 	div->approximation = rockchip_fractional_approximation;
+ 	div_ops = &clk_fractional_divider_ops;

@@ -1,0 +1,45 @@
+From 8ef1c5a3849ff657f68053d70f51bc12062deb9a Mon Sep 17 00:00:00 2001
+From: Yixun Lan <dlan@gentoo.org>
+Date: Wed, 15 Mar 2023 11:34:40 +0800
+Subject: [PATCH 019/383] dt-bindings: arm: rockchip: Add Khadas Edge2 board
+
+Edge2 is an ultraslim, credit-card sized ARM PC designed by Khadas.
+It has quite a few rich peripherals.
+
+Specification:
+- Rockchip RK3588s
+- 8/16GB LPDDR4
+- 32/64GB eMMC 5.1
+- AP6275P WiFi6 LAN
+- HDMI2.1 Type-A
+- MIPI-CSI x3
+- MIPI-DSI x2
+- usb3.1; usb2.0
+- RTC clock
+- PWM fan
+- SPI Flash
+- Pads expansion board (UART, USB)
+
+Signed-off-by: Yixun Lan <dlan@gentoo.org>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20230315033441.32719-2-dlan@gentoo.org
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -533,6 +533,11 @@ properties:
+               - khadas,edge-v
+           - const: rockchip,rk3399
+ 
++      - description: Khadas Edge2 series boards
++        items:
++          - const: khadas,edge2
++          - const: rockchip,rk3588s
++
+       - description: Kobol Helios64
+         items:
+           - const: kobol,helios64

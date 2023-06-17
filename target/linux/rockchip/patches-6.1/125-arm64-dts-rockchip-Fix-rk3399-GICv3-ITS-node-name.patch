@@ -1,0 +1,27 @@
+From 1534825aab467b500751db6f32c73c9209c92064 Mon Sep 17 00:00:00 2001
+From: Rob Herring <robh@kernel.org>
+Date: Tue, 7 Feb 2023 17:47:49 -0600
+Subject: [PATCH 125/383] arm64: dts: rockchip: Fix rk3399 GICv3 ITS node name
+
+The GICv3 ITS is an MSI controller, therefore its node name should be
+'msi-controller'.
+
+Signed-off-by: Rob Herring <robh@kernel.org>
+Link: https://lore.kernel.org/r/20230207234750.202154-1-robh@kernel.org
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -552,7 +552,7 @@
+ 		      <0x0 0xfff10000 0 0x10000>, /* GICH */
+ 		      <0x0 0xfff20000 0 0x10000>; /* GICV */
+ 		interrupts = <GIC_PPI 9 IRQ_TYPE_LEVEL_HIGH 0>;
+-		its: interrupt-controller@fee20000 {
++		its: msi-controller@fee20000 {
+ 			compatible = "arm,gic-v3-its";
+ 			msi-controller;
+ 			#msi-cells = <1>;

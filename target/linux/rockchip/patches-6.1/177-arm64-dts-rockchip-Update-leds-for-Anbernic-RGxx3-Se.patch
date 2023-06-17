@@ -1,0 +1,101 @@
+From 300e77f77e1e73b1e2bb47b931bf5e593a434a4e Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Fri, 12 May 2023 14:16:33 -0500
+Subject: [PATCH 177/383] arm64: dts: rockchip: Update leds for Anbernic RGxx3
+ Series
+
+Each of the LEDs on the RGxx3 which is currently controlled via GPIO
+can also be controlled via a PWM. Change each of the LEDs to PWM so
+that users have the ability to adjust the brightness of the LEDs
+according to their preference.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Link: https://lore.kernel.org/r/20230512191633.33416-1-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../dts/rockchip/rk3566-anbernic-rgxx3.dtsi   | 39 +++++++++++--------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rgxx3.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rgxx3.dtsi
+@@ -191,30 +191,30 @@
+ 		};
+ 	};
+ 
+-	leds: gpio-leds {
+-		compatible = "gpio-leds";
+-		pinctrl-0 = <&led_pins>;
+-		pinctrl-names = "default";
++	leds: pwm-leds {
++		compatible = "pwm-leds";
+ 
+ 		green_led: led-0 {
+ 			color = <LED_COLOR_ID_GREEN>;
+ 			default-state = "on";
+ 			function = LED_FUNCTION_POWER;
+-			gpios = <&gpio0 RK_PC5 GPIO_ACTIVE_HIGH>;
++			max-brightness = <255>;
++			pwms = <&pwm6 0 25000 0>;
+ 		};
+ 
+ 		amber_led: led-1 {
+ 			color = <LED_COLOR_ID_AMBER>;
+ 			function = LED_FUNCTION_CHARGING;
+-			gpios = <&gpio0 RK_PC6 GPIO_ACTIVE_HIGH>;
+-			retain-state-suspended;
++			max-brightness = <255>;
++			pwms = <&pwm7 0 25000 0>;
+ 		};
+ 
+ 		red_led: led-2 {
+ 			color = <LED_COLOR_ID_RED>;
+ 			default-state = "off";
+ 			function = LED_FUNCTION_STATUS;
+-			gpios = <&gpio0 RK_PC7 GPIO_ACTIVE_HIGH>;
++			max-brightness = <255>;
++			pwms = <&pwm0 0 25000 0>;
+ 		};
+ 	};
+ 
+@@ -597,15 +597,6 @@
+ 		};
+ 	};
+ 
+-	gpio-led {
+-		led_pins: led-pins {
+-			rockchip,pins =
+-				<0 RK_PC5 RK_FUNC_GPIO &pcfg_pull_none>,
+-				<0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>,
+-				<0 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>;
+-		};
+-	};
+-
+ 	joy-mux {
+ 		joy_mux_en: joy-mux-en {
+ 			rockchip,pins =
+@@ -654,10 +645,24 @@
+ 	vccio7-supply = <&vcc_3v3>;
+ };
+ 
++&pwm0 {
++	pinctrl-0 = <&pwm0m1_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++};
++
+ &pwm5 {
+ 	status = "okay";
+ };
+ 
++&pwm6 {
++	status = "okay";
++};
++
++&pwm7 {
++	status = "okay";
++};
++
+ &saradc {
+ 	vref-supply = <&vcc_1v8>;
+ 	status = "okay";

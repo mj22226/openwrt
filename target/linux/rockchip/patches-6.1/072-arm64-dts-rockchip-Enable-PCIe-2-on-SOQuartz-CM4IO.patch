@@ -1,0 +1,76 @@
+From e038bf77c459d37d636f990b1ed3e213422c2b44 Mon Sep 17 00:00:00 2001
+From: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Date: Sat, 12 Nov 2022 17:04:01 +0100
+Subject: [PATCH 072/383] arm64: dts: rockchip: Enable PCIe 2 on SOQuartz CM4IO
+
+This patch enables the PCIe2 on the CM4IO board when paired with
+a SOQuartz CM4 System-on-Module board. combphy2 also needs to be
+enabled in this case to make the PHY work for this.
+
+Signed-off-by: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Link: https://lore.kernel.org/r/20221112160404.70868-5-frattaroli.nicolas@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3566-soquartz-cm4.dts     | 11 +++++++++++
+ arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi | 15 +++++++++++++++
+ 2 files changed, 26 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-soquartz-cm4.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-soquartz-cm4.dts
+@@ -30,6 +30,12 @@
+ 	};
+ };
+ 
++/* phy for pcie */
++&combphy2 {
++	phy-supply = <&vcc3v3_sys>;
++	status = "okay";
++};
++
+ &gmac1 {
+ 	status = "okay";
+ };
+@@ -105,6 +111,11 @@
+ 	status = "okay";
+ };
+ 
++&pcie2x1 {
++	vpcie3v3-supply = <&vcc_3v3>;
++	status = "okay";
++};
++
+ &rgmii_phy1 {
+ 	status = "okay";
+ };
+--- a/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
+@@ -487,6 +487,12 @@
+ 	};
+ };
+ 
++&pcie2x1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pcie_reset_h>;
++	reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
++};
++
+ &pinctrl {
+ 	bt {
+ 		bt_enable_h: bt-enable-h {
+@@ -512,6 +518,15 @@
+ 		};
+ 	};
+ 
++	pcie {
++		pcie_clkreq_h: pcie-clkreq-h {
++			rockchip,pins = <1 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++		pcie_reset_h: pcie-reset-h {
++			rockchip,pins = <1 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	pmic {
+ 		pmic_int_l: pmic-int-l {
+ 			rockchip,pins = <0 RK_PA3 RK_FUNC_GPIO &pcfg_pull_up>;

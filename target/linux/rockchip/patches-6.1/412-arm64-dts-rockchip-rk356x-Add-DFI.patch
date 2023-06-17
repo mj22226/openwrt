@@ -1,0 +1,29 @@
+From 512c554e882c8e326bffb5d8ac1d5f22d5b85012 Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:52 +0200
+Subject: [PATCH 412/414] arm64: dts: rockchip: rk356x: Add DFI
+
+The DFI unit can be used to measure DRAM utilization using perf. Add the
+node to the device tree.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ arch/arm64/boot/dts/rockchip/rk356x.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk356x.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk356x.dtsi
+@@ -959,6 +959,13 @@
+ 		reg = <0x0 0xfe1a8100 0x0 0x20>;
+ 	};
+ 
++	dfi: dfi@fe230000 {
++		compatible = "rockchip,rk3568-dfi";
++		reg = <0x00 0xfe230000 0x00 0x400>;
++		interrupts = <GIC_SPI 11 IRQ_TYPE_LEVEL_HIGH>;
++		rockchip,pmu = <&pmugrf>;
++	};
++
+ 	pcie2x1: pcie@fe260000 {
+ 		compatible = "rockchip,rk3568-pcie";
+ 		reg = <0x3 0xc0000000 0x0 0x00400000>,

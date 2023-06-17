@@ -1,0 +1,52 @@
+From b18322b37517cf18c412e8372edc73a20deae5d4 Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Thu, 22 Dec 2022 15:24:51 +0100
+Subject: [PATCH 189/383] dt-bindings: display: dsi-controller: move
+ clock-master property
+
+The clock-master property is used for the controller and not in the panel,
+so move it there.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Link: https://patchwork.freedesktop.org/patch/msgid/1c3b18ad-350f-e862-de98-a775e11e132c@gmail.com
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../bindings/display/dsi-controller.yaml       | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+--- a/Documentation/devicetree/bindings/display/dsi-controller.yaml
++++ b/Documentation/devicetree/bindings/display/dsi-controller.yaml
+@@ -30,6 +30,15 @@ properties:
+   $nodename:
+     pattern: "^dsi(@.*)?$"
+ 
++  clock-master:
++    type: boolean
++    description:
++      Should be enabled if the host is being used in conjunction with
++      another DSI host to drive the same peripheral. Hardware supporting
++      such a configuration generally requires the data on both the busses
++      to be driven by the same clock. Only the DSI host instance
++      controlling this clock should contain this property.
++
+   "#address-cells":
+     const: 1
+ 
+@@ -52,15 +61,6 @@ patternProperties:
+           case the reg property can take multiple entries, one for each virtual
+           channel that the peripheral responds to.
+ 
+-      clock-master:
+-        type: boolean
+-        description:
+-          Should be enabled if the host is being used in conjunction with
+-          another DSI host to drive the same peripheral. Hardware supporting
+-          such a configuration generally requires the data on both the busses
+-          to be driven by the same clock. Only the DSI host instance
+-          controlling this clock should contain this property.
+-
+       enforce-video-mode:
+         type: boolean
+         description:

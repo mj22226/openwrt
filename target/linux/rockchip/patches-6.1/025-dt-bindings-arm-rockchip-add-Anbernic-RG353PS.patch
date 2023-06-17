@@ -1,0 +1,34 @@
+From ed65d658e77c0f076699ef1dd623012f27138fc6 Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Fri, 12 May 2023 11:20:38 -0500
+Subject: [PATCH 025/383] dt-bindings: arm: rockchip: add Anbernic RG353PS
+
+Add devicetree binding for Anbernic RG353PS. This device is identical
+to the RG353P, except it does not have a touchscreen, does not have
+an eMMC, only includes 1GB of RAM, and ships with only the 2nd
+revision panel based on a Sitronix ST7703 controller. Support for the
+panel has been added in a separate commit.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
+Link: https://lore.kernel.org/r/20230512162039.31132-2-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -40,6 +40,11 @@ properties:
+           - const: anbernic,rg353p
+           - const: rockchip,rk3566
+ 
++      - description: Anbernic RG353PS
++        items:
++          - const: anbernic,rg353ps
++          - const: rockchip,rk3566
++
+       - description: Anbernic RG353V
+         items:
+           - const: anbernic,rg353v

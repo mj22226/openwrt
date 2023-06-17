@@ -1,0 +1,91 @@
+From a98d2da380eb8fea26997e7fc0a52a3fb60cc3e2 Mon Sep 17 00:00:00 2001
+From: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Date: Sat, 12 Nov 2022 17:03:59 +0100
+Subject: [PATCH 070/383] arm64: dts: rockchip: Enable video output and HDMI on
+ SOQuartz
+
+This patch adds and enables the necessary device tree nodes to
+enable video output and HDMI functionality on the SOQuartz module.
+
+Signed-off-by: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Link: https://lore.kernel.org/r/20221112160404.70868-3-frattaroli.nicolas@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3566-soquartz.dtsi    | 47 +++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
+@@ -4,6 +4,7 @@
+ 
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/pinctrl/rockchip.h>
++#include <dt-bindings/soc/rockchip,vop2.h>
+ #include "rk3566.dtsi"
+ 
+ / {
+@@ -28,6 +29,17 @@
+ 		#clock-cells = <0>;
+ 	};
+ 
++	hdmi-con {
++		compatible = "hdmi-connector";
++		type = "a";
++
++		port {
++			hdmi_con_in: endpoint {
++				remote-endpoint = <&hdmi_out_con>;
++			};
++		};
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 
+@@ -148,6 +160,24 @@
+ 	status = "okay";
+ };
+ 
++&hdmi {
++	avdd-0v9-supply = <&vdda0v9_image>;
++	avdd-1v8-supply = <&vcca1v8_image>;
++	status = "okay";
++};
++
++&hdmi_in {
++	hdmi_in_vp0: endpoint {
++		remote-endpoint = <&vp0_out_hdmi>;
++	};
++};
++
++&hdmi_out {
++	hdmi_out_con: endpoint {
++		remote-endpoint = <&hdmi_con_in>;
++	};
++};
++
+ &i2c0 {
+ 	status = "okay";
+ 
+@@ -619,3 +649,20 @@
+ &usb_host0_xhci {
+ 	status = "disabled";
+ };
++
++&vop {
++	assigned-clocks = <&cru DCLK_VOP0>, <&cru DCLK_VOP1>;
++	assigned-clock-parents = <&pmucru PLL_HPLL>, <&cru PLL_VPLL>;
++	status = "okay";
++};
++
++&vop_mmu {
++	status = "okay";
++};
++
++&vp0 {
++	vp0_out_hdmi: endpoint@ROCKCHIP_VOP2_EP_HDMI0 {
++		reg = <ROCKCHIP_VOP2_EP_HDMI0>;
++		remote-endpoint = <&hdmi_in_vp0>;
++	};
++};

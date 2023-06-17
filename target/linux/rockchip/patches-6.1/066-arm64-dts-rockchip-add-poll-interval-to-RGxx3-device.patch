@@ -1,0 +1,27 @@
+From 3bde999f5ffca07dee0c9fe900ccb9b29d41c464 Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Fri, 28 Oct 2022 13:40:45 -0500
+Subject: [PATCH 066/383] arm64: dts: rockchip: add poll-interval to RGxx3
+ devices
+
+Add adc-joystick polling for all Anbernic RGxx3 based devices.
+They are all functionally identical in how they work.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Link: https://lore.kernel.org/r/20221028184045.13113-5-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3566-anbernic-rgxx3.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rgxx3.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rgxx3.dtsi
+@@ -22,6 +22,7 @@
+ 			      <&adc_mux 3>;
+ 		pinctrl-0 = <&joy_mux_en>;
+ 		pinctrl-names = "default";
++		poll-interval = <60>;
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 

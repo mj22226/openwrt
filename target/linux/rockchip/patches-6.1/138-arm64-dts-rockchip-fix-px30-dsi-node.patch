@@ -1,0 +1,39 @@
+From c12b0800b6142ca203bba89fba0ce7bcf63dc2cb Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Thu, 22 Dec 2022 15:31:52 +0100
+Subject: [PATCH 138/383] arm64: dts: rockchip: fix px30 dsi node
+
+With the conversion of rockchip,dw-mipi-dsi.yaml a port@1 node
+is required, so add a node with label dsi_out.
+Also add label dsi_in to port@0.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Link: https://lore.kernel.org/r/1ee3e676-aef4-f464-82b0-8fb39ba5c60d@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/px30.dtsi | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/px30.dtsi
++++ b/arch/arm64/boot/dts/rockchip/px30.dtsi
+@@ -1138,7 +1138,7 @@
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 
+-			port@0 {
++			dsi_in: port@0 {
+ 				reg = <0>;
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+@@ -1153,6 +1153,10 @@
+ 					remote-endpoint = <&vopl_out_dsi>;
+ 				};
+ 			};
++
++			dsi_out: port@1 {
++				reg = <1>;
++			};
+ 		};
+ 	};
+ 

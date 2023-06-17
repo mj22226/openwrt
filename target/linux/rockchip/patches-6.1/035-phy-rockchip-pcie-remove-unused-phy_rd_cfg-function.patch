@@ -1,0 +1,44 @@
+From da4893fdb2b1927b303625ddc13f630f69aa621f Mon Sep 17 00:00:00 2001
+From: Tom Rix <trix@redhat.com>
+Date: Tue, 21 Mar 2023 08:25:03 -0400
+Subject: [PATCH 035/383] phy: rockchip-pcie: remove unused phy_rd_cfg function
+
+clang with W=1 reports
+drivers/phy/rockchip/phy-rockchip-pcie.c:122:19: error:
+  unused function 'phy_rd_cfg' [-Werror,-Wunused-function]
+static inline u32 phy_rd_cfg(struct rockchip_pcie_phy *rk_phy,
+                  ^
+This function is not used, so remove it.
+
+Signed-off-by: Tom Rix <trix@redhat.com>
+Link: https://lore.kernel.org/r/20230321122503.1783311-1-trix@redhat.com
+Signed-off-by: Vinod Koul <vkoul@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/phy/rockchip/phy-rockchip-pcie.c | 15 ---------------
+ 1 file changed, 15 deletions(-)
+
+--- a/drivers/phy/rockchip/phy-rockchip-pcie.c
++++ b/drivers/phy/rockchip/phy-rockchip-pcie.c
+@@ -119,21 +119,6 @@ static inline void phy_wr_cfg(struct roc
+ 				   PHY_CFG_WR_SHIFT));
+ }
+ 
+-static inline u32 phy_rd_cfg(struct rockchip_pcie_phy *rk_phy,
+-			     u32 addr)
+-{
+-	u32 val;
+-
+-	regmap_write(rk_phy->reg_base, rk_phy->phy_data->pcie_conf,
+-		     HIWORD_UPDATE(addr,
+-				   PHY_CFG_RD_MASK,
+-				   PHY_CFG_ADDR_SHIFT));
+-	regmap_read(rk_phy->reg_base,
+-		    rk_phy->phy_data->pcie_status,
+-		    &val);
+-	return val;
+-}
+-
+ static int rockchip_pcie_phy_power_off(struct phy *phy)
+ {
+ 	struct phy_pcie_instance *inst = phy_get_drvdata(phy);

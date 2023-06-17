@@ -1,0 +1,44 @@
+From 20fe75b3d5c10e48181257b6d86506a375fce5dc Mon Sep 17 00:00:00 2001
+From: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Date: Sun, 13 Nov 2022 22:12:52 +0300
+Subject: [PATCH 286/383] dt-bindings: PCI: dwc: Add clocks/resets common
+ properties
+
+DW PCIe RP/EP reference manuals explicit define all the clocks and reset
+requirements in [1] and [2]. Seeing the DW PCIe vendor-specific
+DT-bindings have already started assigning random names to the same set of
+the clocks and resets lines, let's define a generic names sets and add
+them to the DW PCIe common DT-schema.
+
+Note since there are DW PCI-based vendor-specific DT-bindings with the
+custom names assigned to the same clocks and resets resources we have no
+much choice but to add them to the generic DT-schemas in order to have the
+schemas being applicable for such devices. These names are marked as
+vendor-specific and should be avoided being used in new bindings in favor
+of the generic names.
+
+[1] Synopsys DesignWare Cores PCI Express Controller Databook - DWC PCIe
+Root Port, Version 5.40a, March 2019, p.55 - 78.
+[2] Synopsys DesignWare Cores PCI Express Controller Databook - DWC PCIe
+Endpoint, Version 5.40a, March 2019, p.58 - 81.
+
+Link: https://lore.kernel.org/r/20221113191301.5526-12-Sergey.Semin@baikalelectronics.ru
+Signed-off-by: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml | 2 --
+ 1 file changed, 2 deletions(-)
+
+--- a/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
+@@ -195,8 +195,6 @@ properties:
+       - contains:
+           const: msi
+ 
+-  clocks: true
+-
+ additionalProperties: true
+ 
+ required:

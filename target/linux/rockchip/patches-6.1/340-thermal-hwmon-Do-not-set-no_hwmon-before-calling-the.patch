@@ -1,0 +1,38 @@
+From 6f3245bb56af6ccc3d7c5b5a564bbacb8a277748 Mon Sep 17 00:00:00 2001
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Date: Wed, 1 Mar 2023 21:14:35 +0100
+Subject: [PATCH 340/383] thermal/hwmon: Do not set no_hwmon before calling
+ thermal_add_hwmon_sysfs()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The thermal->tzp->no_hwmon parameter is only used when calling
+thermal_zone_device_register().
+
+Setting it to 'false' before calling thermal_add_hwmon_sysfs() has no
+effect.
+
+Remove the call and again prevent the drivers to access the thermal
+internals.
+
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se> #R-Car
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Acked-by: Florian Fainelli <f.fainelli@gmail.com> #Broadcom
+Acked-by: Heiko Stuebner <heiko@sntech.de> #rockchip
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/thermal/rockchip_thermal.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/drivers/thermal/rockchip_thermal.c
++++ b/drivers/thermal/rockchip_thermal.c
+@@ -1451,7 +1451,6 @@ static int rockchip_thermal_probe(struct
+ 
+ 	for (i = 0; i < thermal->chip->chn_num; i++) {
+ 		rockchip_thermal_toggle_sensor(&thermal->sensors[i], true);
+-		thermal->sensors[i].tzd->tzp->no_hwmon = false;
+ 		error = thermal_add_hwmon_sysfs(thermal->sensors[i].tzd);
+ 		if (error)
+ 			dev_warn(&pdev->dev,

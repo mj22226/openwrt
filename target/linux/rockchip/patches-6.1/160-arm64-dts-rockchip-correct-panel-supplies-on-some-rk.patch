@@ -1,0 +1,70 @@
+From 8f658ba59ceb18deb3b544d3251fac6f3d7abb5b Mon Sep 17 00:00:00 2001
+From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Date: Sun, 26 Mar 2023 22:45:18 +0200
+Subject: [PATCH 160/383] arm64: dts: rockchip: correct panel supplies on some
+ rk3326 boards
+
+The Anbernic and Odroid Go have different panels and take differently
+named supplies, so move all the supplies to DTS defining actual panel to
+fix warnings like:
+
+  rk3326-odroid-go3.dtb: panel@0: 'IOVCC-supply' is a required property
+  rk3326-odroid-go3.dtb: panel@0: 'iovcc-supply', 'vdd-supply' do not match any of the regexes: 'pinctrl-[0-9]+'
+
+Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20230326204520.80859-1-krzysztof.kozlowski@linaro.org
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3326-anbernic-rg351m.dts | 2 ++
+ arch/arm64/boot/dts/rockchip/rk3326-odroid-go.dtsi      | 2 --
+ arch/arm64/boot/dts/rockchip/rk3326-odroid-go2-v11.dts  | 2 ++
+ arch/arm64/boot/dts/rockchip/rk3326-odroid-go2.dts      | 2 ++
+ 4 files changed, 6 insertions(+), 2 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3326-anbernic-rg351m.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3326-anbernic-rg351m.dts
+@@ -24,6 +24,8 @@
+ 
+ &internal_display {
+ 	compatible = "elida,kd35t133";
++	iovcc-supply = <&vcc_lcd>;
++	vdd-supply = <&vcc_lcd>;
+ };
+ 
+ &pwm0 {
+--- a/arch/arm64/boot/dts/rockchip/rk3326-odroid-go.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3326-odroid-go.dtsi
+@@ -235,10 +235,8 @@
+ 	internal_display: panel@0 {
+ 		reg = <0>;
+ 		backlight = <&backlight>;
+-		iovcc-supply = <&vcc_lcd>;
+ 		reset-gpios = <&gpio3 RK_PC0 GPIO_ACTIVE_LOW>;
+ 		rotation = <270>;
+-		vdd-supply = <&vcc_lcd>;
+ 
+ 		port {
+ 			mipi_in_panel: endpoint {
+--- a/arch/arm64/boot/dts/rockchip/rk3326-odroid-go2-v11.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3326-odroid-go2-v11.dts
+@@ -83,6 +83,8 @@
+ 
+ &internal_display {
+ 	compatible = "elida,kd35t133";
++	iovcc-supply = <&vcc_lcd>;
++	vdd-supply = <&vcc_lcd>;
+ };
+ 
+ &rk817 {
+--- a/arch/arm64/boot/dts/rockchip/rk3326-odroid-go2.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3326-odroid-go2.dts
+@@ -59,6 +59,8 @@
+ 
+ &internal_display {
+ 	compatible = "elida,kd35t133";
++	iovcc-supply = <&vcc_lcd>;
++	vdd-supply = <&vcc_lcd>;
+ };
+ 
+ &rk817_charger {

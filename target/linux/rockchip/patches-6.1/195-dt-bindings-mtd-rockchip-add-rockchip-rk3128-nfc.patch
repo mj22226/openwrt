@@ -1,0 +1,29 @@
+From b370a3552b9ecaadb263cf20cf856df14d4699fb Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Sat, 10 Sep 2022 00:01:10 +0200
+Subject: [PATCH 195/383] dt-bindings: mtd: rockchip: add rockchip,rk3128-nfc
+
+Add rockchip,rk3128-nfc compatible string.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+Link: https://lore.kernel.org/linux-mtd/f09665c1-9938-38c1-9a31-f196a3ef9cf0@gmail.com
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/mtd/rockchip,nand-controller.yaml     | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/Documentation/devicetree/bindings/mtd/rockchip,nand-controller.yaml
++++ b/Documentation/devicetree/bindings/mtd/rockchip,nand-controller.yaml
+@@ -19,7 +19,9 @@ properties:
+       - const: rockchip,rk2928-nfc
+       - const: rockchip,rv1108-nfc
+       - items:
+-          - const: rockchip,rk3036-nfc
++          - enum:
++              - rockchip,rk3036-nfc
++              - rockchip,rk3128-nfc
+           - const: rockchip,rk2928-nfc
+       - items:
+           - const: rockchip,rk3308-nfc

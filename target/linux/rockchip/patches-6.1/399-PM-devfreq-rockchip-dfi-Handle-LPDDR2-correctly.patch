@@ -1,0 +1,40 @@
+From e0606b7dac4764ef7d7cd07dbb127913a01cf0bb Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:39 +0200
+Subject: [PATCH 399/414] PM / devfreq: rockchip-dfi: Handle LPDDR2 correctly
+
+According to the downstream driver the DDRMON_CTRL_LPDDR23 bit must be
+set for both LPDDR2 and LPDDR3. Add the missing LPDDR2 case and while
+at it turn the if/else if/else into switch/case which makes it easier
+to read.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ drivers/devfreq/event/rockchip-dfi.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+--- a/drivers/devfreq/event/rockchip-dfi.c
++++ b/drivers/devfreq/event/rockchip-dfi.c
+@@ -82,12 +82,19 @@ static void rockchip_dfi_start_hardware_
+ 		       DDRMON_CTRL_HARDWARE_EN), dfi_regs + DDRMON_CTRL);
+ 
+ 	/* set ddr type to dfi */
+-	if (dfi->ddr_type == ROCKCHIP_DDRTYPE_LPDDR3)
++	switch (dfi->ddr_type) {
++	case ROCKCHIP_DDRTYPE_LPDDR2:
++	case ROCKCHIP_DDRTYPE_LPDDR3:
+ 		writel_relaxed(HIWORD_UPDATE(DDRMON_CTRL_LPDDR23, DDRMON_CTRL_DDR_TYPE_MASK),
+ 			       dfi_regs + DDRMON_CTRL);
+-	else if (dfi->ddr_type == ROCKCHIP_DDRTYPE_LPDDR4)
++		break;
++	case ROCKCHIP_DDRTYPE_LPDDR4:
+ 		writel_relaxed(HIWORD_UPDATE(DDRMON_CTRL_LPDDR4, DDRMON_CTRL_DDR_TYPE_MASK),
+ 			       dfi_regs + DDRMON_CTRL);
++		break;
++	default:
++		break;
++	}
+ 
+ 	/* enable count, use software mode */
+ 	writel_relaxed(HIWORD_UPDATE(DDRMON_CTRL_SOFTWARE_EN, DDRMON_CTRL_SOFTWARE_EN),

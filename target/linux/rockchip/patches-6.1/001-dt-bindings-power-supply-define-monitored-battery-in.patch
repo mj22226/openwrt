@@ -1,0 +1,132 @@
+From 6ebc33cf772c022b55df081fbb7b63c09861dfe9 Mon Sep 17 00:00:00 2001
+From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Date: Wed, 2 Nov 2022 14:44:59 -0400
+Subject: [PATCH 001/383] dt-bindings: power: supply: define monitored-battery
+ in common place
+
+Define the type of monitored-battery in power-supply.yaml common schema.
+Reference the schema where applicable to enforce the above in bindings
+which have monitored-battery property.
+
+Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/mfd/ene-kb930.yaml        | 6 +++---
+ Documentation/devicetree/bindings/mfd/rockchip,rk817.yaml   | 2 ++
+ Documentation/devicetree/bindings/power/supply/bq27xxx.yaml | 2 --
+ .../devicetree/bindings/power/supply/ingenic,battery.yaml   | 4 ++--
+ .../devicetree/bindings/power/supply/power-supply.yaml      | 6 ++++++
+ .../devicetree/bindings/power/supply/rohm,bd99954.yaml      | 1 +
+ .../devicetree/bindings/power/supply/sc2731-charger.yaml    | 1 -
+ 7 files changed, 14 insertions(+), 8 deletions(-)
+
+--- a/Documentation/devicetree/bindings/mfd/ene-kb930.yaml
++++ b/Documentation/devicetree/bindings/mfd/ene-kb930.yaml
+@@ -13,6 +13,8 @@ description: |
+ maintainers:
+   - Dmitry Osipenko <digetx@gmail.com>
+ 
++$ref: /schemas/power/supply/power-supply.yaml
++
+ properties:
+   compatible:
+     items:
+@@ -22,15 +24,13 @@ properties:
+   reg:
+     maxItems: 1
+ 
+-  monitored-battery: true
+-  power-supplies: true
+   system-power-controller: true
+ 
+ required:
+   - compatible
+   - reg
+ 
+-additionalProperties: false
++unevaluatedProperties: false
+ 
+ examples:
+   - |
+--- a/Documentation/devicetree/bindings/mfd/rockchip,rk817.yaml
++++ b/Documentation/devicetree/bindings/mfd/rockchip,rk817.yaml
+@@ -124,6 +124,8 @@ properties:
+       The child node for the charger to hold additional properties. If a
+       battery is not in use, this node can be omitted.
+     type: object
++    $ref: /schemas/power/supply/power-supply.yaml
++
+     properties:
+       monitored-battery:
+         description: |
+--- a/Documentation/devicetree/bindings/power/supply/bq27xxx.yaml
++++ b/Documentation/devicetree/bindings/power/supply/bq27xxx.yaml
+@@ -60,13 +60,11 @@ properties:
+ 
+   monitored-battery:
+     description: |
+-       phandle of battery characteristics node.
+        The fuel gauge uses the following battery properties:
+        - energy-full-design-microwatt-hours
+        - charge-full-design-microamp-hours
+        - voltage-min-design-microvolt
+        Both or neither of the *-full-design-*-hours properties must be set.
+-       See Documentation/devicetree/bindings/power/supply/battery.yaml
+ 
+   power-supplies: true
+ 
+--- a/Documentation/devicetree/bindings/power/supply/ingenic,battery.yaml
++++ b/Documentation/devicetree/bindings/power/supply/ingenic,battery.yaml
+@@ -10,6 +10,8 @@ title: Ingenic JZ47xx battery bindings
+ maintainers:
+   - Artur Rojek <contact@artur-rojek.eu>
+ 
++$ref: power-supply.yaml#
++
+ properties:
+   compatible:
+     oneOf:
+@@ -28,8 +30,6 @@ properties:
+ 
+   monitored-battery:
+     description: >
+-      phandle to a "simple-battery" compatible node.
+-
+       This property must be a phandle to a node using the format described
+       in battery.yaml, with the following properties being required:
+       - voltage-min-design-microvolt: drained battery voltage,
+--- a/Documentation/devicetree/bindings/power/supply/power-supply.yaml
++++ b/Documentation/devicetree/bindings/power/supply/power-supply.yaml
+@@ -18,4 +18,10 @@ properties:
+       This property is added to a supply in order to list the devices which
+       supply it power, referenced by their phandles.
+ 
++  monitored-battery:
++    $ref: /schemas/types.yaml#/definitions/phandle
++    description:
++      The battery (with "simple-battery" compatible) being monitored by this
++      power supply.
++
+ additionalProperties: true
+--- a/Documentation/devicetree/bindings/power/supply/rohm,bd99954.yaml
++++ b/Documentation/devicetree/bindings/power/supply/rohm,bd99954.yaml
+@@ -18,6 +18,7 @@ description: |
+   provides a Dual-source Battery Charger, two port BC1.2 detection and a
+   Battery Monitor.
+ 
++$ref: power-supply.yaml#
+ 
+ properties:
+   compatible:
+--- a/Documentation/devicetree/bindings/power/supply/sc2731-charger.yaml
++++ b/Documentation/devicetree/bindings/power/supply/sc2731-charger.yaml
+@@ -28,7 +28,6 @@ properties:
+       The charger uses the following battery properties
+       - charge-term-current-microamp: current for charge termination phase.
+       - constant-charge-voltage-max-microvolt: maximum constant input voltage.
+-      See Documentation/devicetree/bindings/power/supply/battery.yaml
+ 
+ additionalProperties: false
+ 

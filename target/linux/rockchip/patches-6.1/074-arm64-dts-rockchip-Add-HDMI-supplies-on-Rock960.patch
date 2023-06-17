@@ -1,0 +1,30 @@
+From 78d6459cdd2cd5b9b110fa21bb3818164005d27e Mon Sep 17 00:00:00 2001
+From: Peter Robinson <pbrobinson@gmail.com>
+Date: Wed, 2 Nov 2022 14:32:42 +0000
+Subject: [PATCH 074/383] arm64: dts: rockchip: Add HDMI supplies on Rock960
+
+Add the avdd-0v9-supply and avdd-1v8-supply regulators to
+hdmi node for Rock960 to silence the following dmesg warning.
+
+[    6.582782] dwhdmi-rockchip ff940000.hdmi: supply avdd-0v9 not found, using dummy regulator
+[    6.583094] dwhdmi-rockchip ff940000.hdmi: supply avdd-1v8 not found, using dummy regulator
+
+Signed-off-by: Peter Robinson <pbrobinson@gmail.com>
+Link: https://lore.kernel.org/r/20221102143242.1126229-1-pbrobinson@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399-rock960.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399-rock960.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-rock960.dtsi
+@@ -128,6 +128,8 @@
+ };
+ 
+ &hdmi {
++	avdd-0v9-supply = <&vcca0v9_hdmi>;
++	avdd-1v8-supply = <&vcca1v8_hdmi>;
+ 	ddc-i2c-bus = <&i2c3>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&hdmi_cec>;

@@ -1,0 +1,45 @@
+From fc0d6f4066c27c889aac7817927daafe039391db Mon Sep 17 00:00:00 2001
+From: Jagan Teki <jagan@amarulasolutions.com>
+Date: Thu, 12 Jan 2023 16:29:00 +0530
+Subject: [PATCH 017/383] dt-bindings: arm: rockchip: Add Radxa Compute Module
+ 3
+
+Radxa Compute Module 3(CM3) is one of the modules from a series
+System On Module based on the Radxa ROCK 3 series and is compatible
+with Raspberry Pi CM4 in pinout and form factor.
+
+Specification:
+- Rockchip RK3566
+- up to 8GB LPDDR4
+- up to 128GB high performance eMMC
+- Optional wireless LAN, 2.4GHz and 5.0GHz IEEE 802.11b/g/n/ac wireless,
+  BT 5.0, BLE with onboard and external antenna.
+- Gigabit Ethernet PHY
+
+Add dt-bindings for Radxa CM3.
+
+Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20230112105902.192852-1-jagan@amarulasolutions.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -621,6 +621,13 @@ properties:
+           - const: pine64,soquartz
+           - const: rockchip,rk3566
+ 
++      - description: Radxa Compute Module 3(CM3)
++        items:
++          - enum:
++              - radxa,radxa-cm3-io
++          - const: radxa,radxa-cm3
++          - const: rockchip,rk3566
++
+       - description: Radxa CM3 Industrial
+         items:
+           - enum:

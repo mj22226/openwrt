@@ -1,0 +1,80 @@
+From 8150eba8fbed88b7484ca5579db8d8e73d473107 Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Mon, 28 Nov 2022 17:15:28 -0600
+Subject: [PATCH 111/383] arm64: dts: rockchip: add Hynitron cst340 for
+ Anbernic 353 series
+
+Add support for the Hynitron cst340 touchscreen driver to the Anbernic
+RG353P and RG353V devices. Note the RG353VS device does not have a
+touchscreen.
+
+https://lore.kernel.org/linux-input/Y1y9e9sgE%2FDck9fB@google.com/
+
+Changes since V1:
+ - Removed 'status = "okay";', as it was never disabled.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Link: https://lore.kernel.org/r/20221128231528.23360-1-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../dts/rockchip/rk3566-anbernic-rg353p.dts   | 19 +++++++++++++++++++
+ .../dts/rockchip/rk3566-anbernic-rg353v.dts   | 12 ++++++++++++
+ 2 files changed, 31 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353p.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353p.dts
+@@ -95,6 +95,18 @@
+ 	pintctrl-names = "default";
+ 	pinctrl-0 = <&i2c2m1_xfer>;
+ 	status = "okay";
++
++	touch@1a {
++		compatible = "hynitron,cst340";
++		reg = <0x1a>;
++		interrupt-parent = <&gpio4>;
++		interrupts = <RK_PB1 IRQ_TYPE_EDGE_FALLING>;
++		pinctrl-0 = <&touch_rst>;
++		pinctrl-names = "default";
++		reset-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_LOW>;
++		touchscreen-size-x = <640>;
++		touchscreen-size-y = <480>;
++	};
+ };
+ 
+ &pinctrl {
+@@ -104,6 +116,13 @@
+ 				<4 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 	};
++
++	touch {
++		touch_rst: touch-rst {
++			rockchip,pins =
++				<4 RK_PA6 RK_FUNC_GPIO &pcfg_pull_up>;
++		};
++	};
+ };
+ 
+ &rk817 {
+--- a/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353v.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353v.dts
+@@ -82,6 +82,18 @@
+ 	pintctrl-names = "default";
+ 	pinctrl-0 = <&i2c2m1_xfer>;
+ 	status = "okay";
++
++	touch@1a {
++		compatible = "hynitron,cst340";
++		reg = <0x1a>;
++		interrupt-parent = <&gpio4>;
++		interrupts = <RK_PB1 IRQ_TYPE_EDGE_FALLING>;
++		pinctrl-0 = <&touch_rst>;
++		pinctrl-names = "default";
++		reset-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_LOW>;
++		touchscreen-size-x = <640>;
++		touchscreen-size-y = <480>;
++	};
+ };
+ 
+ &pinctrl {

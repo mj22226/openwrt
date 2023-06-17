@@ -1,0 +1,25 @@
+From 6cc93254c411d5c17f706f75a9f315d9bf76d30d Mon Sep 17 00:00:00 2001
+From: Corentin Labbe <clabbe@baylibre.com>
+Date: Tue, 27 Sep 2022 07:54:42 +0000
+Subject: [PATCH 299/383] crypto: rockchip: fix privete/private typo
+
+This fix a simple typo on private word.
+
+Reviewed-by: John Keeping <john@metanate.com>
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/crypto/rockchip/rk3288_crypto.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/crypto/rockchip/rk3288_crypto.h
++++ b/drivers/crypto/rockchip/rk3288_crypto.h
+@@ -209,7 +209,7 @@ struct rk_ahash_ctx {
+ 	struct crypto_ahash		*fallback_tfm;
+ };
+ 
+-/* the privete variable of hash for fallback */
++/* the private variable of hash for fallback */
+ struct rk_ahash_rctx {
+ 	struct ahash_request		fallback_req;
+ 	u32				mode;

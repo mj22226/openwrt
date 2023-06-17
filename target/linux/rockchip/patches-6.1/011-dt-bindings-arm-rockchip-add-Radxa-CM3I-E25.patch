@@ -1,0 +1,34 @@
+From 7f988b71a2a982e6cd4ca79d927c9440fe4b9233 Mon Sep 17 00:00:00 2001
+From: Chukun Pan <amadeus@jmu.edu.cn>
+Date: Fri, 9 Dec 2022 18:25:23 +0800
+Subject: [PATCH 011/383] dt-bindings: arm: rockchip: add Radxa CM3I E25
+
+Radxa CM3 Industrial (CM3I) is an System on Module made by Radxa
+based on the Rockchip RK3568 SoC. The first carrier board supported
+is the Radxa E25. Add devicetree binding documentation for it.
+
+Signed-off-by: Chukun Pan <amadeus@jmu.edu.cn>
+Acked-by: Rob Herring <robh@kernel.org>
+Link: https://lore.kernel.org/r/20221209102524.129367-2-amadeus@jmu.edu.cn
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -605,6 +605,13 @@ properties:
+           - const: pine64,soquartz
+           - const: rockchip,rk3566
+ 
++      - description: Radxa CM3 Industrial
++        items:
++          - enum:
++              - radxa,e25
++          - const: radxa,cm3i
++          - const: rockchip,rk3568
++
+       - description: Radxa Rock
+         items:
+           - const: radxa,rock

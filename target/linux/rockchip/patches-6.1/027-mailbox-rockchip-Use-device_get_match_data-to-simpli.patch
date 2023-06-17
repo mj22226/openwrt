@@ -1,0 +1,35 @@
+From c462adaba3027526bac3ef4f759c6af3198e0aea Mon Sep 17 00:00:00 2001
+From: ye xingchen <ye.xingchen@zte.com.cn>
+Date: Thu, 17 Nov 2022 19:29:11 +0800
+Subject: [PATCH 027/383] mailbox: rockchip: Use device_get_match_data() to
+ simplify the code
+
+Directly get the match data with device_get_match_data().
+
+Signed-off-by: ye xingchen <ye.xingchen@zte.com.cn>
+Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/mailbox/rockchip-mailbox.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+--- a/drivers/mailbox/rockchip-mailbox.c
++++ b/drivers/mailbox/rockchip-mailbox.c
+@@ -164,7 +164,6 @@ MODULE_DEVICE_TABLE(of, rockchp_mbox_of_
+ static int rockchip_mbox_probe(struct platform_device *pdev)
+ {
+ 	struct rockchip_mbox *mb;
+-	const struct of_device_id *match;
+ 	const struct rockchip_mbox_data *drv_data;
+ 	struct resource *res;
+ 	int ret, irq, i;
+@@ -172,8 +171,7 @@ static int rockchip_mbox_probe(struct pl
+ 	if (!pdev->dev.of_node)
+ 		return -ENODEV;
+ 
+-	match = of_match_node(rockchip_mbox_of_match, pdev->dev.of_node);
+-	drv_data = (const struct rockchip_mbox_data *)match->data;
++	drv_data = (const struct rockchip_mbox_data *) device_get_match_data(&pdev->dev);
+ 
+ 	mb = devm_kzalloc(&pdev->dev, sizeof(*mb), GFP_KERNEL);
+ 	if (!mb)

@@ -1,0 +1,67 @@
+From f57d13d916a8665f03c62d053292870734912317 Mon Sep 17 00:00:00 2001
+From: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Date: Sun, 13 Nov 2022 22:12:48 +0300
+Subject: [PATCH 283/383] dt-bindings: PCI: dwc: Apply generic schema for
+ generic device only
+
+Having the generic compatible strings constraints with the 'any'+'generic
+string' semantic implicitly encourages either to add new DW PCIe-based
+DT-bindings with the generic compatible string attached or just forget
+about adding new DT-bindings since the corresponding DT-node will be
+evaluated anyway. Moreover having that semantic implemented in the
+generic DT-schema causes the DT-validation tool to apply the schema twice:
+first by implicit compatible-string-based selection and second by means of
+the 'allOf: [ $ref ]' statement. Let's fix all of that by dropping the
+compatible property constraints and selecting the generic DT-schema only
+for the purely generic DW PCIe DT-nodes. The later is required since there
+is a driver for such devices. (Though there are no such DT-nodes currently
+defined in the kernel DT sources.)
+
+Link: https://lore.kernel.org/r/20221113191301.5526-8-Sergey.Semin@baikalelectronics.ru
+Signed-off-by: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/pci/snps,dw-pcie.yaml    | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
+
+--- a/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
+@@ -13,16 +13,20 @@ maintainers:
+ description: |
+   Synopsys DesignWare PCIe host controller
+ 
++# Please create a separate DT-schema for your DWC PCIe Root Port controller
++# and make sure it's assigned with the vendor-specific compatible string.
++select:
++  properties:
++    compatible:
++      const: snps,dw-pcie
++  required:
++    - compatible
++
+ allOf:
+   - $ref: /schemas/pci/pci-bus.yaml#
+   - $ref: /schemas/pci/snps,dw-pcie-common.yaml#
+ 
+ properties:
+-  compatible:
+-    anyOf:
+-      - {}
+-      - const: snps,dw-pcie
+-
+   reg:
+     description: |
+       It should contain Data Bus Interface (dbi) and config registers for all
+@@ -47,9 +51,9 @@ properties:
+ additionalProperties: true
+ 
+ required:
++  - compatible
+   - reg
+   - reg-names
+-  - compatible
+ 
+ examples:
+   - |

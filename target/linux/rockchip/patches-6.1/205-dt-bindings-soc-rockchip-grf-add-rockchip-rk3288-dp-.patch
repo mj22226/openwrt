@@ -1,0 +1,32 @@
+From 075e506e9e274fb0ef7b7c5c6672ee8f904c0195 Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Thu, 29 Dec 2022 10:45:16 +0100
+Subject: [PATCH 205/383] dt-bindings: soc: rockchip: grf: add
+ rockchip,rk3288-dp-phy.yaml
+
+Add new converted rockchip,rk3288-dp-phy.yaml to grf.yaml file.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+[dropped the unrelated blank line removals that didn't apply]
+Link: https://lore.kernel.org/r/5759c6e1-9c89-4cb2-dd57-83a8db09f547@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/soc/rockchip/grf.yaml | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+--- a/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
++++ b/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
+@@ -97,8 +97,9 @@ allOf:
+     then:
+       properties:
+         edp-phy:
+-          description:
+-            Documentation/devicetree/bindings/phy/rockchip-dp-phy.txt
++          type: object
++          $ref: /schemas/phy/rockchip,rk3288-dp-phy.yaml#
++          unevaluatedProperties: false
+ 
+   - if:
+       properties:

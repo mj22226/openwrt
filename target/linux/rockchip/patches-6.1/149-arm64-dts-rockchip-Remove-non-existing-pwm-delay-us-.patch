@@ -1,0 +1,60 @@
+From c11e35a6da6663398bccac7dcd9e4eebfdce73bf Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Fri, 31 Mar 2023 01:19:23 +0200
+Subject: [PATCH 149/383] arm64: dts: rockchip: Remove non-existing
+ pwm-delay-us property
+
+There is neither a driver that parses this nor a DT binding schema that
+documents it, so let's remove from the DTS files that make use of this.
+
+The properties that exist are post-pwm-on-delay-ms and pwm-off-delay-ms,
+defined in the pwm-backlight DT binding. If the delays are really needed
+then those properties should be used instead.
+
+Brian Norris mentioned though that looking at the first downstream usage
+of the pwm-delay-us property for RK3399 Gru systems in ChromiumOS tree,
+he couldn't find a spec reference that said that this was really needed.
+
+So perhaps it was unnecessary added and a simple removal would be enough.
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Reviewed-by: Brian Norris <briannorris@chromium.org>
+Link: https://lore.kernel.org/r/20230330231924.2404747-1-javierm@redhat.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3368-evb.dtsi            | 1 -
+ arch/arm64/boot/dts/rockchip/rk3399-gru-chromebook.dtsi | 1 -
+ arch/arm64/boot/dts/rockchip/rk3399-gru-scarlet.dtsi    | 1 -
+ 3 files changed, 3 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3368-evb.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3368-evb.dtsi
+@@ -61,7 +61,6 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&bl_en>;
+ 		pwms = <&pwm0 0 1000000 PWM_POLARITY_INVERTED>;
+-		pwm-delay-us = <10000>;
+ 	};
+ 
+ 	emmc_pwrseq: emmc-pwrseq {
+--- a/arch/arm64/boot/dts/rockchip/rk3399-gru-chromebook.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-gru-chromebook.dtsi
+@@ -198,7 +198,6 @@
+ 		power-supply = <&pp3300_disp>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&bl_en>;
+-		pwm-delay-us = <10000>;
+ 	};
+ 
+ 	gpio_keys: gpio-keys {
+--- a/arch/arm64/boot/dts/rockchip/rk3399-gru-scarlet.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-gru-scarlet.dtsi
+@@ -167,7 +167,6 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&bl_en>;
+ 		pwms = <&pwm1 0 1000000 0>;
+-		pwm-delay-us = <10000>;
+ 	};
+ 
+ 	dmic: dmic {

@@ -1,0 +1,29 @@
+From 78b56785a0fa785077c8f2ec896140d2cba8cc8a Mon Sep 17 00:00:00 2001
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Date: Sat, 12 Nov 2022 22:43:03 +0100
+Subject: [PATCH 221/383] clk: Remove a useless include
+
+<linux/rational.h> is not needed for these drivers. Remove the
+corresponding #include.
+
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Link: https://lore.kernel.org/r/12dd5cb49efa7714f8e0389e4c7b3bc829e8a90e.1668289299.git.christophe.jaillet@wanadoo.fr
+Acked-by: Heiko Stuebner <heiko@sntech.de>
+Acked-by: Jerome Brunet <jbrunet@baylibre.com>
+Reviewed-by: Luca Ceresoli <luca.ceresoli@bootlin.com>
+Signed-off-by: Stephen Boyd <sboyd@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/clk/rockchip/clk.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/drivers/clk/rockchip/clk.c
++++ b/drivers/clk/rockchip/clk.c
+@@ -21,7 +21,6 @@
+ #include <linux/mfd/syscon.h>
+ #include <linux/regmap.h>
+ #include <linux/reboot.h>
+-#include <linux/rational.h>
+ 
+ #include "../clk-fractional-divider.h"
+ #include "clk.h"

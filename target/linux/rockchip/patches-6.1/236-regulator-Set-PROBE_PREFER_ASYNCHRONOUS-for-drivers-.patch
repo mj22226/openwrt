@@ -1,0 +1,57 @@
+From 6b7b6e2e7d88a5471315b410e87fcd2dca87d464 Mon Sep 17 00:00:00 2001
+From: Douglas Anderson <dianders@chromium.org>
+Date: Thu, 16 Mar 2023 12:54:38 -0700
+Subject: [PATCH 236/383] regulator: Set PROBE_PREFER_ASYNCHRONOUS for drivers
+ that existed in 4.14
+
+Probing of regulators can be a slow operation and can contribute to
+slower boot times. This is especially true if a regulator is turned on
+at probe time (with regulator-boot-on or regulator-always-on) and the
+regulator requires delays (off-on-time, ramp time, etc).
+
+While the overall kernel is not ready to switch to async probe by
+default, as per the discussion on the mailing lists [1] it is believed
+that the regulator subsystem is in good shape and we can move
+regulator drivers over wholesale. There is no way to just magically
+opt in all regulators (regulators are just normal drivers like
+platform_driver), so we set PROBE_PREFER_ASYNCHRONOUS for all
+regulators found in 'drivers/regulator' individually.
+
+Given the number of drivers touched and the impossibility to test this
+ahead of time, it wouldn't be shocking at all if this caused a
+regression for someone. If there is a regression caused by this patch,
+it's likely to be one of the cases talked about in [1]. As a "quick
+fix", drivers involved in the regression could be fixed by changing
+them to PROBE_FORCE_SYNCHRONOUS. That being said, the correct fix
+would be to directly fix the problem that caused the issue with async
+probe.
+
+The approach here follows a similar approach that was used for the mmc
+subsystem several years ago [2]. In fact, I ran nearly the same python
+script to auto-generate the changes. The only thing I changed was to
+search for "i2c_driver", "spmi_driver", and "spi_driver" in addition
+to "platform_driver".
+
+[1] https://lore.kernel.org/r/06db017f-e985-4434-8d1d-02ca2100cca0@sirena.org.uk
+[2] https://lore.kernel.org/r/20200903232441.2694866-1-dianders@chromium.org/
+
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Link: https://lore.kernel.org/r/20230316125351.1.I2a4677392a38db5758dee0788b2cea5872562a82@changeid
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/regulator/rk808-regulator.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/drivers/regulator/rk808-regulator.c
++++ b/drivers/regulator/rk808-regulator.c
+@@ -1354,7 +1354,8 @@ static int rk808_regulator_probe(struct
+ static struct platform_driver rk808_regulator_driver = {
+ 	.probe = rk808_regulator_probe,
+ 	.driver = {
+-		.name = "rk808-regulator"
++		.name = "rk808-regulator",
++		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
+ 	},
+ };
+ 

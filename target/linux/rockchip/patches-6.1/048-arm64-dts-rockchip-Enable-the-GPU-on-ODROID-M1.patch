@@ -1,0 +1,30 @@
+From 00b3ed9e0018aafc04508b308eb27d217f49f2fd Mon Sep 17 00:00:00 2001
+From: Aurelien Jarno <aurelien@aurel32.net>
+Date: Fri, 30 Sep 2022 07:12:41 +0200
+Subject: [PATCH 048/383] arm64: dts: rockchip: Enable the GPU on ODROID-M1
+
+Enable the GPU core on the Rockchip RK3568 ODROID-M1.
+
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Tested-by: Dan Johansen <strit@manjaro.org>
+Link: https://lore.kernel.org/r/20220930051246.391614-9-aurelien@aurel32.net
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts
+@@ -143,6 +143,11 @@
+ 	rx_delay = <0x2d>;
+ };
+ 
++&gpu {
++	mali-supply = <&vdd_gpu>;
++	status = "okay";
++};
++
+ &hdmi {
+ 	avdd-0v9-supply = <&vdda0v9_image>;
+ 	avdd-1v8-supply = <&vcca1v8_image>;

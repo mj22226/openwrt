@@ -1,0 +1,31 @@
+From 99b81719685e53c79b7e7d9a1438478332a6f768 Mon Sep 17 00:00:00 2001
+From: Andy Yan <andyshrk@163.com>
+Date: Sat, 5 Nov 2022 17:59:35 +0800
+Subject: [PATCH 005/383] dt-bindings: rockchip: Add Rockchip rk3566 box demo
+ board
+
+Add device tree binding for Rockchip rk3566 box demo board.
+
+Signed-off-by: Andy Yan <andyshrk@163.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Link: https://lore.kernel.org/r/20221105095935.958144-1-andyshrk@163.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -749,6 +749,11 @@ properties:
+           - const: zkmagic,a95x-z2
+           - const: rockchip,rk3318
+ 
++      - description: Rockchip RK3566 BOX Evaluation Demo board
++        items:
++          - const: rockchip,rk3566-box-demo
++          - const: rockchip,rk3566
++
+       - description: Rockchip RK3568 Evaluation board
+         items:
+           - const: rockchip,rk3568-evb1-v10

@@ -1,0 +1,29 @@
+From 7ac9682ef12c0e09fdc2b3ec96263714d727996e Mon Sep 17 00:00:00 2001
+From: Manoj Sai <abbaraju.manojsai@amarulasolutions.com>
+Date: Thu, 24 Nov 2022 12:57:14 +0530
+Subject: [PATCH 096/383] arm64: dts: rockchip: increase spi-max-frequency of
+ nor flash for roc-rk3399-pc
+
+Increase the spi-max-frequency of nor flash from 10Mhz to 30Mhz,this improves the
+flash raw write speed by 0.9 MB/s to 1.6MB/s and the time taken to write is
+get reduced from 36 seconds to 20 seconds.
+
+Signed-off-by: Manoj Sai <abbaraju.manojsai@amarulasolutions.com>
+Link: https://lore.kernel.org/r/20221124072714.450223-1-abbaraju.manojsai@amarulasolutions.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399-roc-pc.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399-roc-pc.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-roc-pc.dtsi
+@@ -735,7 +735,7 @@
+ 	flash@0 {
+ 		compatible = "jedec,spi-nor";
+ 		reg = <0>;
+-		spi-max-frequency = <10000000>;
++		spi-max-frequency = <30000000>;
+ 	};
+ };
+ 

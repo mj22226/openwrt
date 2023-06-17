@@ -1,0 +1,39 @@
+From c25db3e701a6675f9210979adcb8eefff62ed61a Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Thu, 22 Dec 2022 15:31:22 +0100
+Subject: [PATCH 137/383] arm64: dts: rockchip: fix px30 lvds node
+
+With the conversion of rockchip,lvds.yaml a port@1 node
+is required, so add a node with label lvds_out.
+Also add label lvds_in to port@0.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Link: https://lore.kernel.org/r/99895a4b-25c4-4b64-42ac-6f70940ab56e@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/px30.dtsi | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/px30.dtsi
++++ b/arch/arm64/boot/dts/rockchip/px30.dtsi
+@@ -474,7 +474,7 @@
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+ 
+-				port@0 {
++				lvds_in: port@0 {
+ 					reg = <0>;
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
+@@ -489,6 +489,10 @@
+ 						remote-endpoint = <&vopl_out_lvds>;
+ 					};
+ 				};
++
++				lvds_out: port@1 {
++					reg = <1>;
++				};
+ 			};
+ 		};
+ 	};

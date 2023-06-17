@@ -1,0 +1,31 @@
+From de0a4b22124220244b64ea1022f9ad618eca93b2 Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Fri, 28 Oct 2022 16:41:12 +0200
+Subject: [PATCH 010/383] dt-bindings: arm: rockchip: Add Rockchip RK3128
+ Evaluation board
+
+Add Rockchip RK3128 Evaluation board.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/dca18633-54d4-1264-725c-213d82fdf1c5@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -695,6 +695,11 @@ properties:
+           - const: rockchip,rk3036-evb
+           - const: rockchip,rk3036
+ 
++      - description: Rockchip RK3128 Evaluation board
++        items:
++          - const: rockchip,rk3128-evb
++          - const: rockchip,rk3128
++
+       - description: Rockchip RK3228 Evaluation board
+         items:
+           - const: rockchip,rk3228-evb

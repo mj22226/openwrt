@@ -1,0 +1,30 @@
+From cc2633c6194c9dd199e3a662c70e7ee6139d45de Mon Sep 17 00:00:00 2001
+From: FUKAUMI Naoki <naoki@radxa.com>
+Date: Tue, 18 Oct 2022 07:22:42 +0000
+Subject: [PATCH 057/383] arm64: dts: rockchip: enable tsadc for ROCK 4C+
+
+add and enable Temperature Sensor ADC for Radxa ROCK 4C+
+
+Signed-off-by: FUKAUMI Naoki <naoki@radxa.com>
+Link: https://lore.kernel.org/r/20221018072242.2348995-1-naoki@radxa.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399-rock-4c-plus.dts | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399-rock-4c-plus.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-rock-4c-plus.dts
+@@ -601,6 +601,12 @@
+ 	status = "okay";
+ };
+ 
++&tsadc {
++	rockchip,hw-tshut-mode = <1>;
++	rockchip,hw-tshut-polarity = <1>;
++	status = "okay";
++};
++
+ &u2phy0 {
+ 	status = "okay";
+ 

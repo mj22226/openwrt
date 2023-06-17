@@ -1,0 +1,132 @@
+From 9fa0037b606b7ee403ca098b12ea6dd5711b2c95 Mon Sep 17 00:00:00 2001
+From: Rob Herring <robh@kernel.org>
+Date: Mon, 23 Jan 2023 21:05:17 -0600
+Subject: [PATCH 239/383] dt-bindings: usb: Convert OMAP OHCI/EHCI bindings to
+ schema
+
+The OMAP OHCI and EHCI USB host bindings follow the generic binding, so
+add the compatibles and remove the old txt binding docs.
+
+The examples in omap-usb-host.txt don't match actual users, so update
+them dropping the fallback compatible.
+
+Signed-off-by: Rob Herring <robh@kernel.org>
+Acked-by: Lee Jones <lee@kernel.org>
+Link: https://lore.kernel.org/r/20230110-dt-usb-v3-3-5af0541fcf8c@kernel.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/mfd/omap-usb-host.txt |  8 ++---
+ .../devicetree/bindings/usb/ehci-omap.txt     | 31 -------------------
+ .../devicetree/bindings/usb/generic-ehci.yaml |  1 +
+ .../devicetree/bindings/usb/generic-ohci.yaml |  4 ++-
+ .../devicetree/bindings/usb/ohci-omap3.txt    | 15 ---------
+ 5 files changed, 8 insertions(+), 51 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/usb/ehci-omap.txt
+ delete mode 100644 Documentation/devicetree/bindings/usb/ohci-omap3.txt
+
+--- a/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
++++ b/Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+@@ -64,8 +64,8 @@ Required properties if child node exists
+ Properties for children:
+ 
+ The OMAP HS USB Host subsystem contains EHCI and OHCI controllers.
+-See Documentation/devicetree/bindings/usb/ehci-omap.txt and
+-Documentation/devicetree/bindings/usb/ohci-omap3.txt.
++See Documentation/devicetree/bindings/usb/generic-ehci.yaml and
++Documentation/devicetree/bindings/usb/generic-ohci.yaml.
+ 
+ Example for OMAP4:
+ 
+@@ -78,14 +78,14 @@ usbhshost: usbhshost@4a064000 {
+ 	ranges;
+ 
+ 	usbhsohci: ohci@4a064800 {
+-		compatible = "ti,ohci-omap3", "usb-ohci";
++		compatible = "ti,ohci-omap3";
+ 		reg = <0x4a064800 0x400>;
+ 		interrupt-parent = <&gic>;
+ 		interrupts = <0 76 0x4>;
+ 	};
+ 
+ 	usbhsehci: ehci@4a064c00 {
+-		compatible = "ti,ehci-omap", "usb-ehci";
++		compatible = "ti,ehci-omap";
+ 		reg = <0x4a064c00 0x400>;
+ 		interrupt-parent = <&gic>;
+ 		interrupts = <0 77 0x4>;
+--- a/Documentation/devicetree/bindings/usb/ehci-omap.txt
++++ /dev/null
+@@ -1,31 +0,0 @@
+-OMAP HS USB EHCI controller
+-
+-This device is usually the child of the omap-usb-host
+-Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+-
+-Required properties:
+-
+-- compatible: should be "ti,ehci-omap"
+-- reg: should contain one register range i.e. start and length
+-- interrupts: description of the interrupt line
+-
+-Optional properties:
+-
+-- phys: list of phandles to PHY nodes.
+-  This property is required if at least one of the ports are in
+-  PHY mode i.e. OMAP_EHCI_PORT_MODE_PHY
+-
+-To specify the port mode, see
+-Documentation/devicetree/bindings/mfd/omap-usb-host.txt
+-
+-Example for OMAP4:
+-
+-usbhsehci: ehci@4a064c00 {
+-	compatible = "ti,ehci-omap";
+-	reg = <0x4a064c00 0x400>;
+-	interrupts = <0 77 0x4>;
+-};
+-
+-&usbhsehci {
+-	phys = <&hsusb1_phy 0 &hsusb3_phy>;
+-};
+--- a/Documentation/devicetree/bindings/usb/generic-ehci.yaml
++++ b/Documentation/devicetree/bindings/usb/generic-ehci.yaml
+@@ -74,6 +74,7 @@ properties:
+           - const: usb-ehci
+       - enum:
+           - generic-ehci
++          - ti,ehci-omap
+           - usb-ehci
+ 
+   reg:
+--- a/Documentation/devicetree/bindings/usb/generic-ohci.yaml
++++ b/Documentation/devicetree/bindings/usb/generic-ohci.yaml
+@@ -46,7 +46,9 @@ properties:
+               - ingenic,jz4740-ohci
+               - snps,hsdk-v1.0-ohci
+           - const: generic-ohci
+-      - const: generic-ohci
++      - enum:
++          - generic-ohci
++          - ti,ohci-omap3
+       - items:
+           - enum:
+               - cavium,octeon-6335-ohci
+--- a/Documentation/devicetree/bindings/usb/ohci-omap3.txt
++++ /dev/null
+@@ -1,15 +0,0 @@
+-OMAP HS USB OHCI controller (OMAP3 and later)
+-
+-Required properties:
+-
+-- compatible: should be "ti,ohci-omap3"
+-- reg: should contain one register range i.e. start and length
+-- interrupts: description of the interrupt line
+-
+-Example for OMAP4:
+-
+-usbhsohci: ohci@4a064800 {
+-	compatible = "ti,ohci-omap3";
+-	reg = <0x4a064800 0x400>;
+-	interrupts = <0 76 0x4>;
+-};

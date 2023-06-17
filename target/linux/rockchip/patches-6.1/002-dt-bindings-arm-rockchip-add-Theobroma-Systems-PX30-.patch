@@ -1,0 +1,36 @@
+From e3051061683448b59745ff4e13b900df25f46b8a Mon Sep 17 00:00:00 2001
+From: Quentin Schulz <quentin.schulz@theobroma-systems.com>
+Date: Mon, 17 Oct 2022 12:25:25 +0200
+Subject: [PATCH 002/383] =?UTF-8?q?dt-bindings:=20arm:=20rockchip:=20add?=
+ =?UTF-8?q?=20Theobroma=20Systems=20PX30-=C2=B5Q7=20(Ringneck)=20with=20Ha?=
+ =?UTF-8?q?ikou?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Add entry for the Theobroma Systems PX30-µQ7 (Ringneck) with Haikou
+devkit.
+
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Quentin Schulz <quentin.schulz@theobroma-systems.com>
+Link: https://lore.kernel.org/r/20220930-upstream-ringneck-v2-2-6671694b6934@theobroma-systems.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -709,6 +709,11 @@ properties:
+           - const: rockchip,rv1108-evb
+           - const: rockchip,rv1108
+ 
++      - description: Theobroma Systems PX30-uQ7 with Haikou baseboard
++        items:
++          - const: tsd,px30-ringneck-haikou
++          - const: rockchip,px30
++
+       - description: Theobroma Systems RK3368-uQ7 with Haikou baseboard
+         items:
+           - const: tsd,rk3368-lion-haikou

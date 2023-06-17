@@ -1,0 +1,41 @@
+From 0c16d1de85af6fc1a3492043f4f753234f039222 Mon Sep 17 00:00:00 2001
+From: Aurelien Jarno <aurelien@aurel32.net>
+Date: Fri, 30 Sep 2022 07:12:40 +0200
+Subject: [PATCH 047/383] arm64: dts: rockchip: Enable HDMI audio on ODROID-M1.
+
+This enables the i2s0 controller and the hdmi-sound node on the
+ODROID-M1.
+
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Tested-by: Dan Johansen <strit@manjaro.org>
+Link: https://lore.kernel.org/r/20220930051246.391614-8-aurelien@aurel32.net
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts
+@@ -161,6 +161,10 @@
+ 	};
+ };
+ 
++&hdmi_sound {
++	status = "okay";
++};
++
+ &i2c0 {
+ 	status = "okay";
+ 
+@@ -400,6 +404,10 @@
+ 	};
+ };
+ 
++&i2s0_8ch {
++	status = "okay";
++};
++
+ &i2s1_8ch {
+ 	rockchip,trcm-sync-tx-only;
+ 	status = "okay";

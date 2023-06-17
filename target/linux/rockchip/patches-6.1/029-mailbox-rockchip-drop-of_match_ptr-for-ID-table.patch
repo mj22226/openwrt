@@ -1,0 +1,32 @@
+From 2b4ce6a535954f3020c820fdf492f007ef1db43e Mon Sep 17 00:00:00 2001
+From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Date: Sat, 11 Mar 2023 12:17:38 +0100
+Subject: [PATCH 029/383] mailbox: rockchip: drop of_match_ptr for ID table
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The driver can match only via the DT table so the table should be always
+used and the of_match_ptr does not have any sense (this also allows ACPI
+matching via PRP0001, even though it might not be relevant here).
+
+  drivers/mailbox/rockchip-mailbox.c:158:34: error: ‘rockchip_mbox_of_match’ defined but not used [-Werror=unused-const-variable=]
+
+Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/mailbox/rockchip-mailbox.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/mailbox/rockchip-mailbox.c
++++ b/drivers/mailbox/rockchip-mailbox.c
+@@ -248,7 +248,7 @@ static struct platform_driver rockchip_m
+ 	.probe	= rockchip_mbox_probe,
+ 	.driver = {
+ 		.name = "rockchip-mailbox",
+-		.of_match_table = of_match_ptr(rockchip_mbox_of_match),
++		.of_match_table = rockchip_mbox_of_match,
+ 	},
+ };
+ 

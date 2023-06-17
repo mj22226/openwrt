@@ -1,0 +1,30 @@
+From f6147442e9cdd52d86a3d90ec22acc7b6ac45607 Mon Sep 17 00:00:00 2001
+From: Vidya Sagar <vidyas@nvidia.com>
+Date: Mon, 14 Nov 2022 15:53:32 +0000
+Subject: [PATCH 278/383] dt-bindings: PCI: tegra234: Add ECAM support
+
+Add support for ECAM aperture that is only supported for Tegra234
+devices.
+
+Signed-off-by: Vidya Sagar <vidyas@nvidia.com>
+Co-developed-by: Jon Hunter <jonathanh@nvidia.com>
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
+@@ -35,7 +35,7 @@ properties:
+     maxItems: 5
+     items:
+       enum: [ dbi, dbi2, config, atu, atu_dma, app, appl, elbi, mgmt, ctrl,
+-              parf, cfg, link, ulreg, smu, mpu, apb, phy ]
++              parf, cfg, link, ulreg, smu, mpu, apb, phy, ecam ]
+ 
+   num-lanes:
+     description: |

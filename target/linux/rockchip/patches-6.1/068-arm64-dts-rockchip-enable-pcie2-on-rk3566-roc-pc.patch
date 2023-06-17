@@ -1,0 +1,80 @@
+From c0602fc3d12777ac879ed9d121c46a7bc1e76fce Mon Sep 17 00:00:00 2001
+From: Furkan Kardame <f.kardame@manjaro.org>
+Date: Wed, 26 Oct 2022 20:21:53 +0300
+Subject: [PATCH 068/383] arm64: dts: rockchip: enable pcie2 on rk3566-roc-pc
+
+This patch adds nodes needed for pcie2
+to work on rk3566-roc-pc
+
+Signed-off-by: Furkan Kardame <f.kardame@manjaro.org>
+Link: https://lore.kernel.org/r/20221026172152.64513-1-f.kardame@manjaro.org
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../arm64/boot/dts/rockchip/rk3566-roc-pc.dts | 34 +++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-roc-pc.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-roc-pc.dts
+@@ -82,6 +82,18 @@
+ 		vin-supply = <&usb_5v>;
+ 	};
+ 
++	vcc3v3_pcie: vcc3v3-pcie-regulator {
++		compatible = "regulator-fixed";
++		enable-active-high;
++		gpio = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&pcie_enable_h>;
++		regulator-name = "vcc3v3_pcie";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc5v0_sys>;
++	};
++
+ 	vcc3v3_sys: vcc3v3-sys-regulator {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vcc3v3_sys";
+@@ -122,6 +134,10 @@
+ 	status = "okay";
+ };
+ 
++&combphy2 {
++	status = "okay";
++};
++
+ &cpu0 {
+ 	cpu-supply = <&vdd_cpu>;
+ };
+@@ -443,6 +459,14 @@
+ 	};
+ };
+ 
++&pcie2x1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pcie_reset_h>;
++	reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
++	vpcie3v3-supply = <&vcc3v3_pcie>;
++	status = "okay";
++};
++
+ &pinctrl {
+ 	bt {
+ 		bt_enable_h: bt-enable-h {
+@@ -464,6 +488,16 @@
+ 		};
+ 	};
+ 
++	pcie {
++		pcie_enable_h: pcie-enable-h {
++			rockchip,pins = <0 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++
++		pcie_reset_h: pcie-reset-h {
++			rockchip,pins = <1 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	pmic {
+ 		pmic_int: pmic_int {
+ 			rockchip,pins =

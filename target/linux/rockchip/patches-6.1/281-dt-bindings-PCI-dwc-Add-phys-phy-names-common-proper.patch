@@ -1,0 +1,37 @@
+From 8a436f7c0b87149e9fe16a10c3f7362afe9fd9d7 Mon Sep 17 00:00:00 2001
+From: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Date: Sun, 13 Nov 2022 22:12:46 +0300
+Subject: [PATCH 281/383] dt-bindings: PCI: dwc: Add phys/phy-names common
+ properties
+
+It's normal to have the DW PCIe RP/EP DT-nodes equipped with the explicit
+PHY phandle references. There can be up to 16 PHYs attach in accordance
+with the maximum number of supported PCIe lanes. Let's extend the common
+DW PCIe controller schema with the 'phys' and 'phy-names' properties
+definition. There two types PHY names are defined: preferred generic names
+'^pcie[0-9]+$' and non-preferred vendor-specific names
+'^pcie([0-9]+|-?phy[0-9]*)?$' so to match the names currently supported by
+the DW PCIe platform drivers ("pcie": meson; "pciephy": qcom, imx6;
+"pcie-phy": uniphier, rockchip, spear13xx; "pcie": intel-gw; "pcie-phy%d":
+keystone, dra7xx; "pcie": histb, etc).
+
+Link: https://lore.kernel.org/r/20221113191301.5526-6-Sergey.Semin@baikalelectronics.ru
+Signed-off-by: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml | 3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
+@@ -70,5 +70,8 @@ examples:
+ 
+       reset-gpios = <&port0 0 1>;
+ 
++      phys = <&pcie_phy>;
++      phy-names = "pcie";
++
+       num-lanes = <1>;
+     };

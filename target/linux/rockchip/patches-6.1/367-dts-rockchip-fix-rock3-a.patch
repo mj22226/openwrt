@@ -1,0 +1,110 @@
+From ca9300809c0bea2985dd18231b6882ef61929135 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Sat, 27 May 2023 18:48:01 -0400
+Subject: [PATCH 367/383] dts: rockchip: fix rock3 a
+
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3568-rock-3a.dts      | 35 +++++++++----------
+ 1 file changed, 17 insertions(+), 18 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3568-rock-3a.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3568-rock-3a.dts
+@@ -32,13 +32,6 @@
+ 		};
+ 	};
+ 
+-	gmac1_clkin: external-gmac1-clock {
+-		compatible = "fixed-clock";
+-		clock-frequency = <125000000>;
+-		clock-output-names = "gmac1_clkin";
+-		#clock-cells = <0>;
+-	};
+-
+ 	leds {
+ 		compatible = "gpio-leds";
+ 
+@@ -256,18 +249,25 @@
+ 
+ &gmac1 {
+ 	assigned-clocks = <&cru SCLK_GMAC1_RX_TX>, <&cru SCLK_GMAC1>;
+-	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&gmac1_clkin>;
+-	clock_in_out = "input";
++	assigned-clock-parents = <&cru SCLK_GMAC1_RGMII_SPEED>, <&cru CLK_MAC1_2TOP>;
++	clock_in_out = "output";
+ 	phy-handle = <&rgmii_phy1>;
+-	phy-mode = "rgmii-id";
+-	phy-supply = <&vcc_3v3>;
++	phy-mode = "rgmii";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&gmac1m1_miim
+ 		     &gmac1m1_tx_bus2
+ 		     &gmac1m1_rx_bus2
+ 		     &gmac1m1_rgmii_clk
+-		     &gmac1m1_clkinout
+ 		     &gmac1m1_rgmii_bus>;
++
++	snps,reset-gpio = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
++	snps,reset-active-low;
++	/* Reset time is 20ms, 100ms for rtl8211f */
++	snps,reset-delays-us = <0 20000 100000>;
++
++	tx_delay = <0x3c>;
++	rx_delay = <0x2f>;
++
+ 	status = "okay";
+ };
+ 
+@@ -413,6 +413,7 @@
+ 
+ 			vdda0v9_image: LDO_REG1 {
+ 				regulator-name = "vdda0v9_image";
++				regulator-always-on;
+ 				regulator-min-microvolt = <900000>;
+ 				regulator-max-microvolt = <900000>;
+ 
+@@ -449,6 +450,7 @@
+ 			vccio_acodec: LDO_REG4 {
+ 				regulator-name = "vccio_acodec";
+ 				regulator-always-on;
++				regulator-boot-on;
+ 				regulator-min-microvolt = <3300000>;
+ 				regulator-max-microvolt = <3300000>;
+ 
+@@ -507,6 +509,7 @@
+ 
+ 			vcca1v8_image: LDO_REG9 {
+ 				regulator-name = "vcca1v8_image";
++				regulator-always-on;
+ 				regulator-min-microvolt = <1800000>;
+ 				regulator-max-microvolt = <1800000>;
+ 
+@@ -527,6 +530,7 @@
+ 
+ 			vcc3v3_sd: SWITCH_REG2 {
+ 				regulator-name = "vcc3v3_sd";
++				regulator-always-on;
+ 
+ 				regulator-state-mem {
+ 					regulator-off-in-suspend;
+@@ -588,11 +592,6 @@
+ 	rgmii_phy1: ethernet-phy@0 {
+ 		compatible = "ethernet-phy-ieee802.3-c22";
+ 		reg = <0x0>;
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&eth_phy_rst>;
+-		reset-assert-us = <20000>;
+-		reset-deassert-us = <100000>;
+-		reset-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>;
+ 	};
+ };
+ 
+@@ -796,7 +795,7 @@
+ };
+ 
+ &usb_host0_xhci {
+-	extcon = <&usb2phy0>;
++	dr_mode = "host";
+ 	status = "okay";
+ };
+ 

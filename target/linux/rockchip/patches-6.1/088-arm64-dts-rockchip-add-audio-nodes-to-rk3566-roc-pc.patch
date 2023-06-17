@@ -1,0 +1,107 @@
+From bc6cef04f7c3883dbef48280f36f9e378abf55a7 Mon Sep 17 00:00:00 2001
+From: Furkan Kardame <f.kardame@manjaro.org>
+Date: Mon, 9 Jan 2023 23:32:33 +0300
+Subject: [PATCH 088/383] arm64: dts: rockchip: add audio nodes to
+ rk3566-roc-pc
+
+This patch adds simple audio card nodes
+Enabled i2s0_8ch as it is needed for hdmi audio
+
+Added i2s1_8ch as it is needed for 3.5mm audio jack and limit it to a
+single-channel, as i2s1m0_sdo{1,2,3} and i2s1m0_sdi{1,2,3} are used
+by pcie.
+
+Signed-off-by: Furkan Kardame <f.kardame@manjaro.org>
+Link: https://lore.kernel.org/r/20230109203232.45192-1-f.kardame@manjaro.org
+[dropped the duplicate i2s@fe410000 node]
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../arm64/boot/dts/rockchip/rk3566-roc-pc.dts | 44 ++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 2 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-roc-pc.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-roc-pc.dts
+@@ -53,6 +53,22 @@
+ 		};
+ 	};
+ 
++	rk809-sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,name = "STATION-M2-FRONT";
++		simple-audio-card,mclk-fs = <256>;
++		status = "okay";
++
++		simple-audio-card,cpu {
++			sound-dai = <&i2s1_8ch>;
++		};
++
++		simple-audio-card,codec {
++			sound-dai = <&rk809>;
++		};
++	};
++
+ 	sdio_pwrseq: sdio-pwrseq {
+ 		status = "okay";
+ 		compatible = "mmc-pwrseq-simple";
+@@ -200,6 +216,10 @@
+ 	};
+ };
+ 
++&hdmi_sound {
++	status = "okay";
++};
++
+ &i2c0 {
+ 	status = "okay";
+ 
+@@ -226,12 +246,16 @@
+ 		interrupt-parent = <&gpio0>;
+ 		interrupts = <RK_PA7 IRQ_TYPE_LEVEL_LOW>;
+ 		clock-output-names = "rk808-clkout1", "rk808-clkout2";
+-
++		assigned-clocks = <&cru I2S1_MCLKOUT_TX>;
++		assigned-clock-parents = <&cru CLK_I2S1_8CH_TX>;
++		clock-names = "mclk";
++		clocks = <&cru I2S1_MCLKOUT_TX>;
+ 		pinctrl-names = "default";
+-		pinctrl-0 = <&pmic_int>;
++		pinctrl-0 = <&pmic_int>, <&i2s1m0_mclk>;
+ 		rockchip,system-power-controller;
+ 		wakeup-source;
+ 		#clock-cells = <1>;
++		#sound-dai-cells = <0>;
+ 
+ 		vcc1-supply = <&vcc3v3_sys>;
+ 		vcc2-supply = <&vcc3v3_sys>;
+@@ -243,6 +267,10 @@
+ 		vcc8-supply = <&vcc3v3_sys>;
+ 		vcc9-supply = <&vcc3v3_sys>;
+ 
++		codec {
++			mic-in-differential;
++		};
++
+ 		regulators {
+ 			vdd_log: DCDC_REG1 {
+ 				regulator-name = "vdd_log";
+@@ -452,6 +480,18 @@
+ 	status = "okay";
+ };
+ 
++&i2s0_8ch {
++	status = "okay";
++};
++
++&i2s1_8ch {
++	pinctrl-0 = <&i2s1m0_sclktx &i2s1m0_sclkrx
++			&i2s1m0_lrcktx &i2s1m0_lrckrx
++			&i2s1m0_sdi0   &i2s1m0_sdo0>;
++	rockchip,trcm-sync-tx-only;
++	status = "okay";
++};
++
+ &mdio1 {
+ 	rgmii_phy1: ethernet-phy@0 {
+ 		compatible = "ethernet-phy-ieee802.3-c22";

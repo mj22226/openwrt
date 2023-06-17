@@ -1,0 +1,104 @@
+From 10f47903476d674e950e6996b5ae02698f4bfbfb Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Fri, 28 Oct 2022 13:40:44 -0500
+Subject: [PATCH 065/383] arm64: dts: rockchip: add rk817 chg to RG353P and
+ RG503
+
+Add support for the internal battery and charger for the Anbernic
+RG353P and RG503. Battery values are taken from the BSP Kernel
+device tree.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Link: https://lore.kernel.org/r/20221028184045.13113-4-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../dts/rockchip/rk3566-anbernic-rg353p.dts   | 28 +++++++++++++++++++
+ .../dts/rockchip/rk3566-anbernic-rg503.dts    | 28 +++++++++++++++++++
+ 2 files changed, 56 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353p.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg353p.dts
+@@ -18,6 +18,25 @@
+ 		mmc3 = &sdmmc2;
+ 	};
+ 
++	battery: battery {
++		compatible = "simple-battery";
++		charge-full-design-microamp-hours = <3472000>;
++		charge-term-current-microamp = <300000>;
++		constant-charge-current-max-microamp = <2000000>;
++		constant-charge-voltage-max-microvolt = <4200000>;
++		factory-internal-resistance-micro-ohms = <117000>;
++		voltage-max-design-microvolt = <4172000>;
++		voltage-min-design-microvolt = <3400000>;
++
++		ocv-capacity-celsius = <20>;
++		ocv-capacity-table-0 =  <4172000 100>, <4054000 95>, <3984000 90>, <3926000 85>,
++					<3874000 80>, <3826000 75>, <3783000 70>, <3746000 65>,
++					<3714000 60>, <3683000 55>, <3650000 50>, <3628000 45>,
++					<3612000 40>, <3600000 35>, <3587000 30>, <3571000 25>,
++					<3552000 20>, <3525000 15>, <3492000 10>, <3446000 5>,
++					<3400000 0>;
++	};
++
+ 	/* Channels reversed for both headphones and speakers. */
+ 	sound {
+ 		compatible = "simple-audio-card";
+@@ -87,6 +106,15 @@
+ 	};
+ };
+ 
++&rk817 {
++	rk817_charger: charger {
++		monitored-battery = <&battery>;
++		rockchip,resistor-sense-micro-ohms = <10000>;
++		rockchip,sleep-enter-current-microamp = <300000>;
++		rockchip,sleep-filter-current-microamp = <100000>;
++	};
++};
++
+ &sdhci {
+ 	pinctrl-0 = <&emmc_bus8>, <&emmc_clk>, <&emmc_cmd>, <&emmc_datastrobe>, <&emmc_rstnout>;
+ 	pinctrl-names = "default";
+--- a/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg503.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rg503.dts
+@@ -17,6 +17,25 @@
+ 		mmc2 = &sdmmc2;
+ 	};
+ 
++	battery: battery {
++		compatible = "simple-battery";
++		charge-full-design-microamp-hours = <3472000>;
++		charge-term-current-microamp = <300000>;
++		constant-charge-current-max-microamp = <2000000>;
++		constant-charge-voltage-max-microvolt = <4200000>;
++		factory-internal-resistance-micro-ohms = <117000>;
++		voltage-max-design-microvolt = <4172000>;
++		voltage-min-design-microvolt = <3400000>;
++
++		ocv-capacity-celsius = <20>;
++		ocv-capacity-table-0 =	<4172000 100>, <4054000 95>, <3984000 90>, <3926000 85>,
++					<3874000 80>, <3826000 75>, <3783000 70>, <3746000 65>,
++					<3714000 60>, <3683000 55>, <3650000 50>, <3628000 45>,
++					<3612000 40>, <3600000 35>, <3587000 30>, <3571000 25>,
++					<3552000 20>, <3525000 15>, <3492000 10>, <3446000 5>,
++					<3400000 0>;
++	};
++
+ 	gpio_spi: spi {
+ 		compatible = "spi-gpio";
+ 		pinctrl-names = "default";
+@@ -136,3 +155,12 @@
+ 		};
+ 	};
+ };
++
++&rk817 {
++	rk817_charger: charger {
++		monitored-battery = <&battery>;
++		rockchip,resistor-sense-micro-ohms = <10000>;
++		rockchip,sleep-enter-current-microamp = <300000>;
++		rockchip,sleep-filter-current-microamp = <100000>;
++	};
++};

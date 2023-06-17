@@ -1,0 +1,27 @@
+From a45f75760dff9339819078d32fd76bc091df0a24 Mon Sep 17 00:00:00 2001
+From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Date: Mon, 13 Mar 2023 11:53:05 +0200
+Subject: [PATCH 276/383] arm64: dts: rockchip: rk3588: Add I2S nodes
+
+In addition to the five I2S/PCM/TDM controllers and the two I2S/PCM
+controllers shared between the RK3588 and RK3588S SoCs, RK3588 contains
+another four I2S/PCM/TDM controllers.
+
+Add the DT nodes corresponding to the additional controllers.
+
+Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3588.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588.dtsi
+@@ -132,6 +132,7 @@
+ 			interrupt-parent = <&gic>;
+ 			interrupts = <GIC_SPI 240 IRQ_TYPE_EDGE_RISING 0>;
+ 		};
++
+ 	};
+ 
+ 	gmac0: ethernet@fe1b0000 {

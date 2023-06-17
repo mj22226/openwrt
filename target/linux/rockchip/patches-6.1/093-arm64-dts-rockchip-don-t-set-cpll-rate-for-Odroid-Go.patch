@@ -1,0 +1,38 @@
+From 29d572b918fc509a518b8464f4c768ddac70cc5a Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Thu, 1 Dec 2022 14:36:53 -0600
+Subject: [PATCH 093/383] arm64: dts: rockchip: don't set cpll rate for Odroid
+ Go
+
+The Odroid Go Advance devicetree tries to set the rate for the cpll
+clock to 17MHz, which is not a supported rate. This fails, and triggers
+the error of "clk: couldn't set cpll clk rate to 17000000 (-22),
+current rate: 17000000" in the dmesg log. Remove the incorrect rate.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Link: https://lore.kernel.org/r/20221201203655.1245-3-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3326-odroid-go.dtsi | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3326-odroid-go.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3326-odroid-go.dtsi
+@@ -192,14 +192,12 @@
+ 	assigned-clocks = <&cru PLL_NPLL>,
+ 		<&cru ACLK_BUS_PRE>, <&cru ACLK_PERI_PRE>,
+ 		<&cru HCLK_BUS_PRE>, <&cru HCLK_PERI_PRE>,
+-		<&cru PCLK_BUS_PRE>, <&cru SCLK_GPU>,
+-		<&cru PLL_CPLL>;
++		<&cru PCLK_BUS_PRE>, <&cru SCLK_GPU>;
+ 
+ 	assigned-clock-rates = <1188000000>,
+ 		<200000000>, <200000000>,
+ 		<150000000>, <150000000>,
+-		<100000000>, <200000000>,
+-		<17000000>;
++		<100000000>, <200000000>;
+ };
+ 
+ &display_subsystem {

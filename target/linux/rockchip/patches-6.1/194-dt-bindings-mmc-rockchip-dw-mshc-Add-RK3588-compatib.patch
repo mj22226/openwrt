@@ -1,0 +1,30 @@
+From 3849da9dacffabef9e40d8fa2b6985d183b5a39b Mon Sep 17 00:00:00 2001
+From: Lucas Tanure <lucas.tanure@collabora.com>
+Date: Mon, 13 Feb 2023 15:27:39 +0000
+Subject: [PATCH 194/383] dt-bindings: mmc: rockchip-dw-mshc: Add RK3588
+ compatible string
+
+Add RK3588 compatible string for SD interface.
+
+Co-developed-by: Shawn Lin <shawn.lin@rock-chips.com>
+Signed-off-by: Shawn Lin <shawn.lin@rock-chips.com>
+Signed-off-by: Lucas Tanure <lucas.tanure@collabora.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+Link: https://lore.kernel.org/r/20230213152740.359055-1-lucas.tanure@collabora.com
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/mmc/rockchip-dw-mshc.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/Documentation/devicetree/bindings/mmc/rockchip-dw-mshc.yaml
++++ b/Documentation/devicetree/bindings/mmc/rockchip-dw-mshc.yaml
+@@ -39,6 +39,7 @@ properties:
+               - rockchip,rk3368-dw-mshc
+               - rockchip,rk3399-dw-mshc
+               - rockchip,rk3568-dw-mshc
++              - rockchip,rk3588-dw-mshc
+               - rockchip,rv1108-dw-mshc
+               - rockchip,rv1126-dw-mshc
+           - const: rockchip,rk3288-dw-mshc

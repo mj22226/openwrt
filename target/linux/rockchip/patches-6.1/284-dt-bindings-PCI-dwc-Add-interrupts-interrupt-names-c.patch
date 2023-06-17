@@ -1,0 +1,138 @@
+From ccd02ddfabc49a9c2e4979235c63323d878a9a8b Mon Sep 17 00:00:00 2001
+From: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Date: Sun, 13 Nov 2022 22:12:50 +0300
+Subject: [PATCH 284/383] dt-bindings: PCI: dwc: Add interrupts/interrupt-names
+ common properties
+
+Currently the 'interrupts' and 'interrupt-names' properties are defined
+being too generic to really describe any actual IRQ interface. Moreover
+the DW PCIe End-point devices are left with no IRQ signals. All of that
+can be fixed by adding the IRQ-related properties to the common DW PCIe
+DT-schemas in accordance with the hardware reference manual. The DW PCIe
+common DT-schema will contain the generic properties definitions with just
+a number of entries per property, while the DW PCIe RP/EP-specific schemas
+will have the particular number of items and the generic resource names
+listed.
+
+Note since there are DW PCI-based vendor-specific DT-bindings with the
+custom names assigned to the same IRQ resources we have no much choice but
+to add them to the generic DT-schemas in order to have the schemas being
+applicable for such devices. These names are marked as vendor-specific and
+should be avoided being used in new bindings in favor of the generic
+names.
+
+Link: https://lore.kernel.org/r/20221113191301.5526-10-Sergey.Semin@baikalelectronics.ru
+Signed-off-by: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/pci/snps,dw-pcie.yaml | 90 ++++++++++++++++++-
+ 1 file changed, 87 insertions(+), 3 deletions(-)
+
+--- a/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
+@@ -42,9 +42,92 @@ properties:
+       enum: [ dbi, dbi2, config, atu, atu_dma, app, appl, elbi, mgmt, ctrl,
+               parf, cfg, link, ulreg, smu, mpu, apb, phy, ecam ]
+ 
+-  interrupts: true
+-
+-  interrupt-names: true
++  interrupts:
++    description:
++      DWC PCIe Root Port/Complex specific IRQ signals. At least MSI interrupt
++      signal is supposed to be specified for the host controller.
++    minItems: 1
++    maxItems: 26
++
++  interrupt-names:
++    minItems: 1
++    maxItems: 26
++    items:
++      oneOf:
++        - description:
++            Controller request to read or write virtual product data
++            from/to the VPD capability registers.
++          const: vpd
++        - description:
++            Link Equalization Request flag is set in the Link Status 2
++            register (applicable if the corresponding IRQ is enabled in
++            the Link Control 3 register).
++          const: l_eq
++        - description:
++            Indicates that the eDMA Tx/Rx transfer is complete or that an
++            error has occurred on the corresponding channel. eDMA can have
++            eight Tx (Write) and Rx (Read) eDMA channels thus supporting up
++            to 16 IRQ signals all together. Write eDMA channels shall go
++            first in the ordered row as per default edma_int[*] bus setup.
++          pattern: '^dma([0-9]|1[0-5])?$'
++        - description:
++            PCIe protocol correctable error or a Data Path protection
++            correctable error is detected by the automotive/safety
++            feature.
++          const: sft_ce
++        - description:
++            Indicates that the internal safety mechanism has detected an
++            uncorrectable error.
++          const: sft_ue
++        - description:
++            Application-specific IRQ raised depending on the vendor-specific
++            events basis.
++          const: app
++        - description:
++            DSP AXI MSI Interrupt detected. It gets de-asserted when there is
++            no more MSI interrupt pending. The interrupt is relevant to the
++            iMSI-RX - Integrated MSI Receiver (AXI bridge).
++          const: msi
++        - description:
++            Legacy A/B/C/D interrupt signal. Basically it's triggered by
++            receiving a Assert_INT{A,B,C,D}/Desassert_INT{A,B,C,D} message
++            from the downstream device.
++          pattern: "^int(a|b|c|d)$"
++        - description:
++            Error condition detected and a flag is set in the Root Error Status
++            register of the AER capability. It's asserted when the RC
++            internally generated an error or an error message is received by
++            the RC.
++          const: aer
++        - description:
++            PME message is received by the port. That means having the PME
++            status bit set in the Root Status register (the event is
++            supposed to be unmasked in the Root Control register).
++          const: pme
++        - description:
++            Hot-plug event is detected. That is a bit has been set in the
++            Slot Status register and the corresponding event is enabled in
++            the Slot Control register.
++          const: hp
++        - description:
++            Link Autonomous Bandwidth Status flag has been set in the Link
++            Status register (the event is supposed to be unmasked in the
++            Link Control register).
++          const: bw_au
++        - description:
++            Bandwidth Management Status flag has been set in the Link
++            Status register (the event is supposed to be unmasked in the
++            Link Control register).
++          const: bw_mg
++        - description:
++            Vendor-specific IRQ names. Consider using the generic names above
++            for new bindings.
++          oneOf:
++            - description: See native "app" IRQ for details
++              enum: [ intr ]
++    allOf:
++      - contains:
++          const: msi
+ 
+   clocks: true
+ 
+@@ -70,6 +153,7 @@ examples:
+       bus-range = <0x0 0xff>;
+ 
+       interrupts = <25>, <24>;
++      interrupt-names = "msi", "hp";
+       #interrupt-cells = <1>;
+ 
+       reset-gpios = <&port0 0 1>;

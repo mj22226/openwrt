@@ -1,0 +1,41 @@
+From 4679a2891b7e97702281e7e2c65346750aa13bf6 Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Thu, 22 Dec 2022 15:33:49 +0100
+Subject: [PATCH 142/383] arm64: dts: rockchip: remove hclk from dsi node on
+ rk356x
+
+The hclk is not used in the dw-mipi-dsi binding,
+so remove hclk from the rk356x.dtsi dsi node.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Link: https://lore.kernel.org/r/4df211eb-4fcd-ee20-48a1-ce7712de552c@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk356x.dtsi | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk356x.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk356x.dtsi
+@@ -744,8 +744,8 @@
+ 		compatible = "rockchip,rk3568-mipi-dsi", "snps,dw-mipi-dsi";
+ 		reg = <0x00 0xfe060000 0x00 0x10000>;
+ 		interrupts = <GIC_SPI 68 IRQ_TYPE_LEVEL_HIGH>;
+-		clock-names = "pclk", "hclk";
+-		clocks = <&cru PCLK_DSITX_0>, <&cru HCLK_VO>;
++		clock-names = "pclk";
++		clocks = <&cru PCLK_DSITX_0>;
+ 		phy-names = "dphy";
+ 		phys = <&dsi_dphy0>;
+ 		power-domains = <&power RK3568_PD_VO>;
+@@ -772,8 +772,8 @@
+ 		compatible = "rockchip,rk3568-mipi-dsi", "snps,dw-mipi-dsi";
+ 		reg = <0x0 0xfe070000 0x0 0x10000>;
+ 		interrupts = <GIC_SPI 69 IRQ_TYPE_LEVEL_HIGH>;
+-		clock-names = "pclk", "hclk";
+-		clocks = <&cru PCLK_DSITX_1>, <&cru HCLK_VO>;
++		clock-names = "pclk";
++		clocks = <&cru PCLK_DSITX_1>;
+ 		phy-names = "dphy";
+ 		phys = <&dsi_dphy1>;
+ 		power-domains = <&power RK3568_PD_VO>;

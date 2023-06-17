@@ -1,0 +1,91 @@
+From 762b0235a905118ec7f1fe316334dcfa833b371f Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Thu, 1 Dec 2022 14:36:55 -0600
+Subject: [PATCH 095/383] arm64: dts: rockchip: Update leds for Odroid Go
+ Advance
+
+Update the blue LED to be controlled via pwm to enable control of LED
+brightness. Add red LED as a GPIO controlled LED. The documentation
+stated "label" was depreciated so function and color was used instead.
+The LED names (led-2 and led-3) are given because that is what they
+are numbered on the board itself; LED 1 is wired directly into an
+always on regulator and is not controllable. LED 2 is labelled "alive"
+on the board and documentation recommends we set the function as
+status over other miscellaneous functions. LED 3 is labelled "chg" on
+the board.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Link: https://lore.kernel.org/r/20221201203655.1245-5-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3326-odroid-go.dtsi   | 33 +++++++++++++++----
+ 1 file changed, 26 insertions(+), 7 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3326-odroid-go.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3326-odroid-go.dtsi
+@@ -8,6 +8,7 @@
+ /dts-v1/;
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/input.h>
++#include <dt-bindings/leds/common.h>
+ #include <dt-bindings/pinctrl/rockchip.h>
+ #include "rk3326.dtsi"
+ 
+@@ -113,15 +114,29 @@
+ 		};
+ 	};
+ 
+-	leds: gpio-leds {
++	/* led-1 is wired directly to output of always-on regulator */
++
++	gpio_led: gpio-leds {
+ 		compatible = "gpio-leds";
+ 		pinctrl-names = "default";
+-		pinctrl-0 = <&blue_led_pin>;
++		pinctrl-0 = <&red_led_pin>;
++
++		red_led: led-3 {
++			color = <LED_COLOR_ID_RED>;
++			gpios = <&gpio0 RK_PB5 GPIO_ACTIVE_HIGH>;
++			function = LED_FUNCTION_CHARGING;
++		};
++	};
+ 
+-		blue_led: led-0 {
+-			label = "blue:heartbeat";
+-			gpios = <&gpio0 RK_PC1 GPIO_ACTIVE_HIGH>;
++	pwm_led: led-controller {
++		compatible = "pwm-leds";
++
++		blue_led: led-2 {
++			color = <LED_COLOR_ID_BLUE>;
++			function = LED_FUNCTION_STATUS;
+ 			linux,default-trigger = "heartbeat";
++			max-brightness = <255>;
++			pwms = <&pwm3 0 25000 0>;
+ 		};
+ 	};
+ 
+@@ -465,6 +480,10 @@
+ 	status = "okay";
+ };
+ 
++&pwm3 {
++	status = "okay";
++};
++
+ &saradc {
+ 	vref-supply = <&vcc_1v8>;
+ 	status = "okay";
+@@ -569,8 +588,8 @@
+ 	};
+ 
+ 	leds {
+-		blue_led_pin: blue-led-pin {
+-			rockchip,pins = <0 RK_PC1 RK_FUNC_GPIO &pcfg_pull_none>;
++		red_led_pin: red-led-pin {
++			rockchip,pins = <0 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 	};
+ 

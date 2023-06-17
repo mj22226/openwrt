@@ -1,0 +1,33 @@
+From ab488b7528353b9ae68d3d8d15d9d25636db0c39 Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Thu, 6 Apr 2023 19:09:53 +0200
+Subject: [PATCH 267/383] dt-bindings: phy: rockchip: rk3588 has two reset
+ lines
+
+The RK3588 has two reset lines for the combphy. One for the
+APB interface and one for the actual PHY.
+
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../bindings/phy/phy-rockchip-naneng-combphy.yaml         | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+--- a/Documentation/devicetree/bindings/phy/phy-rockchip-naneng-combphy.yaml
++++ b/Documentation/devicetree/bindings/phy/phy-rockchip-naneng-combphy.yaml
+@@ -31,8 +31,14 @@ properties:
+       - const: pipe
+ 
+   resets:
++    minItems: 1
++    maxItems: 2
++
++  reset-names:
++    minItems: 1
+     items:
+-      - description: exclusive PHY reset line
++      - const: phy
++      - const: apb
+ 
+   rockchip,enable-ssc:
+     type: boolean

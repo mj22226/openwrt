@@ -1,0 +1,26 @@
+From ec0248b3d14b51734d055bdd0b5f10236595d830 Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Tue, 7 Feb 2023 18:02:45 +0100
+Subject: [PATCH 247/383] arm64: defconfig: update RK8XX MFD config
+
+Update the defconfig for the new RK8XX MFD config name,
+which got split to add SPI support.
+
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/configs/defconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -650,7 +650,8 @@ CONFIG_MFD_MAX77620=y
+ CONFIG_MFD_MT6360=y
+ CONFIG_MFD_MT6397=y
+ CONFIG_MFD_SPMI_PMIC=y
+-CONFIG_MFD_RK808=y
++CONFIG_MFD_RK8XX_I2C=y
++CONFIG_MFD_RK8XX_SPI=y
+ CONFIG_MFD_SEC_CORE=y
+ CONFIG_MFD_SL28CPLD=y
+ CONFIG_MFD_ROHM_BD718XX=y

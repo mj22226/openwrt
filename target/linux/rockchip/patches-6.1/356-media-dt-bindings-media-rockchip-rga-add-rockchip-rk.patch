@@ -1,0 +1,38 @@
+From 65ec9cb7675f429629ab444f68de1407d5e7874a Mon Sep 17 00:00:00 2001
+From: Michael Tretter <m.tretter@pengutronix.de>
+Date: Fri, 20 Jan 2023 10:14:21 +0100
+Subject: [PATCH 356/383] media: dt-bindings: media: rockchip-rga: add
+ rockchip,rk3568-rga
+
+Add a new compatible for the rk3568 Rockchip SoC, which also features an
+RGA, which is called RGA2 in the TRM Part2. It is the same core as used
+on the rk3288, which documents the same RGA2.
+
+Specify a new compatible for the rk3568 to be able to handle unknown
+SoC-specific differences in the driver.
+
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+Reviewed-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Link: https://lore.kernel.org/r/20230119-rk3568-rga-v1-1-43d4d14365e6@pengutronix.de
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/media/rockchip-rga.yaml | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/Documentation/devicetree/bindings/media/rockchip-rga.yaml
++++ b/Documentation/devicetree/bindings/media/rockchip-rga.yaml
+@@ -21,7 +21,9 @@ properties:
+       - const: rockchip,rk3288-rga
+       - const: rockchip,rk3399-rga
+       - items:
+-          - const: rockchip,rk3228-rga
++          - enum:
++              - rockchip,rk3228-rga
++              - rockchip,rk3568-rga
+           - const: rockchip,rk3288-rga
+ 
+   reg:

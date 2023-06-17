@@ -1,0 +1,75 @@
+From 13ef5bfa596a6afed92018ee8c42de17ea856dfd Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Thu, 1 Dec 2022 14:36:54 -0600
+Subject: [PATCH 094/383] arm64: dts: rockchip: update px30 thermal zones for
+ GPU
+
+Without the trips, the following errors are received in the dmesg
+log and the rockchip-thermal driver fails to load the gpu sensor:
+
+"thermal_sys: Failed to find 'trips' node"
+"rockchip-thermal ff280000.tsadc: failed to register sensor 1: -22"
+
+Trip values are assumed, unfortunately, as the same values as the
+CPU. The datasheet and TRM didn't appear to have any information
+regarding thermals for the GPU.
+
+Stress tested successfully on my Odroid Go Advance.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Link: https://lore.kernel.org/r/20221201203655.1245-4-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/px30.dtsi | 33 +++++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 6 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/px30.dtsi
++++ b/arch/arm64/boot/dts/rockchip/px30.dtsi
+@@ -210,12 +210,6 @@
+ 					cooling-device = <&cpu0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+ 					contribution = <4096>;
+ 				};
+-
+-				map1 {
+-					trip = <&target>;
+-					cooling-device = <&gpu THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+-					contribution = <4096>;
+-				};
+ 			};
+ 		};
+ 
+@@ -223,6 +217,33 @@
+ 			polling-delay-passive = <100>; /* milliseconds */
+ 			polling-delay = <1000>; /* milliseconds */
+ 			thermal-sensors = <&tsadc 1>;
++
++			trips {
++				gpu_threshold: gpu-threshold {
++					temperature = <70000>;
++					hysteresis = <2000>;
++					type = "passive";
++				};
++
++				gpu_target: gpu-target {
++					temperature = <85000>;
++					hysteresis = <2000>;
++					type = "passive";
++				};
++
++				gpu_crit: gpu-crit {
++					temperature = <115000>;
++					hysteresis = <2000>;
++					type = "critical";
++				};
++			};
++
++			cooling-maps {
++				map0 {
++					trip = <&gpu_target>;
++					cooling-device = <&gpu THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
++				};
++			};
+ 		};
+ 	};
+ 

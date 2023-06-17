@@ -1,0 +1,37 @@
+From 3e3c84448422ec7c86db84a539ad9cfcc62dd4c2 Mon Sep 17 00:00:00 2001
+From: Shreeya Patel <shreeya.patel@collabora.com>
+Date: Sat, 10 Jun 2023 20:06:01 +0530
+Subject: [PATCH] dt-bindings: iio: rockchip: Fix 'oneOf' condition failed
+ warning
+
+rk3588-saradc isn't compatible with the rk3399-saradc variant,
+hence, fix the following dtbs_check warning for 'oneOf' condition
+failure.
+
+DTC_CHK arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dtb
+/home/shreeya/linux/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dtb:
+	saradc@fec10000: compatible: 'oneOf' conditional failed,
+	one must be fixed:
+	['rockchip,rk3588-saradc'] is too short
+	'rockchip,saradc' was expected
+	'rockchip,rk3066-tsadc' was expected
+	'rockchip,rk3399-saradc' was expected
+
+Fixes: 2daf2ae9793d ("dt-bindings: iio: adc: Add rockchip,rk3588-saradc string")
+Signed-off-by: Shreeya Patel <shreeya.patel@collabora.com>
+Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
+---
+ Documentation/devicetree/bindings/iio/adc/rockchip-saradc.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/Documentation/devicetree/bindings/iio/adc/rockchip-saradc.yaml
++++ b/Documentation/devicetree/bindings/iio/adc/rockchip-saradc.yaml
+@@ -15,6 +15,7 @@ properties:
+       - const: rockchip,saradc
+       - const: rockchip,rk3066-tsadc
+       - const: rockchip,rk3399-saradc
++      - const: rockchip,rk3588-saradc
+       - items:
+           - enum:
+               - rockchip,px30-saradc

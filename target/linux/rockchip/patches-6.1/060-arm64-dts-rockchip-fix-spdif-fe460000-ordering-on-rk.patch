@@ -1,0 +1,60 @@
+From 3e81ca36ea3d245709b3c7d0b0f905f9980ae7f0 Mon Sep 17 00:00:00 2001
+From: Heiko Stuebner <heiko@sntech.de>
+Date: Sun, 30 Oct 2022 20:34:42 +0100
+Subject: [PATCH 060/383] arm64: dts: rockchip: fix spdif@fe460000 ordering on
+ rk356x
+
+Move the node to its correct position, based on its
+mmio-address.
+
+Link: https://lore.kernel.org/all/20221030193708.1671069-1-heiko@sntech.de
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk356x.dtsi | 28 ++++++++++++------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk356x.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk356x.dtsi
+@@ -1050,20 +1050,6 @@
+ 		status = "disabled";
+ 	};
+ 
+-	spdif: spdif@fe460000 {
+-		compatible = "rockchip,rk3568-spdif";
+-		reg = <0x0 0xfe460000 0x0 0x1000>;
+-		interrupts = <GIC_SPI 102 IRQ_TYPE_LEVEL_HIGH>;
+-		clock-names = "mclk", "hclk";
+-		clocks = <&cru MCLK_SPDIF_8CH>, <&cru HCLK_SPDIF_8CH>;
+-		dmas = <&dmac1 1>;
+-		dma-names = "tx";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&spdifm0_tx>;
+-		#sound-dai-cells = <0>;
+-		status = "disabled";
+-	};
+-
+ 	i2s0_8ch: i2s@fe400000 {
+ 		compatible = "rockchip,rk3568-i2s-tdm";
+ 		reg = <0x0 0xfe400000 0x0 0x1000>;
+@@ -1142,6 +1128,20 @@
+ 		#sound-dai-cells = <0>;
+ 		status = "disabled";
+ 	};
++
++	spdif: spdif@fe460000 {
++		compatible = "rockchip,rk3568-spdif";
++		reg = <0x0 0xfe460000 0x0 0x1000>;
++		interrupts = <GIC_SPI 102 IRQ_TYPE_LEVEL_HIGH>;
++		clock-names = "mclk", "hclk";
++		clocks = <&cru MCLK_SPDIF_8CH>, <&cru HCLK_SPDIF_8CH>;
++		dmas = <&dmac1 1>;
++		dma-names = "tx";
++		pinctrl-names = "default";
++		pinctrl-0 = <&spdifm0_tx>;
++		#sound-dai-cells = <0>;
++		status = "disabled";
++	};
+ 
+ 	dmac0: dma-controller@fe530000 {
+ 		compatible = "arm,pl330", "arm,primecell";

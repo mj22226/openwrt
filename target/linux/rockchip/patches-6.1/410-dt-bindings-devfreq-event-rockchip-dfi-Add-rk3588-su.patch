@@ -1,0 +1,46 @@
+From e56c1a25f8be8fef58e190674bcd099a0e466652 Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:50 +0200
+Subject: [PATCH 410/414] dt-bindings: devfreq: event: rockchip,dfi: Add rk3588
+ support
+
+This adds rockchip,rk3588-dfi to the list of compatibles. Unlike ealier
+SoCs the rk3588 has four interrupts (one for each channel) instead of
+only one, so increase the number of allowed interrupts to four and also
+add interrupt-names.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ .../bindings/devfreq/event/rockchip,dfi.yaml       | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+--- a/Documentation/devicetree/bindings/devfreq/event/rockchip,dfi.yaml
++++ b/Documentation/devicetree/bindings/devfreq/event/rockchip,dfi.yaml
+@@ -14,6 +14,7 @@ properties:
+     enum:
+       - rockchip,rk3399-dfi
+       - rockchip,rk3568-dfi
++      - rockchip,rk3588-dfi
+ 
+   clocks:
+     maxItems: 1
+@@ -23,7 +24,18 @@ properties:
+       - const: pclk_ddr_mon
+ 
+   interrupts:
+-    maxItems: 1
++    minItems: 1
++    maxItems: 4
++
++  interrupt-names:
++    oneOf:
++      - items:
++          - const: ch0
++      - items:
++          - const: ch0
++          - const: ch1
++          - const: ch2
++          - const: ch3
+ 
+   reg:
+     maxItems: 1

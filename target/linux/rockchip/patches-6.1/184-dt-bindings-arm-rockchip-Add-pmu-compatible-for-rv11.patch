@@ -1,0 +1,35 @@
+From 4cbcb4ea61bc30275a4cf2154feaccf2d695f1e0 Mon Sep 17 00:00:00 2001
+From: Jagan Teki <jagan@edgeble.ai>
+Date: Tue, 29 Nov 2022 13:24:17 +0530
+Subject: [PATCH 184/383] dt-bindings: arm: rockchip: Add pmu compatible for
+ rv1126
+
+Add PMU compatible string for rockchip rv1126.
+
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Jagan Teki <jagan@edgeble.ai>
+Link: https://lore.kernel.org/r/20221129075424.189655-2-jagan@edgeble.ai
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip/pmu.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip/pmu.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip/pmu.yaml
+@@ -27,6 +27,7 @@ select:
+           - rockchip,rk3399-pmu
+           - rockchip,rk3568-pmu
+           - rockchip,rk3588-pmu
++          - rockchip,rv1126-pmu
+ 
+   required:
+     - compatible
+@@ -43,6 +44,7 @@ properties:
+           - rockchip,rk3399-pmu
+           - rockchip,rk3568-pmu
+           - rockchip,rk3588-pmu
++          - rockchip,rv1126-pmu
+       - const: syscon
+       - const: simple-mfd
+ 

@@ -1,0 +1,31 @@
+From c6404d82990ac92dfe4a2d3e458e97bdb9c910be Mon Sep 17 00:00:00 2001
+From: Wenhao Cui <lasstp5011@gmail.com>
+Date: Fri, 23 Dec 2022 11:17:18 +0800
+Subject: [PATCH 012/383] dt-bindings: arm: rockchip: Add EmbedFire LubanCat 1
+
+Add devicetree binding documentation for the EmbedFire LubanCat 1.
+
+Signed-off-by: Wenhao Cui <lasstp5011@gmail.com>
+Signed-off-by: Yuteng Zhong <zonyitoo@gmail.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/Y6UdvrhLjS0/8Oic@VM-66-53-centos
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -101,6 +101,11 @@ properties:
+           - const: elgin,rv1108-r1
+           - const: rockchip,rv1108
+ 
++      - description: EmbedFire LubanCat 1
++        items:
++          - const: embedfire,lubancat-1
++          - const: rockchip,rk3566
++
+       - description: Engicam PX30.Core C.TOUCH 2.0
+         items:
+           - const: engicam,px30-core-ctouch2

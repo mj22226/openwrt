@@ -1,0 +1,118 @@
+From f50565b7b1d4866727087629bf701b6783303709 Mon Sep 17 00:00:00 2001
+From: Rob Herring <robh@kernel.org>
+Date: Sun, 8 Jan 2023 18:46:56 -0600
+Subject: [PATCH 202/383] regulator: dt-bindings: Convert Fairchild FAN53555 to
+ DT schema
+
+Convert the Fairchild FAN53555 and compatible variants binding to DT
+schema format.
+
+Add the undocumented 'vsel-gpios' property used to control the VSEL pin.
+
+The example was missing 'reg', so add it.
+
+Signed-off-by: Rob Herring <robh@kernel.org>
+Link: https://lore.kernel.org/r/20230109004656.451231-1-robh@kernel.org
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../bindings/regulator/fan53555.txt           | 24 -------
+ .../bindings/regulator/fcs,fan53555.yaml      | 64 +++++++++++++++++++
+ 2 files changed, 64 insertions(+), 24 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/regulator/fan53555.txt
+ create mode 100644 Documentation/devicetree/bindings/regulator/fcs,fan53555.yaml
+
+--- a/Documentation/devicetree/bindings/regulator/fan53555.txt
++++ /dev/null
+@@ -1,24 +0,0 @@
+-Binding for Fairchild FAN53555 regulators
+-
+-Required properties:
+-  - compatible: one of "fcs,fan53555", "fcs,fan53526", "silergy,syr827",
+-		"silergy,syr828" or "tcs,tcs4525".
+-  - reg: I2C address
+-
+-Optional properties:
+-  - fcs,suspend-voltage-selector: declare which of the two available
+-		voltage selector registers should be used for the suspend
+-		voltage. The other one is used for the runtime voltage setting
+-		Possible values are either <0> or <1>
+-  - vin-supply: regulator supplying the vin pin
+-
+-Example:
+-
+-	regulator@40 {
+-		compatible = "fcs,fan53555";
+-		regulator-name = "fan53555";
+-		regulator-min-microvolt = <1000000>;
+-		regulator-max-microvolt = <1800000>;
+-		vin-supply = <&parent_reg>;
+-		fcs,suspend-voltage-selector = <1>;
+-	};
+--- /dev/null
++++ b/Documentation/devicetree/bindings/regulator/fcs,fan53555.yaml
+@@ -0,0 +1,64 @@
++# SPDX-License-Identifier: GPL-2.0
++%YAML 1.2
++---
++$id: http://devicetree.org/schemas/regulator/fcs,fan53555.yaml#
++$schema: http://devicetree.org/meta-schemas/core.yaml#
++
++title: Fairchild FAN53555 regulators
++
++maintainers:
++  - Heiko Stuebner <heiko@sntech.de>
++
++allOf:
++  - $ref: regulator.yaml#
++
++properties:
++  compatible:
++    enum:
++      - fcs,fan53555
++      - fcs,fan53526
++      - silergy,syr827
++      - silergy,syr828
++      - tcs,tcs4525
++
++  reg:
++    maxItems: 1
++
++  fcs,suspend-voltage-selector:
++    description: Declares which of the two available voltage selector
++      registers should be used for the suspend voltage. The other one is used
++      for the runtime voltage setting.
++    $ref: /schemas/types.yaml#/definitions/uint32
++    enum: [ 0, 1 ]
++
++  vin-supply:
++    description: Supply for the vin pin
++
++  vsel-gpios:
++    description: Voltage Select. When this pin is LOW, VOUT is set by the
++      VSEL0 register. When this pin is HIGH, VOUT is set by the VSEL1 register.
++    maxItems: 1
++
++required:
++  - compatible
++  - reg
++
++unevaluatedProperties: false
++
++examples:
++  - |
++    i2c {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        regulator@40 {
++            compatible = "fcs,fan53555";
++            reg = <0x40>;
++            regulator-name = "fan53555";
++            regulator-min-microvolt = <1000000>;
++            regulator-max-microvolt = <1800000>;
++            vin-supply = <&parent_reg>;
++            fcs,suspend-voltage-selector = <1>;
++        };
++    };
++...

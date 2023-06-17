@@ -1,0 +1,29 @@
+From c6cfe64cd7fce2249841f4ed9a9a10663ac2869b Mon Sep 17 00:00:00 2001
+From: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Date: Sat, 12 Nov 2022 17:03:58 +0100
+Subject: [PATCH 069/383] arm64: dts: rockchip: Enable GPU on SOQuartz CM4
+
+This enables the Mali-G52 GPU on the SOQuartz CM4 module.
+
+Signed-off-by: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Link: https://lore.kernel.org/r/20221112160404.70868-2-frattaroli.nicolas@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
+@@ -143,6 +143,11 @@
+ 	status = "disabled";
+ };
+ 
++&gpu {
++	mali-supply = <&vdd_gpu>;
++	status = "okay";
++};
++
+ &i2c0 {
+ 	status = "okay";
+ 

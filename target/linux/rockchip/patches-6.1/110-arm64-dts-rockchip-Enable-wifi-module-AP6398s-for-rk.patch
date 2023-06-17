@@ -1,0 +1,67 @@
+From 487d614d0cd7cc61f7ad28f2527c5dc88539f792 Mon Sep 17 00:00:00 2001
+From: Andy Yan <andyshrk@163.com>
+Date: Thu, 29 Dec 2022 19:51:11 +0800
+Subject: [PATCH 110/383] arm64: dts: rockchip: Enable wifi module AP6398s for
+ rk3566 box demo
+
+There is a AP6398s wifi/bt module on this board.
+Fix the sdmmc1 dt node to make wifi work.
+
+Signed-off-by: Andy Yan <andyshrk@163.com>
+Link: https://lore.kernel.org/r/20221229115111.3899793-1-andyshrk@163.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3566-box-demo.dts     | 24 +++++++++++++++++--
+ 1 file changed, 22 insertions(+), 2 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-box-demo.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-box-demo.dts
+@@ -324,8 +324,12 @@
+ 			rockchip,pins = <2 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 
++		wifi_host_wake_h: wifi-host-wake-l {
++			rockchip,pins = <2 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++
+ 		wifi_32k: wifi-32k {
+-			rockchip,pins = <0 RK_PB0 2 &pcfg_pull_none>;
++			rockchip,pins = <2 RK_PC6 1 &pcfg_pull_none>;
+ 		};
+ 	};
+ 
+@@ -391,9 +395,15 @@
+ };
+ 
+ &sdmmc1 {
++	/* WiFi & BT combo module AMPAK AP6398S */
++	#address-cells = <1>;
++	#size-cells = <0>;
+ 	bus-width = <4>;
++	clock-frequency = <150000000>;
++	cap-sdio-irq;
+ 	cap-sd-highspeed;
+-	disable-wp;
++	sd-uhs-sdr104;
++	keep-power-in-suspend;
+ 	mmc-pwrseq = <&sdio_pwrseq>;
+ 	non-removable;
+ 	pinctrl-names = "default";
+@@ -401,6 +411,16 @@
+ 	vmmc-supply = <&vcc_3v3>;
+ 	vqmmc-supply = <&vcca_1v8>;
+ 	status = "okay";
++
++	brcmf: wifi@1 {
++		compatible = "brcm,bcm4329-fmac";
++		reg = <1>;
++		interrupt-parent = <&gpio2>;
++		interrupts = <RK_PB2 GPIO_ACTIVE_HIGH>;
++		interrupt-names = "host-wake";
++		pinctrl-names = "default";
++		pinctrl-0 = <&wifi_host_wake_h>;
++	};
+ };
+ 
+ &spdif {

@@ -1,0 +1,51 @@
+From 44cda43753bf2797bddedcf1ba04c522e2cbea3d Mon Sep 17 00:00:00 2001
+From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Date: Thu, 6 Apr 2023 22:41:51 +0300
+Subject: [PATCH 203/383] regulator: dt-bindings: fcs,fan53555: Add support for
+ RK860X
+
+Add compatibles to support Rockchip RK860X regulators.
+
+RK8600/RK8601 are pretty similar to the FAN53555 regulators, while
+RK8602/RK8603 are a bit different, having a wider voltage selection
+range.
+
+Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20230406194158.963352-2-cristian.ciocaltea@collabora.com
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../bindings/regulator/fcs,fan53555.yaml      | 21 +++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
+
+--- a/Documentation/devicetree/bindings/regulator/fcs,fan53555.yaml
++++ b/Documentation/devicetree/bindings/regulator/fcs,fan53555.yaml
+@@ -14,12 +14,21 @@ allOf:
+ 
+ properties:
+   compatible:
+-    enum:
+-      - fcs,fan53555
+-      - fcs,fan53526
+-      - silergy,syr827
+-      - silergy,syr828
+-      - tcs,tcs4525
++    oneOf:
++      - enum:
++          - fcs,fan53555
++          - fcs,fan53526
++          - rockchip,rk8600
++          - rockchip,rk8602
++          - silergy,syr827
++          - silergy,syr828
++          - tcs,tcs4525
++      - items:
++          - const: rockchip,rk8601
++          - const: rockchip,rk8600
++      - items:
++          - const: rockchip,rk8603
++          - const: rockchip,rk8602
+ 
+   reg:
+     maxItems: 1

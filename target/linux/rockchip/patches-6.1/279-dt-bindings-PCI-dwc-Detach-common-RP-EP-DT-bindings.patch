@@ -1,0 +1,82 @@
+From faee1117423b08c5dd21b4c53240363633b3a6ea Mon Sep 17 00:00:00 2001
+From: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Date: Sun, 13 Nov 2022 22:12:44 +0300
+Subject: [PATCH 279/383] dt-bindings: PCI: dwc: Detach common RP/EP DT
+ bindings
+
+Currently both DW PCIe Root Port and End-point DT bindings are defined as
+separate schemas. Carefully looking at them, at the hardware reference
+manuals and seeing there is a generic part of the driver used by the both
+RP and EP drivers we can greatly simplify the DW PCIe controller bindings
+by moving some of the properties into the common DT schema. It concerns
+the PERST GPIO control, number of lanes, number of iATU windows and CDM
+check properties. They will be defined in the snps,dw-pcie-common.yaml
+schema which will be referenced in the DW PCIe Root Port and End-point DT
+bindings in order to evaluate the common for both of these controllers
+properties. The rest of properties like reg{,-names}, clock{s,-names},
+reset{s,-names}, etc will be consolidate there in one of the next commits.
+
+Link: https://lore.kernel.org/r/20221113191301.5526-4-Sergey.Semin@baikalelectronics.ru
+Signed-off-by: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/pci/snps,dw-pcie.yaml | 33 +------------------
+ 1 file changed, 1 insertion(+), 32 deletions(-)
+
+--- a/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
+@@ -15,6 +15,7 @@ description: |
+ 
+ allOf:
+   - $ref: /schemas/pci/pci-bus.yaml#
++  - $ref: /schemas/pci/snps,dw-pcie-common.yaml#
+ 
+ properties:
+   compatible:
+@@ -37,44 +38,12 @@ properties:
+       enum: [ dbi, dbi2, config, atu, atu_dma, app, appl, elbi, mgmt, ctrl,
+               parf, cfg, link, ulreg, smu, mpu, apb, phy, ecam ]
+ 
+-  num-lanes:
+-    description: |
+-      number of lanes to use (this property should be specified unless
+-      the link is brought already up in firmware)
+-    maximum: 16
+-
+-  reset-gpio:
+-    description: GPIO pin number of PERST# signal
+-    maxItems: 1
+-    deprecated: true
+-
+-  reset-gpios:
+-    description: GPIO controlled connection to PERST# signal
+-    maxItems: 1
+-
+   interrupts: true
+ 
+   interrupt-names: true
+ 
+   clocks: true
+ 
+-  snps,enable-cdm-check:
+-    type: boolean
+-    description: |
+-      This is a boolean property and if present enables
+-      automatic checking of CDM (Configuration Dependent Module) registers
+-      for data corruption. CDM registers include standard PCIe configuration
+-      space registers, Port Logic registers, DMA and iATU (internal Address
+-      Translation Unit) registers.
+-
+-  num-viewport:
+-    $ref: /schemas/types.yaml#/definitions/uint32
+-    maximum: 256
+-    description: |
+-      number of view ports configured in hardware. If a platform
+-      does not specify it, the driver autodetects it.
+-    deprecated: true
+-
+ additionalProperties: true
+ 
+ required:

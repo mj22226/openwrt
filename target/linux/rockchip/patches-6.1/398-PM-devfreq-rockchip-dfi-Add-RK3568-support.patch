@@ -1,0 +1,71 @@
+From 871f38fefb7142038faa50292215d8e19e8366ca Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:38 +0200
+Subject: [PATCH 398/414] PM / devfreq: rockchip-dfi: Add RK3568 support
+
+This adds RK3568 support to the DFI driver.  Only iniitialization
+differs from the currently supported RK3399.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ drivers/devfreq/event/rockchip-dfi.c | 21 +++++++++++++++++++++
+ include/soc/rockchip/rk3568_grf.h    | 12 ++++++++++++
+ 2 files changed, 33 insertions(+)
+ create mode 100644 include/soc/rockchip/rk3568_grf.h
+
+--- a/drivers/devfreq/event/rockchip-dfi.c
++++ b/drivers/devfreq/event/rockchip-dfi.c
+@@ -23,6 +23,7 @@
+ 
+ #include <soc/rockchip/rockchip_grf.h>
+ #include <soc/rockchip/rk3399_grf.h>
++#include <soc/rockchip/rk3568_grf.h>
+ 
+ #define DMC_MAX_CHANNELS	2
+ 
+@@ -209,10 +210,30 @@ static int rk3399_dfi_init(struct rockch
+ 	return 0;
+ };
+ 
++static int rk3568_dfi_init(struct rockchip_dfi *dfi)
++{
++	struct regmap *regmap_pmu = dfi->regmap_pmu;
++	u32 reg2, reg3;
++
++	regmap_read(regmap_pmu, RK3568_PMUGRF_OS_REG2, &reg2);
++	regmap_read(regmap_pmu, RK3568_PMUGRF_OS_REG3, &reg3);
++
++	dfi->ddr_type = FIELD_GET(RK3568_PMUGRF_OS_REG2_DRAMTYPE_INFO, reg2);
++
++	if (FIELD_GET(RK3568_PMUGRF_OS_REG3_SYSREG_VERSION, reg3) >= 0x3)
++		dfi->ddr_type |= FIELD_GET(RK3568_PMUGRF_OS_REG3_DRAMTYPE_INFO_V3, reg3) << 3;
++
++	dfi->channel_mask = 1;
++
++	return 0;
++};
++
+ static const struct of_device_id rockchip_dfi_id_match[] = {
+ 	{ .compatible = "rockchip,rk3399-dfi", .data = rk3399_dfi_init },
++	{ .compatible = "rockchip,rk3568-dfi", .data = rk3568_dfi_init },
+ 	{ },
+ };
++
+ MODULE_DEVICE_TABLE(of, rockchip_dfi_id_match);
+ 
+ static int rockchip_dfi_probe(struct platform_device *pdev)
+--- /dev/null
++++ b/include/soc/rockchip/rk3568_grf.h
+@@ -0,0 +1,12 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++#ifndef __SOC_RK3568_GRF_H
++#define __SOC_RK3568_GRF_H
++
++#define RK3568_PMUGRF_OS_REG2		0x208
++#define RK3568_PMUGRF_OS_REG2_DRAMTYPE_INFO		GENMASK(15, 13)
++
++#define RK3568_PMUGRF_OS_REG3		0x20c
++#define RK3568_PMUGRF_OS_REG3_DRAMTYPE_INFO_V3		GENMASK(13, 12)
++#define RK3568_PMUGRF_OS_REG3_SYSREG_VERSION		GENMASK(31, 28)
++
++#endif /* __SOC_RK3568_GRF_H */

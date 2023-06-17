@@ -1,0 +1,36 @@
+From a5e0c66000dc56eecba2ffd45b8229bb687ed481 Mon Sep 17 00:00:00 2001
+From: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Date: Sun, 13 Nov 2022 22:12:54 +0300
+Subject: [PATCH 197/383] dt-bindings: PCI: dwc: Apply common schema to
+ Rockchip DW PCIe nodes
+
+As the DT-bindings description states the Rockchip PCIe controller is
+based on the DW PCIe RP IP-core thus its DT-nodes are supposed to be
+compatible with the common DW PCIe controller schema. Let's make sure they
+are evaluated against it by referring to the snps,dw-pcie.yaml schema in
+the allOf sub-schemas composition.
+
+Link: https://lore.kernel.org/r/20221113191301.5526-14-Sergey.Semin@baikalelectronics.ru
+Signed-off-by: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/pci/rockchip-dw-pcie.yaml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/Documentation/devicetree/bindings/pci/rockchip-dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/rockchip-dw-pcie.yaml
+@@ -14,10 +14,10 @@ maintainers:
+ description: |+
+   RK3568 SoC PCIe host controller is based on the Synopsys DesignWare
+   PCIe IP and thus inherits all the common properties defined in
+-  designware-pcie.txt.
++  snps,dw-pcie.yaml.
+ 
+ allOf:
+-  - $ref: /schemas/pci/pci-bus.yaml#
++  - $ref: /schemas/pci/snps,dw-pcie.yaml#
+ 
+ properties:
+   compatible:

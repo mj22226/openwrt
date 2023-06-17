@@ -1,0 +1,35 @@
+From d91efae46ee404f042ecc0946028f578370a29fe Mon Sep 17 00:00:00 2001
+From: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Date: Wed, 16 Nov 2022 12:53:36 +0100
+Subject: [PATCH 008/383] dt-bindings: arm: rockchip: Add SOQuartz Model A
+
+The SOQuartz Model A base board is a carrier board for the CM4
+form factor, designed around the PINE64 SOQuartz CM4 SoM.
+
+The board sports "Model A" dimensions like the Quartz64 Model A,
+but is not to be confused with that.
+
+As for I/O, it features USB 2 ports, Gigabit Ethernet, a PCIe 2
+x1 slot, HDMI, a 40-pin GPIO header, CSI/DSI connectors, an eDP
+flat-flex cable connector, a 12V DC barrel jack for power input
+and power/reset buttons as well as a microSD card slot.
+
+Signed-off-by: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20221116115337.541601-4-frattaroli.nicolas@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -595,6 +595,7 @@ properties:
+           - enum:
+               - pine64,soquartz-blade
+               - pine64,soquartz-cm4io
++              - pine64,soquartz-model-a
+           - const: pine64,soquartz
+           - const: rockchip,rk3566
+ 

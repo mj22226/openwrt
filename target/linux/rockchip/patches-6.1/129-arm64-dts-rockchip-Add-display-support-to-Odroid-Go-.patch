@@ -1,0 +1,31 @@
+From 88f7d5f4fe56051fd293370ccec2a474d1e51a0b Mon Sep 17 00:00:00 2001
+From: Maya Matuszczyk <maccraft123mc@gmail.com>
+Date: Mon, 13 Feb 2023 16:38:16 +0100
+Subject: [PATCH 129/383] arm64: dts: rockchip: Add display support to Odroid
+ Go Super
+
+Note that orientation property in ST7701 driver is currently missing,
+And that ST7701 panel driver uses different regulator names compared to
+driver for Elida KD35T133 driver.
+
+Signed-off-by: Maya Matuszczyk <maccraft123mc@gmail.com>
+Link: https://lore.kernel.org/r/20230213153816.213526-5-maccraft123mc@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3326-odroid-go3.dts | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3326-odroid-go3.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3326-odroid-go3.dts
+@@ -142,7 +142,9 @@
+ };
+ 
+ &internal_display {
+-	status = "disabled";
++	compatible = "elida,kd50t048a", "sitronix,st7701";
++	reset-gpios = <&gpio3 RK_PC0 GPIO_ACTIVE_HIGH>;
++	VCC-supply = <&vcc_lcd>;
+ };
+ 
+ &rk817_charger {

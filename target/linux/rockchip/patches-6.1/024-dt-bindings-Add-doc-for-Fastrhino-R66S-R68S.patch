@@ -1,0 +1,33 @@
+From 2366f205784eef0093200b38f6f225681aa17bd9 Mon Sep 17 00:00:00 2001
+From: Tianling Shen <cnsztl@gmail.com>
+Date: Sat, 6 May 2023 14:11:06 +0800
+Subject: [PATCH 024/383] dt-bindings: Add doc for Fastrhino R66S / R68S
+
+Add devicetree binding documentation for the
+Lunzn Fastrhino R66S and R68S boards.
+
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Tianling Shen <cnsztl@gmail.com>
+Link: https://lore.kernel.org/r/20230506061108.17658-1-cnsztl@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -562,6 +562,13 @@ properties:
+           - const: leez,p710
+           - const: rockchip,rk3399
+ 
++      - description: Lunzn FastRhino R66S / R68S
++        items:
++          - enum:
++              - lunzn,fastrhino-r66s
++              - lunzn,fastrhino-r68s
++          - const: rockchip,rk3568
++
+       - description: mqmaker MiQi
+         items:
+           - const: mqmaker,miqi

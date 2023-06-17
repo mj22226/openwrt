@@ -1,0 +1,36 @@
+From 47b85bf0debfdbfaaf70e9c0d9cb7dee49324415 Mon Sep 17 00:00:00 2001
+From: Jagan Teki <jagan@amarulasolutions.com>
+Date: Mon, 23 Jan 2023 12:46:50 +0530
+Subject: [PATCH 018/383] arm64: dts: rockchip: Fix compatible for Radxa CM3
+
+The compatible string "radxa,radxa-cm3" referring the product name
+as "Radxa Radxa CM3" but the actual product name is "Radxa CM3".
+
+Fix the compatible strings.
+
+Fixes: 24a28d3eb07d ("dt-bindings: arm: rockchip: Add Radxa Compute Module 3")
+Fixes: 7469ab529bca ("arm64: dts: rockchip: Add rk3566 based Radxa Compute Module 3")
+Fixes: 096ebfb74b19 ("arm64: dts: rockchip: Add Radxa Compute Module 3 IO board")
+Suggested-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Jagan Teki <jagan@amarulasolutions.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20230123071654.73139-1-jagan@amarulasolutions.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -624,8 +624,8 @@ properties:
+       - description: Radxa Compute Module 3(CM3)
+         items:
+           - enum:
+-              - radxa,radxa-cm3-io
+-          - const: radxa,radxa-cm3
++              - radxa,cm3-io
++          - const: radxa,cm3
+           - const: rockchip,rk3566
+ 
+       - description: Radxa CM3 Industrial

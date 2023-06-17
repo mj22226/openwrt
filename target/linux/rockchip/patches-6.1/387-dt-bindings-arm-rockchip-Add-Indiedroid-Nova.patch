@@ -1,0 +1,27 @@
+From 9f29a9ac74d2c69a8b2a62abdc392f14a0e3488b Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Wed, 31 May 2023 11:12:19 -0500
+Subject: [PATCH 387/414] dt-bindings: arm: rockchip: Add Indiedroid Nova
+
+Add Indiedroid Nova, an rk3588s based single board computer.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Acked-by: Conor Dooley <conor.dooley@microchip.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -554,6 +554,11 @@ properties:
+               - khadas,edge-v
+           - const: rockchip,rk3399
+ 
++      - description: Indiedroid Nova SBC
++        items:
++          - const: indiedroid,nova
++          - const: rockchip,rk3588s
++
+       - description: Khadas Edge2 series boards
+         items:
+           - const: khadas,edge2

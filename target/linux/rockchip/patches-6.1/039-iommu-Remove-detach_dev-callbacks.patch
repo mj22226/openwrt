@@ -1,0 +1,37 @@
+From f535338ded5083fb5b57921cd116222452b4c727 Mon Sep 17 00:00:00 2001
+From: Lu Baolu <baolu.lu@linux.intel.com>
+Date: Tue, 10 Jan 2023 10:54:04 +0800
+Subject: [PATCH 039/383] iommu: Remove detach_dev callbacks
+
+The iommu core calls the driver's detach_dev domain op callback only when
+a device is finished assigning to user space and
+iommu_group_release_dma_owner() is called to return the device to the
+kernel, where iommu core wants to set the default domain to the device but
+the driver didn't provide one.
+
+In other words, if any iommu driver provides default domain support, the
+.detach_dev callback will never be called. This removes the detach_dev
+callbacks in those IOMMU drivers that support default domain.
+
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Reviewed-by: Sven Peter <sven@svenpeter.dev> # apple-dart
+Acked-by: Chunyan Zhang <zhang.lyra@gmail.com> # sprd
+Reviewed-by: Vasant Hegde <vasant.hegde@amd.com> # amd
+Signed-off-by: Lu Baolu <baolu.lu@linux.intel.com>
+Link: https://lore.kernel.org/r/20230110025408.667767-2-baolu.lu@linux.intel.com
+Signed-off-by: Joerg Roedel <jroedel@suse.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/iommu/rockchip-iommu.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/drivers/iommu/rockchip-iommu.c
++++ b/drivers/iommu/rockchip-iommu.c
+@@ -1192,7 +1192,6 @@ static const struct iommu_ops rk_iommu_o
+ 	.of_xlate = rk_iommu_of_xlate,
+ 	.default_domain_ops = &(const struct iommu_domain_ops) {
+ 		.attach_dev	= rk_iommu_attach_device,
+-		.detach_dev	= rk_iommu_detach_device,
+ 		.map		= rk_iommu_map,
+ 		.unmap		= rk_iommu_unmap,
+ 		.iova_to_phys	= rk_iommu_iova_to_phys,

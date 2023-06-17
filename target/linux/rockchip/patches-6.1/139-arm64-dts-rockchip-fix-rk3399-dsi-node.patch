@@ -1,0 +1,62 @@
+From d31d4d1aa41eadca15589d78168c41abce5a2413 Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Thu, 22 Dec 2022 15:32:22 +0100
+Subject: [PATCH 139/383] arm64: dts: rockchip: fix rk3399 dsi node
+
+Use generic node name for rk3399.dtsi dsi node.
+With the conversion of rockchip,dw-mipi-dsi.yaml a port@1 node
+is required, so add a node with label mipi_out.
+Also restyle.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Link: https://lore.kernel.org/r/1e019e9e-a8da-3d57-2770-f6b81bbbf591@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -1954,7 +1954,7 @@
+ 		};
+ 	};
+ 
+-	mipi_dsi: mipi@ff960000 {
++	mipi_dsi: dsi@ff960000 {
+ 		compatible = "rockchip,rk3399-mipi-dsi", "snps,dw-mipi-dsi";
+ 		reg = <0x0 0xff960000 0x0 0x8000>;
+ 		interrupts = <GIC_SPI 45 IRQ_TYPE_LEVEL_HIGH 0>;
+@@ -1982,15 +1982,20 @@
+ 					reg = <0>;
+ 					remote-endpoint = <&vopb_out_mipi>;
+ 				};
++
+ 				mipi_in_vopl: endpoint@1 {
+ 					reg = <1>;
+ 					remote-endpoint = <&vopl_out_mipi>;
+ 				};
+ 			};
++
++			mipi_out: port@1 {
++				reg = <1>;
++			};
+ 		};
+ 	};
+ 
+-	mipi_dsi1: mipi@ff968000 {
++	mipi_dsi1: dsi@ff968000 {
+ 		compatible = "rockchip,rk3399-mipi-dsi", "snps,dw-mipi-dsi";
+ 		reg = <0x0 0xff968000 0x0 0x8000>;
+ 		interrupts = <GIC_SPI 46 IRQ_TYPE_LEVEL_HIGH 0>;
+@@ -2025,6 +2030,10 @@
+ 					remote-endpoint = <&vopl_out_mipi1>;
+ 				};
+ 			};
++
++			mipi1_out: port@1 {
++				reg = <1>;
++			};
+ 		};
+ 	};
+ 

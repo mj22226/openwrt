@@ -1,0 +1,56 @@
+From 1067b1854ad723a3cd57f76924fb3c7ddea6f22e Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:45 +0200
+Subject: [PATCH 405/414] PM / devfreq: rockchip-dfi: make register stride SoC
+ specific
+
+The currently supported RK3399 has a stride of 20 between the channel
+specific registers. Upcoming RK3588 has a different stride, so put
+the stride into driver data to make it configurable.
+While at it convert decimal 20 to hex 0x14 for consistency with RK3588
+which has a register stride 0x4000 and we want to write that in hex
+as well.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ drivers/devfreq/event/rockchip-dfi.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+--- a/drivers/devfreq/event/rockchip-dfi.c
++++ b/drivers/devfreq/event/rockchip-dfi.c
+@@ -112,6 +112,7 @@ struct rockchip_dfi {
+ 	int active_events;
+ 	int burst_len;
+ 	int buswidth[DMC_MAX_CHANNELS];
++	int ddrmon_stride;
+ };
+ 
+ static int rockchip_dfi_enable(struct rockchip_dfi *dfi)
+@@ -189,13 +190,13 @@ static void rockchip_dfi_read_counters(s
+ 		if (!(dfi->channel_mask & BIT(i)))
+ 			continue;
+ 		c->c[i].read_access = readl_relaxed(dfi_regs +
+-				DDRMON_CH0_RD_NUM + i * 20);
++				DDRMON_CH0_RD_NUM + i * dfi->ddrmon_stride);
+ 		c->c[i].write_access = readl_relaxed(dfi_regs +
+-				DDRMON_CH0_WR_NUM + i * 20);
++				DDRMON_CH0_WR_NUM + i * dfi->ddrmon_stride);
+ 		c->c[i].access = readl_relaxed(dfi_regs +
+-				DDRMON_CH0_DFI_ACCESS_NUM + i * 20);
++				DDRMON_CH0_DFI_ACCESS_NUM + i * dfi->ddrmon_stride);
+ 		c->c[i].clock_cycles = readl_relaxed(dfi_regs +
+-				DDRMON_CH0_COUNT_NUM + i * 20);
++				DDRMON_CH0_COUNT_NUM + i * dfi->ddrmon_stride);
+ 	}
+ }
+ 
+@@ -661,6 +662,8 @@ static int rk3399_dfi_init(struct rockch
+ 	dfi->buswidth[0] = FIELD_GET(RK3399_PMUGRF_OS_REG2_BW_CH0, val) == 0 ? 4 : 2;
+ 	dfi->buswidth[1] = FIELD_GET(RK3399_PMUGRF_OS_REG2_BW_CH1, val) == 0 ? 4 : 2;
+ 
++	dfi->ddrmon_stride = 0x14;
++
+ 	return 0;
+ };
+ 

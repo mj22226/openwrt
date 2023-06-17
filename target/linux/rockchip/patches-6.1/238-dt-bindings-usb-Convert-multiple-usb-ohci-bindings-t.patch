@@ -1,0 +1,178 @@
+From fa350fa7a0dd8a4c7b8b303cc9d754f060f765ab Mon Sep 17 00:00:00 2001
+From: Rob Herring <robh@kernel.org>
+Date: Mon, 23 Jan 2023 21:05:16 -0600
+Subject: [PATCH 238/383] dt-bindings: usb: Convert multiple "usb-ohci"
+ bindings to DT schema
+
+"usb-ohci" is another "generic" OHCI controller compatible string used by
+several platforms. Add it to the generic-ohci.yaml schema and remove all
+the old binding docs.
+
+Marvell pxa-usb.txt has "usb-ohci" in the example, but actual users don't,
+so drop it.
+
+Signed-off-by: Rob Herring <robh@kernel.org>
+Link: https://lore.kernel.org/r/20230110-dt-usb-v3-2-5af0541fcf8c@kernel.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../bindings/powerpc/nintendo/wii.txt         | 10 ------
+ .../devicetree/bindings/usb/generic-ohci.yaml | 28 +++++++++++++--
+ .../devicetree/bindings/usb/ohci-nxp.txt      | 24 -------------
+ .../devicetree/bindings/usb/pxa-usb.txt       |  2 +-
+ .../devicetree/bindings/usb/spear-usb.txt     | 35 -------------------
+ 5 files changed, 26 insertions(+), 73 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/usb/ohci-nxp.txt
+ delete mode 100644 Documentation/devicetree/bindings/usb/spear-usb.txt
+
+--- a/Documentation/devicetree/bindings/powerpc/nintendo/wii.txt
++++ b/Documentation/devicetree/bindings/powerpc/nintendo/wii.txt
+@@ -97,16 +97,6 @@ Nintendo Wii device tree
+    - reg : should contain the EXI registers location and length
+    - interrupts : should contain the EXI interrupt
+ 
+-1.g) The Open Host Controller Interface (OHCI) nodes
+-
+-  Represent the USB 1.x Open Host Controller Interfaces.
+-
+-  Required properties:
+-
+-   - compatible : should be "nintendo,hollywood-usb-ohci","usb-ohci"
+-   - reg : should contain the OHCI registers location and length
+-   - interrupts : should contain the OHCI interrupt
+-
+ 1.h) The Enhanced Host Controller Interface (EHCI) node
+ 
+   Represents the USB 2.0 Enhanced Host Controller Interface.
+--- a/Documentation/devicetree/bindings/usb/generic-ohci.yaml
++++ b/Documentation/devicetree/bindings/usb/generic-ohci.yaml
+@@ -6,9 +6,6 @@ $schema: http://devicetree.org/meta-sche
+ 
+ title: USB OHCI Controller
+ 
+-allOf:
+-  - $ref: "usb-hcd.yaml"
+-
+ maintainers:
+   - Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+ 
+@@ -50,6 +47,13 @@ properties:
+               - snps,hsdk-v1.0-ohci
+           - const: generic-ohci
+       - const: generic-ohci
++      - items:
++          - enum:
++              - cavium,octeon-6335-ohci
++              - nintendo,hollywood-usb-ohci
++              - nxp,ohci-nxp
++              - st,spear600-ohci
++          - const: usb-ohci
+ 
+   reg:
+     maxItems: 1
+@@ -119,11 +123,29 @@ properties:
+       - host
+       - otg
+ 
++  transceiver:
++    $ref: /schemas/types.yaml#/definitions/phandle
++    description:
++      The associated ISP1301 device. Necessary for the UDC controller for
++      connecting to the USB physical layer.
++
+ required:
+   - compatible
+   - reg
+   - interrupts
+ 
++allOf:
++  - $ref: usb-hcd.yaml
++  - if:
++      not:
++        properties:
++          compatible:
++            contains:
++              const: nxp,ohci-nxp
++    then:
++      properties:
++        transceiver: false
++
+ additionalProperties: false
+ 
+ examples:
+--- a/Documentation/devicetree/bindings/usb/ohci-nxp.txt
++++ /dev/null
+@@ -1,24 +0,0 @@
+-* OHCI controller, NXP ohci-nxp variant
+-
+-Required properties:
+-- compatible: must be "nxp,ohci-nxp"
+-- reg: physical base address of the controller and length of memory mapped
+-  region.
+-- interrupts: The OHCI interrupt
+-- transceiver: phandle of the associated ISP1301 device - this is necessary for
+-               the UDC controller for connecting to the USB physical layer
+-
+-Example (LPC32xx):
+-
+-	isp1301: usb-transceiver@2c {
+-		compatible = "nxp,isp1301";
+-		reg = <0x2c>;
+-	};
+-
+-	ohci@31020000 {
+-		compatible = "nxp,ohci-nxp";
+-		reg = <0x31020000 0x300>;
+-		interrupt-parent = <&mic>;
+-		interrupts = <0x3b 0>;
+-		transceiver = <&isp1301>;
+-	};
+--- a/Documentation/devicetree/bindings/usb/pxa-usb.txt
++++ b/Documentation/devicetree/bindings/usb/pxa-usb.txt
+@@ -22,7 +22,7 @@ Optional properties:
+ Example:
+ 
+ 	usb0: ohci@4c000000 {
+-		compatible = "marvell,pxa-ohci", "usb-ohci";
++		compatible = "marvell,pxa-ohci";
+ 		reg = <0x4c000000 0x100000>;
+ 		interrupts = <18>;
+ 		marvell,enable-port1;
+--- a/Documentation/devicetree/bindings/usb/spear-usb.txt
++++ /dev/null
+@@ -1,35 +0,0 @@
+-ST SPEAr SoC USB controllers:
+------------------------------
+-
+-EHCI:
+------
+-
+-Required properties:
+-- compatible: "st,spear600-ehci"
+-- interrupts: Should contain the EHCI interrupt
+-
+-Example:
+-
+-	ehci@e1800000 {
+-		compatible = "st,spear600-ehci", "usb-ehci";
+-		reg = <0xe1800000 0x1000>;
+-		interrupt-parent = <&vic1>;
+-		interrupts = <27>;
+-	};
+-
+-
+-OHCI:
+------
+-
+-Required properties:
+-- compatible: "st,spear600-ohci"
+-- interrupts: Should contain the OHCI interrupt
+-
+-Example:
+-
+-	ohci@e1900000 {
+-		compatible = "st,spear600-ohci", "usb-ohci";
+-		reg = <0xe1800000 0x1000>;
+-		interrupt-parent = <&vic1>;
+-		interrupts = <26>;
+-	};

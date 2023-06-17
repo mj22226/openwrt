@@ -1,0 +1,37 @@
+From 07ff3d2c95230e4b64120c66faff85c35be4bac9 Mon Sep 17 00:00:00 2001
+From: Corentin Labbe <clabbe@baylibre.com>
+Date: Mon, 12 Dec 2022 12:44:23 +0000
+Subject: [PATCH 084/383] arm64: dts: rockchip: use correct reset names for
+ rk3399 crypto nodes
+
+The reset names does not follow the binding, use the correct ones.
+
+Fixes: 8c701fa6e38c ("arm64: dts: rockchip: rk3399: add crypto node")
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+Link: https://lore.kernel.org/r/20221212124423.1239748-1-clabbe@baylibre.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -589,7 +589,7 @@
+ 		clocks = <&cru HCLK_M_CRYPTO0>, <&cru HCLK_S_CRYPTO0>, <&cru SCLK_CRYPTO0>;
+ 		clock-names = "hclk_master", "hclk_slave", "sclk";
+ 		resets = <&cru SRST_CRYPTO0>, <&cru SRST_CRYPTO0_S>, <&cru SRST_CRYPTO0_M>;
+-		reset-names = "master", "lave", "crypto";
++		reset-names = "master", "slave", "crypto-rst";
+ 	};
+ 
+ 	crypto1: crypto@ff8b8000 {
+@@ -599,7 +599,7 @@
+ 		clocks = <&cru HCLK_M_CRYPTO1>, <&cru HCLK_S_CRYPTO1>, <&cru SCLK_CRYPTO1>;
+ 		clock-names = "hclk_master", "hclk_slave", "sclk";
+ 		resets = <&cru SRST_CRYPTO1>, <&cru SRST_CRYPTO1_S>, <&cru SRST_CRYPTO1_M>;
+-		reset-names = "master", "slave", "crypto";
++		reset-names = "master", "slave", "crypto-rst";
+ 	};
+ 
+ 	i2c1: i2c@ff110000 {

@@ -1,0 +1,28 @@
+From cfd8ccee761664838849b4ebb647555b55c2b702 Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Tue, 16 Aug 2022 16:04:40 -0500
+Subject: [PATCH 067/383] arm64: dts: rockchip: Update joystick to polled for
+ OG2
+
+Update the Odroid Go Advance to use "poll-interval" from the
+adc-joystick driver.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Signed-off-by: Maya Matuszczyk <maccraft123mc@gmail.com>
+Link: https://lore.kernel.org/r/20220816210440.14260-4-macroalpha82@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3326-odroid-go2.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3326-odroid-go2.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3326-odroid-go2.dts
+@@ -26,6 +26,7 @@
+ 		compatible = "adc-joystick";
+ 		io-channels = <&saradc 1>,
+ 			      <&saradc 2>;
++		poll-interval = <60>;
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 

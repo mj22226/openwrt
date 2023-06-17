@@ -1,0 +1,41 @@
+From 95da50be5d846250b94a472a8d9aa16f3f34b897 Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Thu, 22 Dec 2022 15:24:15 +0100
+Subject: [PATCH 207/383] dt-bindings: soc: rockchip: grf: add
+ rockchip,lvds.yaml
+
+Add new converted rockchip,lvds.yaml to grf.yaml file.
+Prepare for more SoCs with lvds output.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Link: https://patchwork.freedesktop.org/patch/msgid/ff3644da-e5ae-f795-c7d9-454b8c8bdfe8@gmail.com
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/soc/rockchip/grf.yaml          | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+--- a/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
++++ b/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
+@@ -80,13 +80,17 @@ allOf:
+       properties:
+         compatible:
+           contains:
+-            const: rockchip,px30-grf
++            enum:
++              - rockchip,px30-grf
+ 
+     then:
+       properties:
+         lvds:
+-          description:
+-            Documentation/devicetree/bindings/display/rockchip/rockchip-lvds.txt
++          type: object
++
++          $ref: /schemas/display/rockchip/rockchip,lvds.yaml#
++
++          unevaluatedProperties: false
+ 
+   - if:
+       properties:

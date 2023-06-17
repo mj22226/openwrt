@@ -1,0 +1,58 @@
+From d4a587e6ecc35c1d9786c2435d5378b3f43d9cf7 Mon Sep 17 00:00:00 2001
+From: John Clark <inindev@gmail.com>
+Date: Thu, 13 Apr 2023 13:03:37 -0400
+Subject: [PATCH 162/383] arm64: dts: rockchip: Add pinctrl gpio-ranges for
+ rk356x
+
+Add gpio-range properties to the pinctrl gpio nodes in rk356x.dtsi
+
+Signed-off-by: John Clark <inindev@gmail.com>
+Link: https://lore.kernel.org/r/20230413170337.6815-1-inindev@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk356x.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk356x.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk356x.dtsi
+@@ -1808,6 +1808,7 @@
+ 			interrupts = <GIC_SPI 33 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&pmucru PCLK_GPIO0>, <&pmucru DBCLK_GPIO0>;
+ 			gpio-controller;
++			gpio-ranges = <&pinctrl 0 0 32>;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+ 			#interrupt-cells = <2>;
+@@ -1819,6 +1820,7 @@
+ 			interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&cru PCLK_GPIO1>, <&cru DBCLK_GPIO1>;
+ 			gpio-controller;
++			gpio-ranges = <&pinctrl 0 32 32>;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+ 			#interrupt-cells = <2>;
+@@ -1830,6 +1832,7 @@
+ 			interrupts = <GIC_SPI 35 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&cru PCLK_GPIO2>, <&cru DBCLK_GPIO2>;
+ 			gpio-controller;
++			gpio-ranges = <&pinctrl 0 64 32>;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+ 			#interrupt-cells = <2>;
+@@ -1841,6 +1844,7 @@
+ 			interrupts = <GIC_SPI 36 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&cru PCLK_GPIO3>, <&cru DBCLK_GPIO3>;
+ 			gpio-controller;
++			gpio-ranges = <&pinctrl 0 96 32>;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+ 			#interrupt-cells = <2>;
+@@ -1852,6 +1856,7 @@
+ 			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
+ 			clocks = <&cru PCLK_GPIO4>, <&cru DBCLK_GPIO4>;
+ 			gpio-controller;
++			gpio-ranges = <&pinctrl 0 128 32>;
+ 			#gpio-cells = <2>;
+ 			interrupt-controller;
+ 			#interrupt-cells = <2>;

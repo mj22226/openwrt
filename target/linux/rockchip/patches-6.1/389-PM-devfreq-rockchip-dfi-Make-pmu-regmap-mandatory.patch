@@ -1,0 +1,40 @@
+From 9bcbd5a7772cc02439df4179fecf17a3e68156ef Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:29 +0200
+Subject: [PATCH 389/414] PM / devfreq: rockchip-dfi: Make pmu regmap mandatory
+
+As a matter of fact the regmap_pmu already is mandatory because
+it is used unconditionally in the driver. Bail out gracefully in
+probe() rather than crashing later.
+
+Fixes: b9d1262bca0af ("PM / devfreq: event: support rockchip dfi controller")
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ drivers/devfreq/event/rockchip-dfi.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+--- a/drivers/devfreq/event/rockchip-dfi.c
++++ b/drivers/devfreq/event/rockchip-dfi.c
+@@ -193,14 +193,15 @@ static int rockchip_dfi_probe(struct pla
+ 		return dev_err_probe(dev, PTR_ERR(data->clk),
+ 				     "Cannot get the clk pclk_ddr_mon\n");
+ 
+-	/* try to find the optional reference to the pmu syscon */
+ 	node = of_parse_phandle(np, "rockchip,pmu", 0);
+-	if (node) {
+-		data->regmap_pmu = syscon_node_to_regmap(node);
+-		of_node_put(node);
+-		if (IS_ERR(data->regmap_pmu))
+-			return PTR_ERR(data->regmap_pmu);
+-	}
++	if (!node)
++		return dev_err_probe(&pdev->dev, -ENODEV, "Can't find pmu_grf registers\n");
++
++	data->regmap_pmu = syscon_node_to_regmap(node);
++	of_node_put(node);
++	if (IS_ERR(data->regmap_pmu))
++		return PTR_ERR(data->regmap_pmu);
++
+ 	data->dev = dev;
+ 
+ 	desc = devm_kzalloc(dev, sizeof(*desc), GFP_KERNEL);

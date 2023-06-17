@@ -1,0 +1,48 @@
+From 60d361f57be0444462ab9bb55f965672838ac92e Mon Sep 17 00:00:00 2001
+From: Maya Matuszczyk <maccraft123mc@gmail.com>
+Date: Thu, 17 Nov 2022 22:59:51 +0100
+Subject: [PATCH 006/383] dt-bindings: arm: rockchip: Add more RK3326 devices
+
+This patch adds Anbernic RG351M, Odroid Go Advance Black Edition and
+Odroid Go Super into dt bindings.
+
+Signed-off-by: Maya Matuszczyk <maccraft123mc@gmail.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20221117215954.4114202-3-maccraft123mc@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/arm/rockchip.yaml         | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -30,6 +30,11 @@ properties:
+           - const: amarula,vyasa-rk3288
+           - const: rockchip,rk3288
+ 
++      - description: Anbernic RG351M
++        items:
++          - const: anbernic,rg351m
++          - const: rockchip,rk3326
++
+       - description: Anbernic RG353P
+         items:
+           - const: anbernic,rg353p
+@@ -478,6 +483,16 @@ properties:
+           - const: hardkernel,rk3326-odroid-go2
+           - const: rockchip,rk3326
+ 
++      - description: Hardkernel Odroid Go Advance Black Edition
++        items:
++          - const: hardkernel,rk3326-odroid-go2-v11
++          - const: rockchip,rk3326
++
++      - description: Hardkernel Odroid Go Super
++        items:
++          - const: hardkernel,rk3326-odroid-go3
++          - const: rockchip,rk3326
++
+       - description: Hardkernel Odroid M1
+         items:
+           - const: rockchip,rk3568-odroid-m1

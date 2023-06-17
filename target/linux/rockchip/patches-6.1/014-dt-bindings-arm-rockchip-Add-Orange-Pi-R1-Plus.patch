@@ -1,0 +1,30 @@
+From 270210c74ba803d86f4084bb3d29b56aa49dfa58 Mon Sep 17 00:00:00 2001
+From: Chukun Pan <amadeus@jmu.edu.cn>
+Date: Sat, 3 Dec 2022 15:41:48 +0800
+Subject: [PATCH 014/383] dt-bindings: arm: rockchip: Add Orange Pi R1 Plus
+
+Add devicetree binding documentation for the Orange Pi R1 Plus.
+
+Signed-off-by: Chukun Pan <amadeus@jmu.edu.cn>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20221203074149.11543-2-amadeus@jmu.edu.cn
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -789,6 +789,11 @@ properties:
+           - const: tronsmart,orion-r68-meta
+           - const: rockchip,rk3368
+ 
++      - description: Xunlong Orange Pi R1 Plus
++        items:
++          - const: xunlong,orangepi-r1-plus
++          - const: rockchip,rk3328
++
+       - description: Zkmagic A95X Z2
+         items:
+           - const: zkmagic,a95x-z2

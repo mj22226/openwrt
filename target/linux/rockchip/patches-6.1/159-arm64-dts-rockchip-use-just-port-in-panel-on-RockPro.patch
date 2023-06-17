@@ -1,0 +1,43 @@
+From a1e2c3f0aa7a71028de4f8ddd858ee728b6f43c5 Mon Sep 17 00:00:00 2001
+From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Date: Sun, 26 Mar 2023 22:45:20 +0200
+Subject: [PATCH 159/383] arm64: dts: rockchip: use just "port" in panel on
+ RockPro64
+
+The panel bindings expect to have only one port, thus they do not allow
+to use "ports" node:
+
+  rk3399-rockpro64.dtb: panel@0: 'ports' does not match any of the regexes: 'pinctrl-[0-9]+'
+
+There is only one endpoint, so use simpler form without "reg".
+
+Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20230326204520.80859-3-krzysztof.kozlowski@linaro.org
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-rockpro64.dtsi
+@@ -647,16 +647,10 @@
+ 		avdd-supply = <&avdd>;
+ 		backlight = <&backlight>;
+ 		dvdd-supply = <&vcc3v3_s0>;
+-		ports {
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+ 
+-			port@0 {
+-				reg = <0>;
+-
+-				mipi_in_panel: endpoint {
+-					remote-endpoint = <&mipi_out_panel>;
+-				};
++		port {
++			mipi_in_panel: endpoint {
++				remote-endpoint = <&mipi_out_panel>;
+ 			};
+ 		};
+ 	};

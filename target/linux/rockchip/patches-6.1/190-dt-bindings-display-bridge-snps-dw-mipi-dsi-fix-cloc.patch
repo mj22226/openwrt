@@ -1,0 +1,42 @@
+From 325090fe4cd0232cdf0e0bb3fe2bfb16646439cf Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Thu, 22 Dec 2022 15:25:44 +0100
+Subject: [PATCH 190/383] dt-bindings: display: bridge: snps,dw-mipi-dsi: fix
+ clock properties
+
+Fix clock properties from the common snps,dw-mipi-dsi.yaml file,
+as they don't match with what is used on the SoCs.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Link: https://patchwork.freedesktop.org/patch/msgid/78b4548e-dfe1-d0c6-f96c-5d40f28f8b2e@gmail.com
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../display/bridge/snps,dw-mipi-dsi.yaml         | 16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
+
+--- a/Documentation/devicetree/bindings/display/bridge/snps,dw-mipi-dsi.yaml
++++ b/Documentation/devicetree/bindings/display/bridge/snps,dw-mipi-dsi.yaml
+@@ -26,19 +26,9 @@ properties:
+   reg:
+     maxItems: 1
+ 
+-  clocks:
+-    items:
+-      - description: Module clock
+-      - description: DSI bus clock for either AHB and APB
+-      - description: Pixel clock for the DPI/RGB input
+-    minItems: 2
++  clocks: true
+ 
+-  clock-names:
+-    items:
+-      - const: ref
+-      - const: pclk
+-      - const: px_clk
+-    minItems: 2
++  clock-names: true
+ 
+   resets:
+     maxItems: 1

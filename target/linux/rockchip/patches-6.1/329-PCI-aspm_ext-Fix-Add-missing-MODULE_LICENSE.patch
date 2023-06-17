@@ -1,0 +1,39 @@
+From c5efbe8d0a1349f29668555019541c1b6d612d7a Mon Sep 17 00:00:00 2001
+From: Tao Huang <huangtao@rock-chips.com>
+Date: Fri, 15 Jul 2022 20:56:15 +0800
+Subject: [PATCH 329/383] PCI: aspm_ext: Fix Add missing MODULE_LICENSE()
+
+ERROR: modpost: missing MODULE_LICENSE() in drivers/pci/pcie/aspm_ext.o
+
+Signed-off-by: Tao Huang <huangtao@rock-chips.com>
+Change-Id: Id365aba7a73f02cc2c61882b46937250e64af01c
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/pci/pcie/aspm_ext.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/drivers/pci/pcie/aspm_ext.c
++++ b/drivers/pci/pcie/aspm_ext.c
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include <linux/module.h>
+ #include <linux/pci.h>
+ #include <linux/aspm_ext.h>
+ #include <linux/errno.h>
+@@ -95,7 +96,7 @@ static bool rockchip_pcie_bus_aspm_enabl
+ 	return true;
+ }
+ 
+-bool rockchip_pcie_bus_aspm_enable_rc_ep(struct pci_dev *child, struct pci_dev *parent, bool enable)
++static bool rockchip_pcie_bus_aspm_enable_rc_ep(struct pci_dev *child, struct pci_dev *parent, bool enable)
+ {
+ 	bool ret;
+ 
+@@ -341,3 +342,5 @@ void pcie_aspm_ext_l1ss_enable(struct pc
+ 		rockchip_pcie_bus_aspm_enable_rc_ep(child, parent, true);
+ }
+ EXPORT_SYMBOL(pcie_aspm_ext_l1ss_enable);
++
++MODULE_LICENSE("GPL");

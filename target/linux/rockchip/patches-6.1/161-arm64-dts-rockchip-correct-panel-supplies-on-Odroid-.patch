@@ -1,0 +1,31 @@
+From 102925b3c60b45c0f32a6ebcde1b1d5d6ea4e19a Mon Sep 17 00:00:00 2001
+From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Date: Sun, 26 Mar 2023 22:45:18 +0200
+Subject: [PATCH 161/383] arm64: dts: rockchip: correct panel supplies on
+ Odroid Go Super
+
+The Anbernic and Odroid Go have different panels and take differently
+named supplies, so move all the supplies to DTS defining actual panel to
+fix warnings like:
+
+  rk3326-odroid-go3.dtb: panel@0: 'IOVCC-supply' is a required property
+  rk3326-odroid-go3.dtb: panel@0: 'iovcc-supply', 'vdd-supply' do not match any of the regexes: 'pinctrl-[0-9]+'
+
+Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20230326204520.80859-1-krzysztof.kozlowski@linaro.org
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3326-odroid-go3.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3326-odroid-go3.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3326-odroid-go3.dts
+@@ -144,6 +144,7 @@
+ &internal_display {
+ 	compatible = "elida,kd50t048a", "sitronix,st7701";
+ 	reset-gpios = <&gpio3 RK_PC0 GPIO_ACTIVE_HIGH>;
++	IOVCC-supply = <&vcc_lcd>;
+ 	VCC-supply = <&vcc_lcd>;
+ };
+ 

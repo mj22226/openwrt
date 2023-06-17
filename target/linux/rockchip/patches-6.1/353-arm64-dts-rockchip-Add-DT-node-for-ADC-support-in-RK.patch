@@ -1,0 +1,36 @@
+From 8b429e32286bce5a132624ee2bab1a102ffff2a3 Mon Sep 17 00:00:00 2001
+From: Shreeya Patel <shreeya.patel@collabora.com>
+Date: Wed, 17 May 2023 04:30:50 +0530
+Subject: [PATCH 353/383] arm64: dts: rockchip: Add DT node for ADC support in
+ RK3588
+
+Add DT node for ADC support in RK3588.
+
+Signed-off-by: Shreeya Patel <shreeya.patel@collabora.com>
+Reviewed-by: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s.dtsi
+@@ -2791,6 +2791,18 @@
+ 		status = "disabled";
+ 	};
+ 
++	saradc: saradc@fec10000 {
++		compatible = "rockchip,rk3588-saradc";
++		reg = <0x0 0xfec10000 0x0 0x10000>;
++		interrupts = <GIC_SPI 398 IRQ_TYPE_LEVEL_HIGH 0>;
++		#io-channel-cells = <1>;
++		clocks = <&cru CLK_SARADC>, <&cru PCLK_SARADC>;
++		clock-names = "saradc", "apb_pclk";
++		resets = <&cru SRST_P_SARADC>;
++		reset-names = "saradc-apb";
++		status = "disabled";
++	};
++
+ 	system_sram2: sram@ff001000 {
+ 		compatible = "mmio-sram";
+ 		reg = <0x0 0xff001000 0x0 0xef000>;

@@ -1,0 +1,40 @@
+From 8595bd3140a00cdd20a43453199f3b4a1223ebae Mon Sep 17 00:00:00 2001
+From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Date: Wed, 19 Apr 2023 21:13:07 +0300
+Subject: [PATCH 212/383] dt-bindings: timer: rockchip: Drop superfluous rk3288
+ compatible
+
+The compatible string for Rockchip RK3288 is wrongly provided in the
+'enum' item, in addition to the subsequent 'const', which allows the
+usage of an incorrect specification:
+
+  compatible = "rockchip,rk3288-timer", "rockchip,rk3288-timer";
+
+As the rk3288 string is also specified in the top-most 'const' item, the
+binding already allows the usage of the correct variant:
+
+  compatible = "rockchip,rk3288-timer";
+
+Drop the unwanted rk3288 entry from the enum.
+
+Fixes: faa186adbd06 ("dt-bindings: timer: convert rockchip,rk-timer.txt to YAML")
+Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+Reviewed-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Link: https://lore.kernel.org/r/20230419181309.338354-2-cristian.ciocaltea@collabora.com
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/timer/rockchip,rk-timer.yaml | 1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/Documentation/devicetree/bindings/timer/rockchip,rk-timer.yaml
++++ b/Documentation/devicetree/bindings/timer/rockchip,rk-timer.yaml
+@@ -23,7 +23,6 @@ properties:
+               - rockchip,rk3188-timer
+               - rockchip,rk3228-timer
+               - rockchip,rk3229-timer
+-              - rockchip,rk3288-timer
+               - rockchip,rk3368-timer
+               - rockchip,px30-timer
+           - const: rockchip,rk3288-timer

@@ -1,0 +1,51 @@
+From 86671c62988ab6ac169e8f2350a370a1a0fa400d Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Mon, 9 Jan 2023 16:57:58 +0100
+Subject: [PATCH 015/383] dt-bindings: arm: rockchip: add initial rk3588 boards
+
+Add DT binding documentation for the Rockchip RK3588 EVB1,
+Radxa Rock 5 Model A and B.
+
+Co-Developed-by: Christopher Obbard <chris.obbard@collabora.com>
+Signed-off-by: Christopher Obbard <chris.obbard@collabora.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Reviewed-by: Jagan Teki <jagan@edgeble.ai>
+Link: https://lore.kernel.org/r/20230109155801.51642-5-sebastian.reichel@collabora.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/arm/rockchip.yaml         | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -675,6 +675,16 @@ properties:
+           - const: radxa,rock3a
+           - const: rockchip,rk3568
+ 
++      - description: Radxa ROCK 5 Model A
++        items:
++          - const: radxa,rock-5a
++          - const: rockchip,rk3588s
++
++      - description: Radxa ROCK 5 Model B
++        items:
++          - const: radxa,rock-5b
++          - const: rockchip,rk3588
++
+       - description: Rikomagic MK808 v1
+         items:
+           - const: rikomagic,mk808
+@@ -764,6 +774,11 @@ properties:
+           - const: rockchip,rk3399-sapphire-excavator
+           - const: rockchip,rk3399
+ 
++      - description: Rockchip RK3588 Evaluation board
++        items:
++          - const: rockchip,rk3588-evb1-v10
++          - const: rockchip,rk3588
++
+       - description: Rockchip RV1108 Evaluation board
+         items:
+           - const: rockchip,rv1108-evb

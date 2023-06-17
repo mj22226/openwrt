@@ -1,0 +1,122 @@
+From c593b2f170bbfb2dae049c83fab6a37d1ffd00d9 Mon Sep 17 00:00:00 2001
+From: Michael Riesch <michael.riesch@wolfvision.net>
+Date: Tue, 24 Jan 2023 06:47:06 +0100
+Subject: [PATCH 117/383] arm64: dts: rockchip: add pinctrls for 16-bit/18-bit
+ rgb interface to rk356x
+
+The rk3568-pinctrl.dtsi only defines the 24-bit RGB interface. Add separate
+nodes for the 16-bit and 18-bit version, respectively. While at it, split
+off the clock/sync signals from the data signals.
+
+The exact mapping of the data pins was discussed here:
+https://lore.kernel.org/linux-rockchip/f33a0488-528c-99de-3279-3c0346a03fd6@wolfvision.net/T/
+
+Signed-off-by: Michael Riesch <michael.riesch@wolfvision.net>
+Link: https://lore.kernel.org/r/20230124054706.3921383-7-michael.riesch@wolfvision.net
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3568-pinctrl.dtsi     | 94 +++++++++++++++++++
+ 1 file changed, 94 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3568-pinctrl.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3568-pinctrl.dtsi
+@@ -3117,4 +3117,98 @@
+ 				<0 RK_PA1 0 &pcfg_pull_none>;
+ 		};
+ 	};
++
++	lcdc {
++		/omit-if-no-ref/
++		lcdc_clock: lcdc-clock {
++			rockchip,pins =
++				/* lcdc_clk */
++				<3 RK_PA0 1 &pcfg_pull_none>,
++				/* lcdc_den */
++				<3 RK_PC3 1 &pcfg_pull_none>,
++				/* lcdc_hsync */
++				<3 RK_PC1 1 &pcfg_pull_none>,
++				/* lcdc_vsync */
++				<3 RK_PC2 1 &pcfg_pull_none>;
++		};
++
++		/omit-if-no-ref/
++		lcdc_data16: lcdc-data16 {
++			rockchip,pins =
++				/* lcdc_d3 */
++				<2 RK_PD3 1 &pcfg_pull_none>,
++				/* lcdc_d4 */
++				<2 RK_PD4 1 &pcfg_pull_none>,
++				/* lcdc_d5 */
++				<2 RK_PD5 1 &pcfg_pull_none>,
++				/* lcdc_d6 */
++				<2 RK_PD6 1 &pcfg_pull_none>,
++				/* lcdc_d7 */
++				<2 RK_PD7 1 &pcfg_pull_none>,
++				/* lcdc_d10 */
++				<3 RK_PA3 1 &pcfg_pull_none>,
++				/* lcdc_d11 */
++				<3 RK_PA4 1 &pcfg_pull_none>,
++				/* lcdc_d12 */
++				<3 RK_PA5 1 &pcfg_pull_none>,
++				/* lcdc_d13 */
++				<3 RK_PA6 1 &pcfg_pull_none>,
++				/* lcdc_d14 */
++				<3 RK_PA7 1 &pcfg_pull_none>,
++				/* lcdc_d15 */
++				<3 RK_PB0 1 &pcfg_pull_none>,
++				/* lcdc_d19 */
++				<3 RK_PB4 1 &pcfg_pull_none>,
++				/* lcdc_d20 */
++				<3 RK_PB5 1 &pcfg_pull_none>,
++				/* lcdc_d21 */
++				<3 RK_PB6 1 &pcfg_pull_none>,
++				/* lcdc_d22 */
++				<3 RK_PB7 1 &pcfg_pull_none>,
++				/* lcdc_d23 */
++				<3 RK_PC0 1 &pcfg_pull_none>;
++		};
++
++		/omit-if-no-ref/
++		lcdc_data18: lcdc-data18 {
++			rockchip,pins =
++				/* lcdc_d2 */
++				<2 RK_PD2 1 &pcfg_pull_none>,
++				/* lcdc_d3 */
++				<2 RK_PD3 1 &pcfg_pull_none>,
++				/* lcdc_d4 */
++				<2 RK_PD4 1 &pcfg_pull_none>,
++				/* lcdc_d5 */
++				<2 RK_PD5 1 &pcfg_pull_none>,
++				/* lcdc_d6 */
++				<2 RK_PD6 1 &pcfg_pull_none>,
++				/* lcdc_d7 */
++				<2 RK_PD7 1 &pcfg_pull_none>,
++				/* lcdc_d10 */
++				<3 RK_PA3 1 &pcfg_pull_none>,
++				/* lcdc_d11 */
++				<3 RK_PA4 1 &pcfg_pull_none>,
++				/* lcdc_d12 */
++				<3 RK_PA5 1 &pcfg_pull_none>,
++				/* lcdc_d13 */
++				<3 RK_PA6 1 &pcfg_pull_none>,
++				/* lcdc_d14 */
++				<3 RK_PA7 1 &pcfg_pull_none>,
++				/* lcdc_d15 */
++				<3 RK_PB0 1 &pcfg_pull_none>,
++				/* lcdc_d18 */
++				<3 RK_PB3 1 &pcfg_pull_none>,
++				/* lcdc_d19 */
++				<3 RK_PB4 1 &pcfg_pull_none>,
++				/* lcdc_d20 */
++				<3 RK_PB5 1 &pcfg_pull_none>,
++				/* lcdc_d21 */
++				<3 RK_PB6 1 &pcfg_pull_none>,
++				/* lcdc_d22 */
++				<3 RK_PB7 1 &pcfg_pull_none>,
++				/* lcdc_d23 */
++				<3 RK_PC0 1 &pcfg_pull_none>;
++		};
++	};
++
+ };

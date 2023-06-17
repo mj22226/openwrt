@@ -1,0 +1,28 @@
+From 686856ab04d1115c5eac7cb82db933fbfd00e375 Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Thu, 22 Dec 2022 15:33:22 +0100
+Subject: [PATCH 141/383] arm64: dts: rockchip: rename vbus-supply to
+ phy-supply in rk3566-box-demo.dts
+
+'vbus-supply' does not match any of the regexes in rk3566-box-demo.dts
+in the usb2phy0_otg node, so rename vbus-supply to phy-supply.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Link: https://lore.kernel.org/r/1889d8ee-e119-4a52-33a1-b990a41a137c@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3566-box-demo.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-box-demo.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-box-demo.dts
+@@ -495,7 +495,7 @@
+ };
+ 
+ &usb2phy0_otg {
+-	vbus-supply = <&vcc5v0_usb2_otg>;
++	phy-supply = <&vcc5v0_usb2_otg>;
+ 	status = "okay";
+ };
+ 

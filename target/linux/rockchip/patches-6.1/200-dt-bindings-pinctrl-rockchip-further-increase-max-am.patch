@@ -1,0 +1,31 @@
+From 0b785974bb9f1cdf5e80059253d138756e64afee Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Fri, 21 Oct 2022 19:20:12 +0200
+Subject: [PATCH 200/383] dt-bindings: pinctrl: rockchip: further increase max
+ amount of device functions
+
+Apparently RK3588 pinctrl has 13 different device functions, but dt-validate
+only checks for pin configuration being referenced so I did not notice.
+
+Fixes: ed1f77b78322 ("dt-bindings: pinctrl: rockchip: increase max amount of device functions")
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Acked-by: Heiko Stuebner <heiko@sntech.de>
+Link: https://lore.kernel.org/r/20221021172012.87954-1-sebastian.reichel@collabora.com
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/pinctrl/rockchip,pinctrl.yaml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/Documentation/devicetree/bindings/pinctrl/rockchip,pinctrl.yaml
++++ b/Documentation/devicetree/bindings/pinctrl/rockchip,pinctrl.yaml
+@@ -132,7 +132,7 @@ additionalProperties:
+               description:
+                 Pin bank index.
+             - minimum: 0
+-              maximum: 10
++              maximum: 13
+               description:
+                 Mux 0 means GPIO and mux 1 to N means
+                 the specific device function.

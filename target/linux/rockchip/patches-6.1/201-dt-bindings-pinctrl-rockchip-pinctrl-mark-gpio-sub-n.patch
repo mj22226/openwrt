@@ -1,0 +1,40 @@
+From c0ec798a4d616eca4fb99f9c69315b98e6526b9f Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Sat, 21 Jan 2023 12:08:20 +0100
+Subject: [PATCH 201/383] dt-bindings: pinctrl: rockchip,pinctrl: mark gpio sub
+ nodes of pinctrl as deprecated
+
+Mark gpio sub nodes of pinctrl as deprecated.
+Gpio nodes are now placed in the root of the device tree.
+The relation to pinctrl is now described with the
+"gpio-ranges" property.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Reviewed-by: Linus Walleij <linus.walleij@linaro.org>
+Link: https://lore.kernel.org/r/137b56f0-8e86-f705-4ba7-d5dfe3c0b477@gmail.com
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/pinctrl/rockchip,pinctrl.yaml         | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+--- a/Documentation/devicetree/bindings/pinctrl/rockchip,pinctrl.yaml
++++ b/Documentation/devicetree/bindings/pinctrl/rockchip,pinctrl.yaml
+@@ -76,15 +76,13 @@ allOf:
+ required:
+   - compatible
+   - rockchip,grf
+-  - "#address-cells"
+-  - "#size-cells"
+-  - ranges
+ 
+ patternProperties:
+   "gpio@[0-9a-f]+$":
+     type: object
+ 
+     $ref: "/schemas/gpio/rockchip,gpio-bank.yaml#"
++    deprecated: true
+ 
+     unevaluatedProperties: false
+ 

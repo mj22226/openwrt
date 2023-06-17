@@ -1,0 +1,68 @@
+From 83352781760580b7e638e7a4556a27f56a37832f Mon Sep 17 00:00:00 2001
+From: Jagan Teki <jagan@edgeble.ai>
+Date: Tue, 10 Jan 2023 19:16:57 +0530
+Subject: [PATCH 107/383] arm64: dts: rockchip: rk3588: Add Edgeble Neu6 Model
+ A SoM
+
+Neural Compute Module 6(Neu2) is a 96boards SoM-CB compute module
+based on Rockchip RK3588 from Edgeble AI.
+
+General features:
+- Rockchip RK3588
+- up to 32GB LPDDR4x
+- up to 128GB eMMC
+- 2x MIPI CSI2 FPC
+
+On module WiFi6/BT5 is available in the following Neu6 variants.
+
+Neu6 needs to mount on top of associated Edgeble IO boards for
+creating complete platform solutions.
+
+Enable eMMC for now to boot Linux successfully.
+
+Add support for Edgeble Neu6 Model A SoM.
+
+Signed-off-by: Jagan Teki <jagan@edgeble.ai>
+Link: https://lore.kernel.org/r/20230110134658.820691-2-jagan@edgeble.ai
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../dts/rockchip/rk3588-edgeble-neu6a.dtsi    | 32 +++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+ create mode 100644 arch/arm64/boot/dts/rockchip/rk3588-edgeble-neu6a.dtsi
+
+--- /dev/null
++++ b/arch/arm64/boot/dts/rockchip/rk3588-edgeble-neu6a.dtsi
+@@ -0,0 +1,32 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright (c) 2022 Edgeble AI Technologies Pvt. Ltd.
++ */
++
++/ {
++	compatible = "edgeble,neural-compute-module-6a", "rockchip,rk3588";
++
++	aliases {
++		mmc0 = &sdhci;
++	};
++
++	vcc12v_dcin: vcc12v-dcin-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc12v_dcin";
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++	};
++};
++
++&sdhci {
++	bus-width = <8>;
++	no-sdio;
++	no-sd;
++	non-removable;
++	max-frequency = <200000000>;
++	mmc-hs400-1_8v;
++	mmc-hs400-enhanced-strobe;
++	status = "okay";
++};

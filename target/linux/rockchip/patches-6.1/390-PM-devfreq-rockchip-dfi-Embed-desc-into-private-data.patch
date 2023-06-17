@@ -1,0 +1,43 @@
+From daaf4f20581337c3635e74b3ef63dff4ef5a497c Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:30 +0200
+Subject: [PATCH 390/414] PM / devfreq: rockchip-dfi: Embed desc into private
+ data struct
+
+No need for an extra allocation, just embed the struct
+devfreq_event_desc into the private data struct.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ drivers/devfreq/event/rockchip-dfi.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+
+--- a/drivers/devfreq/event/rockchip-dfi.c
++++ b/drivers/devfreq/event/rockchip-dfi.c
+@@ -49,7 +49,7 @@ struct dmc_usage {
+  */
+ struct rockchip_dfi {
+ 	struct devfreq_event_dev *edev;
+-	struct devfreq_event_desc *desc;
++	struct devfreq_event_desc desc;
+ 	struct dmc_usage ch_usage[RK3399_DMC_NUM_CH];
+ 	struct device *dev;
+ 	void __iomem *regs;
+@@ -204,14 +204,10 @@ static int rockchip_dfi_probe(struct pla
+ 
+ 	data->dev = dev;
+ 
+-	desc = devm_kzalloc(dev, sizeof(*desc), GFP_KERNEL);
+-	if (!desc)
+-		return -ENOMEM;
+-
++	desc = &data->desc;
+ 	desc->ops = &rockchip_dfi_ops;
+ 	desc->driver_data = data;
+ 	desc->name = np->name;
+-	data->desc = desc;
+ 
+ 	data->edev = devm_devfreq_event_add_edev(&pdev->dev, desc);
+ 	if (IS_ERR(data->edev)) {

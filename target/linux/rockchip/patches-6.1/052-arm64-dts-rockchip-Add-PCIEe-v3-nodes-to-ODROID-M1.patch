@@ -1,0 +1,73 @@
+From e7f9dd0569304541100a44c9caa258b24a38bc98 Mon Sep 17 00:00:00 2001
+From: Aurelien Jarno <aurelien@aurel32.net>
+Date: Fri, 30 Sep 2022 07:12:45 +0200
+Subject: [PATCH 052/383] arm64: dts: rockchip: Add PCIEe v3 nodes to ODROID-M1
+
+Add nodes to ODROID-M1 to support PCIe v3 on the M2 slot.
+
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Tested-by: Dan Johansen <strit@manjaro.org>
+Link: https://lore.kernel.org/r/20220930051246.391614-13-aurelien@aurel32.net
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3568-odroid-m1.dts    | 34 +++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts
+@@ -96,6 +96,19 @@
+ 		};
+ 	};
+ 
++	vcc3v3_pcie: vcc3v3-pcie-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc3v3_pcie";
++		enable-active-high;
++		gpio = <&gpio4 RK_PA7 GPIO_ACTIVE_HIGH>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&vcc3v3_pcie_en_pin>;
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		startup-delay-us = <5000>;
++		vin-supply = <&vcc3v3_sys>;
++	};
++
+ 	vcc3v3_sys: vcc3v3-sys-regulator {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vcc3v3_sys";
+@@ -479,6 +492,18 @@
+ 	};
+ };
+ 
++&pcie30phy {
++	status = "okay";
++};
++
++&pcie3x2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pcie_reset_pin>;
++	reset-gpios = <&gpio2 RK_PD6 GPIO_ACTIVE_HIGH>;
++	vpcie3v3-supply = <&vcc3v3_pcie>;
++	status = "okay";
++};
++
+ &pinctrl {
+ 	fspi {
+ 		fspi_dual_io_pins: fspi-dual-io-pins {
+@@ -503,6 +528,15 @@
+ 		};
+ 	};
+ 
++	pcie {
++		pcie_reset_pin: pcie-reset-pin {
++			rockchip,pins = <2 RK_PD6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++		vcc3v3_pcie_en_pin: vcc3v3-pcie-en-pin {
++			rockchip,pins = <4 RK_PA7 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	pmic {
+ 		pmic_int_l: pmic-int-l {
+ 			rockchip,pins = <0 RK_PA3 RK_FUNC_GPIO &pcfg_pull_up>;

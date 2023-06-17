@@ -1,0 +1,132 @@
+From 792f6eade6f3baa914cc3c4f0beccaff16cb6bb5 Mon Sep 17 00:00:00 2001
+From: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Date: Sun, 13 Nov 2022 22:12:51 +0300
+Subject: [PATCH 285/383] dt-bindings: PCI: dwc: Add reg/reg-names common
+ properties
+
+Even though there is a more-or-less limited set of the CSR spaces can be
+defined for each DW PCIe controller the generic DT-schema currently
+doesn't specify much limitations on the reg-space names used for one or
+another range. In order to prevent the vendor-specific controller schemas
+further deviation from the generic interface let's fix that by introducing
+the reg-names definition in the common DW PCIe DT-schemas and preserving
+the generic "reg" and "reg-names" properties in there. New DW PCIe device
+DT-bindings are encouraged to use the generic set of the CSR spaces
+defined in the generic DW PCIe RP/EP DT-bindings, while the already
+available vendor-specific DT-bindings can still apple the common
+DT-schemas.
+
+Note the number of reg/reg-names items need to be changed in the DW PCIe
+EP DT-schema since aside with the "dbi" CSRs space these arrays can have
+"dbi2", "addr_space", "atu", etc ranges.
+
+Also note since there are DW PCIe-based vendor-specific DT-bindings with
+the custom names assigned to the same CSR resources we have no much choice
+but to add them to the generic DT-schemas in order to have the schemas
+being applicable for such devices. These names are marked as
+vendor-specific and should be avoided being used in new bindings in favor
+of the generic names.
+
+Link: https://lore.kernel.org/r/20221113191301.5526-11-Sergey.Semin@baikalelectronics.ru
+Signed-off-by: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/pci/snps,dw-pcie.yaml | 78 +++++++++++++++++--
+ 1 file changed, 72 insertions(+), 6 deletions(-)
+
+--- a/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
+@@ -28,10 +28,10 @@ allOf:
+ 
+ properties:
+   reg:
+-    description: |
+-      It should contain Data Bus Interface (dbi) and config registers for all
+-      versions.
+-      For designware core version >= 4.80, it may contain ATU address space.
++    description:
++      At least DBI reg-space and peripheral devices CFG-space outbound window
++      are required for the normal controller work. iATU memory IO region is
++      also required if the space is unrolled (IP-core version >= 4.80a).
+     minItems: 2
+     maxItems: 5
+ 
+@@ -39,8 +39,74 @@ properties:
+     minItems: 2
+     maxItems: 5
+     items:
+-      enum: [ dbi, dbi2, config, atu, atu_dma, app, appl, elbi, mgmt, ctrl,
+-              parf, cfg, link, ulreg, smu, mpu, apb, phy, ecam ]
++      oneOf:
++        - description:
++            Basic DWC PCIe controller configuration-space accessible over
++            the DBI interface. This memory space is either activated with
++            CDM/ELBI = 0 and CS2 = 0 or is a contiguous memory region
++            with all spaces. Note iATU/eDMA CSRs are indirectly accessible
++            via the PL viewports on the DWC PCIe controllers older than
++            v4.80a.
++          const: dbi
++        - description:
++            Shadow DWC PCIe config-space registers. This space is selected
++            by setting CDM/ELBI = 0 and CS2 = 1. This is an intermix of
++            the PCI-SIG PCIe CFG-space with the shadow registers for some
++            PCI Header space, PCI Standard and Extended Structures. It's
++            mainly relevant for the end-point controller configuration,
++            but still there are some shadow registers available for the
++            Root Port mode too.
++          const: dbi2
++        - description:
++            External Local Bus registers. It's an application-dependent
++            registers normally defined by the platform engineers. The space
++            can be selected by setting CDM/ELBI = 1 and CS2 = 0 wires or can
++            be accessed over some platform-specific means (for instance
++            as a part of a system controller).
++          enum: [ elbi, app ]
++        - description:
++            iATU/eDMA registers common for all device functions. It's an
++            unrolled memory space with the internal Address Translation
++            Unit and Enhanced DMA, which is selected by setting CDM/ELBI = 1
++            and CS2 = 1. For IP-core releases prior v4.80a, these registers
++            have been programmed via an indirect addressing scheme using a
++            set of viewport CSRs mapped into the PL space. Note iATU is
++            normally mapped to the 0x0 address of this region, while eDMA
++            is available at 0x80000 base address.
++          const: atu
++        - description:
++            Platform-specific eDMA registers. Some platforms may have eDMA
++            CSRs mapped in a non-standard base address. The registers offset
++            can be changed or the MS/LS-bits of the address can be attached
++            in an additional RTL block before the MEM-IO transactions reach
++            the DW PCIe slave interface.
++          const: dma
++        - description:
++            PHY/PCS configuration registers. Some platforms can have the
++            PCS and PHY CSRs accessible over a dedicated memory mapped
++            region, but mainly these registers are indirectly accessible
++            either by means of the embedded PHY viewport schema or by some
++            platform-specific method.
++          const: phy
++        - description:
++            Outbound iATU-capable memory-region which will be used to access
++            the peripheral PCIe devices configuration space.
++          const: config
++        - description:
++            Vendor-specific CSR names. Consider using the generic names above
++            for new bindings.
++          oneOf:
++            - description: See native 'elbi/app' CSR region for details.
++              enum: [ apb, mgmt, link, ulreg, appl ]
++            - description: See native 'atu' CSR region for details.
++              enum: [ atu_dma ]
++            - description: Syscon-related CSR regions.
++              enum: [ smu, mpu ]
++    allOf:
++      - contains:
++          const: dbi
++      - contains:
++          const: config
+ 
+   interrupts:
+     description:

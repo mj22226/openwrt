@@ -1,0 +1,76 @@
+From adad13f8ccd4ab71e027a0ebcea88ecaa003df9b Mon Sep 17 00:00:00 2001
+From: Ondrej Jirman <megi@xff.cz>
+Date: Wed, 5 Apr 2023 13:38:13 +0100
+Subject: [PATCH 166/383] arm64: dts: rockchip: Add support for volume keys to
+ rk3399-pinephone-pro
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+These are implemented via regular ADC, so regular polling is needed,
+for these keys to work.
+
+Co-developed-by: Martijn Braam <martijn@brixit.nl>
+Signed-off-by: Martijn Braam <martijn@brixit.nl>
+Co-developed-by: Kamil Trzciński <ayufan@ayufan.eu>
+Signed-off-by: Kamil Trzciński <ayufan@ayufan.eu>
+Signed-off-by: Ondrej Jirman <megi@xff.cz>
+Signed-off-by: Peter Robinson <pbrobinson@gmail.com>
+Tested-by: Ondrej Jirman <megi@xff.cz>
+Link: https://lore.kernel.org/r/20230405123813.2272919-1-pbrobinson@gmail.com
+[increased Volume-Down voltage to 600mV as suggested by Ondrej]
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../dts/rockchip/rk3399-pinephone-pro.dts     | 26 +++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399-pinephone-pro.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-pinephone-pro.dts
+@@ -10,6 +10,7 @@
+  */
+ 
+ /dts-v1/;
++#include <dt-bindings/input/gpio-keys.h>
+ #include <dt-bindings/input/linux-event-codes.h>
+ #include "rk3399.dtsi"
+ #include "rk3399-opp.dtsi"
+@@ -29,6 +30,26 @@
+ 		stdout-path = "serial2:115200n8";
+ 	};
+ 
++	adc-keys {
++		compatible = "adc-keys";
++		io-channels = <&saradc 1>;
++		io-channel-names = "buttons";
++		keyup-threshold-microvolt = <1600000>;
++		poll-interval = <100>;
++
++		button-up {
++			label = "Volume Up";
++			linux,code = <KEY_VOLUMEUP>;
++			press-threshold-microvolt = <100000>;
++		};
++
++		button-down {
++			label = "Volume Down";
++			linux,code = <KEY_VOLUMEDOWN>;
++			press-threshold-microvolt = <600000>;
++		};
++	};
++
+ 	backlight: backlight {
+ 		compatible = "pwm-backlight";
+ 		pwms = <&pwm0 0 50000 0>;
+@@ -519,6 +540,11 @@
+ 	status = "okay";
+ };
+ 
++&saradc {
++	vref-supply = <&vcca1v8_s3>;
++	status = "okay";
++};
++
+ &sdmmc {
+ 	bus-width = <4>;
+ 	cap-sd-highspeed;

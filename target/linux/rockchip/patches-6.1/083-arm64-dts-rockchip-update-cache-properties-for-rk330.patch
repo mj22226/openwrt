@@ -1,0 +1,43 @@
+From 75e4c9ed412120130fb89f2d9ab94a2b1862adae Mon Sep 17 00:00:00 2001
+From: Pierre Gondois <pierre.gondois@arm.com>
+Date: Mon, 7 Nov 2022 16:57:12 +0100
+Subject: [PATCH 083/383] arm64: dts: rockchip: update cache properties for
+ rk3308 and rk3328
+
+The DeviceTree Specification v0.3 specifies that the cache node
+'compatible' and 'cache-level' properties are 'required'. Cf.
+s3.8 Multi-level and Shared Cache Nodes
+The 'cache-unified' property should be present if one of the
+properties for unified cache is present ('cache-size', ...).
+
+Update the Device Trees accordingly.
+
+Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
+Link: https://lore.kernel.org/r/20221107155825.1644604-20-pierre.gondois@arm.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3308.dtsi | 1 +
+ arch/arm64/boot/dts/rockchip/rk3328.dtsi | 1 +
+ 2 files changed, 2 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3308.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3308.dtsi
+@@ -96,6 +96,7 @@
+ 
+ 		l2: l2-cache {
+ 			compatible = "cache";
++			cache-level = <2>;
+ 		};
+ 	};
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3328.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3328.dtsi
+@@ -102,6 +102,7 @@
+ 
+ 		l2: l2-cache0 {
+ 			compatible = "cache";
++			cache-level = <2>;
+ 		};
+ 	};
+ 

@@ -1,0 +1,47 @@
+From 0070138200f16a0398aff9cb2e65808d7f0a575a Mon Sep 17 00:00:00 2001
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Date: Wed, 1 Mar 2023 21:14:34 +0100
+Subject: [PATCH 339/383] thermal: Remove debug or error messages in get_temp()
+ ops
+
+Some get_temp() ops implementation are showing an error or a debug
+message if the reading of the sensor fails.
+
+The debug message is already displayed from the call site of this
+ops. So we can remove it.
+
+On the other side, the error should not be displayed because in
+production that can raise tons of messages.
+
+Finally, some drivers are showing a debug message with the
+temperature, this is also accessible through the trace from the core
+code in the temperature_update() function.
+
+Another benefit is the dev_* messages are accessing the thermal zone
+device field from the structure, so we encapsulate even more the code
+by preventing these accesses.
+
+Remove those messages.
+
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Reviewed-by: Miquel Raynal <miquel.raynal@bootlin.com> #Armada
+Acked-by: Florian Fainelli <f.fainelli@gmail.com> #brcmstb_thermal.c
+Acked-by: Heiko Stuebner <heiko@sntech.de> #rockchip
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/thermal/rockchip_thermal.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+--- a/drivers/thermal/rockchip_thermal.c
++++ b/drivers/thermal/rockchip_thermal.c
+@@ -1233,9 +1233,6 @@ static int rockchip_thermal_get_temp(str
+ 
+ 	retval = tsadc->get_temp(&tsadc->table,
+ 				 sensor->id, thermal->regs, out_temp);
+-	dev_dbg(&thermal->pdev->dev, "sensor %d - temp: %d, retval: %d\n",
+-		sensor->id, *out_temp, retval);
+-
+ 	return retval;
+ }
+ 

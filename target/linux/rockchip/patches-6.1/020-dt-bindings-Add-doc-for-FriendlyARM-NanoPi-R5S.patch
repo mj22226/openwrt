@@ -1,0 +1,30 @@
+From 07eb6f2a8b4ac909c4f0c9c7fa06d5971f6eaa41 Mon Sep 17 00:00:00 2001
+From: Vasily Khoruzhick <anarsoul@gmail.com>
+Date: Tue, 7 Mar 2023 22:32:39 -0800
+Subject: [PATCH 020/383] dt-bindings: Add doc for FriendlyARM NanoPi R5S
+
+Add devicetree binding documentation for the FriendlyARM NanoPi R5S.
+
+Signed-off-by: Vasily Khoruzhick <anarsoul@gmail.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20230308063240.107178-1-anarsoul@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -201,6 +201,11 @@ properties:
+               - friendlyarm,nanopi-r4s-enterprise
+           - const: rockchip,rk3399
+ 
++      - description: FriendlyElec NanoPi R5S board
++        items:
++          - const: friendlyarm,nanopi-r5s
++          - const: rockchip,rk3568
++
+       - description: GeekBuying GeekBox
+         items:
+           - const: geekbuying,geekbox

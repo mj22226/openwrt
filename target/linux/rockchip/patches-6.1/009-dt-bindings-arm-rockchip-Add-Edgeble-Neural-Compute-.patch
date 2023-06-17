@@ -1,0 +1,42 @@
+From fa400e7c39596815e354dcafd91ae1b39b475975 Mon Sep 17 00:00:00 2001
+From: Jagan Teki <jagan@edgeble.ai>
+Date: Tue, 29 Nov 2022 13:24:22 +0530
+Subject: [PATCH 009/383] dt-bindings: arm: rockchip: Add Edgeble Neural
+ Compute Module 2
+
+Neural Compute Module 2(Neu2) is a 96boards SoM-CB compute module
+based on Rockchip RV1126 from Edgeble AI.
+
+Edgeble Neural Compute Module 2(Neu2) IO board is an industrial
+form factor evaluation board from Edgeble AI.
+
+Neu2 needs to mount on top of this IO board in order to create complete
+Edgeble Neural Compute Module 2(Neu2) IO platform.
+
+Add dt-bindings for it.
+
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Jagan Teki <jagan@edgeble.ai>
+Acked-by: Heiko Stuebner <heiko@sntech.de>
+Link: https://lore.kernel.org/r/20221129075424.189655-7-jagan@edgeble.ai
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -90,6 +90,12 @@ properties:
+           - const: chipspark,rayeager-px2
+           - const: rockchip,rk3066a
+ 
++      - description: Edgeble Neural Compute Module 2(Neu2) SoM based boards
++        items:
++          - const: edgeble,neural-compute-module-2-io   # Edgeble Neural Compute Module 2 IO Board
++          - const: edgeble,neural-compute-module-2      # Edgeble Neural Compute Module 2 SoM
++          - const: rockchip,rv1126
++
+       - description: Elgin RV1108 R1
+         items:
+           - const: elgin,rv1108-r1

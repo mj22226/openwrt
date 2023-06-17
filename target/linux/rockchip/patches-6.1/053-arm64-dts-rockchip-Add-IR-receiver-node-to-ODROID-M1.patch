@@ -1,0 +1,48 @@
+From 864f273ee7a4c441215ade9ac44d21ecba4501c2 Mon Sep 17 00:00:00 2001
+From: Aurelien Jarno <aurelien@aurel32.net>
+Date: Fri, 30 Sep 2022 07:12:46 +0200
+Subject: [PATCH 053/383] arm64: dts: rockchip: Add IR receiver node to
+ ODROID-M1
+
+Add the infrared receiver and its associated pinctrl entry. Note that
+there is an external pullup to VCC3V3_SYS.
+
+Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
+Tested-by: Dan Johansen <strit@manjaro.org>
+Link: https://lore.kernel.org/r/20220930051246.391614-14-aurelien@aurel32.net
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3568-odroid-m1.dts
+@@ -49,6 +49,13 @@
+ 		};
+ 	};
+ 
++	ir-receiver {
++		compatible = "gpio-ir-receiver";
++		gpios = <&gpio0 RK_PC2 GPIO_ACTIVE_LOW>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&ir_receiver_pin>;
++	};
++
+ 	leds {
+ 		compatible = "gpio-leds";
+ 
+@@ -519,6 +526,13 @@
+ 		};
+ 	};
+ 
++	ir-receiver {
++		ir_receiver_pin: ir-receiver-pin {
++			/* external pullup to VCC3V3_SYS */
++			rockchip,pins = <0 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	leds {
+ 		led_power_pin: led-power-pin {
+ 			rockchip,pins = <0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;

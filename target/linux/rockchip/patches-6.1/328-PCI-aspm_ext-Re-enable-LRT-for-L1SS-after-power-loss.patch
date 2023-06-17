@@ -1,0 +1,26 @@
+From 8233ef929824976915dd99328f1b0347ded24e45 Mon Sep 17 00:00:00 2001
+From: Jon Lin <jon.lin@rock-chips.com>
+Date: Fri, 24 Jun 2022 21:32:11 +0800
+Subject: [PATCH 328/383] PCI: aspm_ext: Re-enable LRT for L1SS after power
+ loss
+
+Change-Id: Iedb72ee74660a8f11f38895e06766c3b77728ba3
+Signed-off-by: Jon Lin <jon.lin@rock-chips.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/pci/pcie/aspm_ext.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/drivers/pci/pcie/aspm_ext.c
++++ b/drivers/pci/pcie/aspm_ext.c
+@@ -322,6 +322,10 @@ void pcie_aspm_ext_l1ss_enable(struct pc
+ 	ret = rockchip_pcie_bus_aspm_enable_rc_ep(child, parent, false);
+ 
+ 	if (enable) {
++		/* LRT enable bits loss after wifi off, enable it after power on */
++		if (parent->ltr_path)
++			pcie_capability_set_word(parent, PCI_EXP_DEVCTL2, PCI_EXP_DEVCTL2_LTR_EN);
++
+ 		/* Enable RC then EP */
+ 		aspm_calc_l1ss_info(child, parent);
+ 		rockchip_pcie_bus_l1ss_enable_dev("RC", parent, enable);

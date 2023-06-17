@@ -1,0 +1,48 @@
+From d46c8d56170e8ac81e41ffbe4614793070d7c24f Mon Sep 17 00:00:00 2001
+From: Johan Jonker <jbx6244@gmail.com>
+Date: Thu, 22 Dec 2022 15:32:52 +0100
+Subject: [PATCH 140/383] arm64: dts: rockchip: fix rk3399 dp node
+
+Use generic node name for rk3399.dtsi dp node.
+With the conversion of rockchip,analogix-dp.yaml a port@1 node
+is required, so add a node with label edp_out.
+Also restyle.
+
+Signed-off-by: Johan Jonker <jbx6244@gmail.com>
+Link: https://lore.kernel.org/r/f6008819-db9b-0944-3f5b-5522b7cd8a8d@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -2037,7 +2037,7 @@
+ 		};
+ 	};
+ 
+-	edp: edp@ff970000 {
++	edp: dp@ff970000 {
+ 		compatible = "rockchip,rk3399-edp";
+ 		reg = <0x0 0xff970000 0x0 0x8000>;
+ 		interrupts = <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH 0>;
+@@ -2054,6 +2054,7 @@
+ 		ports {
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
++
+ 			edp_in: port@0 {
+ 				reg = <0>;
+ 				#address-cells = <1>;
+@@ -2069,6 +2070,10 @@
+ 					remote-endpoint = <&vopl_out_edp>;
+ 				};
+ 			};
++
++			edp_out: port@1 {
++				reg = <1>;
++			};
+ 		};
+ 	};
+ 

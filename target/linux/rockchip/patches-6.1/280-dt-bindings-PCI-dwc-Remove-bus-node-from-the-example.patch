@@ -1,0 +1,60 @@
+From af471adc15b9bbd98a0ed7e005c920f55681bb80 Mon Sep 17 00:00:00 2001
+From: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Date: Sun, 13 Nov 2022 22:12:45 +0300
+Subject: [PATCH 280/383] dt-bindings: PCI: dwc: Remove bus node from the
+ examples
+
+It's absolutely redundant seeing by default each node is embedded into its
+own example-X node with address and size cells set to 1.
+
+Link: https://lore.kernel.org/r/20221113191301.5526-5-Sergey.Semin@baikalelectronics.ru
+Signed-off-by: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../devicetree/bindings/pci/snps,dw-pcie.yaml | 35 ++++++++++---------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
+
+--- a/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
+@@ -53,21 +53,22 @@ required:
+ 
+ examples:
+   - |
+-    bus {
+-      #address-cells = <1>;
+-      #size-cells = <1>;
+-      pcie@dfc00000 {
+-        device_type = "pci";
+-        compatible = "snps,dw-pcie";
+-        reg = <0xdfc00000 0x0001000>, /* IP registers */
+-              <0xd0000000 0x0002000>; /* Configuration space */
+-        reg-names = "dbi", "config";
+-        #address-cells = <3>;
+-        #size-cells = <2>;
+-        ranges = <0x81000000 0 0x00000000 0xde000000 0 0x00010000>,
+-                 <0x82000000 0 0xd0400000 0xd0400000 0 0x0d000000>;
+-        interrupts = <25>, <24>;
+-        #interrupt-cells = <1>;
+-        num-lanes = <1>;
+-      };
++    pcie@dfc00000 {
++      compatible = "snps,dw-pcie";
++      device_type = "pci";
++      reg = <0xdfc00000 0x0001000>, /* IP registers */
++            <0xd0000000 0x0002000>; /* Configuration space */
++      reg-names = "dbi", "config";
++      #address-cells = <3>;
++      #size-cells = <2>;
++      ranges = <0x81000000 0 0x00000000 0xde000000 0 0x00010000>,
++               <0x82000000 0 0xd0400000 0xd0400000 0 0x0d000000>;
++      bus-range = <0x0 0xff>;
++
++      interrupts = <25>, <24>;
++      #interrupt-cells = <1>;
++
++      reset-gpios = <&port0 0 1>;
++
++      num-lanes = <1>;
+     };

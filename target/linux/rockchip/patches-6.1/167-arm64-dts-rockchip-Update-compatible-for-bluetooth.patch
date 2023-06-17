@@ -1,0 +1,25 @@
+From be401be5ce967e8530ba3b78aa5383497389cacd Mon Sep 17 00:00:00 2001
+From: Chris Morgan <macromorgan@hotmail.com>
+Date: Tue, 28 Feb 2023 09:22:05 -0600
+Subject: [PATCH 167/383] arm64: dts: rockchip: Update compatible for bluetooth
+
+Update the compatible for the Realtek RTL8821CS bluetooth node.
+
+Signed-off-by: Chris Morgan <macromorgan@hotmail.com>
+Signed-off-by: Luiz Augusto von Dentz <luiz.von.dentz@intel.com>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3566-anbernic-rgxx3.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rgxx3.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3566-anbernic-rgxx3.dtsi
+@@ -716,7 +716,7 @@
+ 	status = "okay";
+ 
+ 	bluetooth {
+-		compatible = "realtek,rtl8821cs-bt";
++		compatible = "realtek,rtl8821cs-bt", "realtek,rtl8822cs-bt";
+ 		device-wake-gpios = <&gpio4 4 GPIO_ACTIVE_HIGH>;
+ 		enable-gpios = <&gpio4 3 GPIO_ACTIVE_HIGH>;
+ 		host-wake-gpios = <&gpio4 5 GPIO_ACTIVE_HIGH>;

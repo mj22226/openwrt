@@ -1,0 +1,28 @@
+From acbd67c1682d4563e2c3778f021c321478aec6f7 Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Wed, 8 Mar 2023 12:22:53 +0100
+Subject: [PATCH 209/383] dt-bindings: rockchip-thermal: Support the RK3588 SoC
+ compatible
+
+Add a new compatible for the thermal sensor device on RK3588 SoCs.
+
+Reviewed-by: Heiko Stuebner <heiko@sntech.de>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Link: https://lore.kernel.org/r/20230308112253.15659-8-sebastian.reichel@collabora.com
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/thermal/rockchip-thermal.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/Documentation/devicetree/bindings/thermal/rockchip-thermal.yaml
++++ b/Documentation/devicetree/bindings/thermal/rockchip-thermal.yaml
+@@ -19,6 +19,7 @@ properties:
+       - rockchip,rk3368-tsadc
+       - rockchip,rk3399-tsadc
+       - rockchip,rk3568-tsadc
++      - rockchip,rk3588-tsadc
+       - rockchip,rv1108-tsadc
+ 
+   reg:

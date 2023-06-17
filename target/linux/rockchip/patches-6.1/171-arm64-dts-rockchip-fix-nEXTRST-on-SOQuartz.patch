@@ -1,0 +1,115 @@
+From a4dce76ce810f5a86cb7fa933f795d1336426dcb Mon Sep 17 00:00:00 2001
+From: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Date: Fri, 21 Apr 2023 17:26:10 +0200
+Subject: [PATCH 171/383] arm64: dts: rockchip: fix nEXTRST on SOQuartz
+
+In pre-production prototypes (of which I only know one person
+having one, Peter Geis), GPIO0 pin A5 was tied to the SDMMC
+power enable pin on the CM4 connector. On all production models,
+this is not the case; instead, this pin is used for the nEXTRST
+signal, and the SDMMC power enable pin is always pulled high.
+
+Since everyone currently using the SOQuartz device trees will
+want this change, it is made to the tree without splitting the
+trees into two separate ones of which users will then inevitably
+choose the wrong one.
+
+This fixes USB and PCIe on a wide variety of CM4IO-compatible
+boards which use the nEXTRST signal.
+
+Fixes: 5859b5a9c3ac ("arm64: dts: rockchip: add SoQuartz CM4IO dts")
+Signed-off-by: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Link: https://lore.kernel.org/r/20230421152610.21688-1-frattaroli.nicolas@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3566-soquartz-cm4.dts | 18 +++++++-----
+ .../boot/dts/rockchip/rk3566-soquartz.dtsi    | 29 +++++++++----------
+ 2 files changed, 24 insertions(+), 23 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3566-soquartz-cm4.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3566-soquartz-cm4.dts
+@@ -28,6 +28,16 @@
+ 		regulator-max-microvolt = <5000000>;
+ 		vin-supply = <&vcc12v_dcin>;
+ 	};
++
++	vcc_sd_pwr: vcc-sd-pwr-regulator {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc_sd_pwr";
++		regulator-always-on;
++		regulator-boot-on;
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		vin-supply = <&vcc3v3_sys>;
++	};
+ };
+ 
+ /* phy for pcie */
+@@ -130,13 +140,7 @@
+ };
+ 
+ &sdmmc0 {
+-	vmmc-supply = <&sdmmc_pwr>;
+-	status = "okay";
+-};
+-
+-&sdmmc_pwr {
+-	regulator-min-microvolt = <3300000>;
+-	regulator-max-microvolt = <3300000>;
++	vmmc-supply = <&vcc_sd_pwr>;
+ 	status = "okay";
+ };
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
+@@ -104,16 +104,6 @@
+ 		regulator-max-microvolt = <3300000>;
+ 		vin-supply = <&vcc5v0_sys>;
+ 	};
+-
+-	sdmmc_pwr: sdmmc-pwr-regulator {
+-		compatible = "regulator-fixed";
+-		enable-active-high;
+-		gpio = <&gpio0 RK_PA5 GPIO_ACTIVE_HIGH>;
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&sdmmc_pwr_h>;
+-		regulator-name = "sdmmc_pwr";
+-		status = "disabled";
+-	};
+ };
+ 
+ &cpu0 {
+@@ -155,6 +145,19 @@
+ 	status = "disabled";
+ };
+ 
++&gpio0 {
++	nextrst-hog {
++		gpio-hog;
++		/*
++		 * GPIO_ACTIVE_LOW + output-low here means that the pin is set
++		 * to high, because output-low decides the value pre-inversion.
++		 */
++		gpios = <RK_PA5 GPIO_ACTIVE_LOW>;
++		line-name = "nEXTRST";
++		output-low;
++	};
++};
++
+ &gpu {
+ 	mali-supply = <&vdd_gpu>;
+ 	status = "okay";
+@@ -538,12 +541,6 @@
+ 			rockchip,pins = <2 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 	};
+-
+-	sdmmc-pwr {
+-		sdmmc_pwr_h: sdmmc-pwr-h {
+-			rockchip,pins = <0 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
+-		};
+-	};
+ };
+ 
+ &pmu_io_domains {

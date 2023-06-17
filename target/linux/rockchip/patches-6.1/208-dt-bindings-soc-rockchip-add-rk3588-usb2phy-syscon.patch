@@ -1,0 +1,35 @@
+From 6e33df31caaad43e25a4854f4cb62e241f45638f Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Mon, 3 Apr 2023 22:23:01 +0200
+Subject: [PATCH 208/383] dt-bindings: soc: rockchip: add rk3588 usb2phy syscon
+
+The usb2phy is accessible via a syscon registers on RK3588, similar
+to rk3399.
+
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Link: https://lore.kernel.org/r/20230403202307.120562-2-sebastian.reichel@collabora.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/soc/rockchip/grf.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
++++ b/Documentation/devicetree/bindings/soc/rockchip/grf.yaml
+@@ -52,6 +52,7 @@ properties:
+               - rockchip,rk3399-pmugrf
+               - rockchip,rk3568-grf
+               - rockchip,rk3568-pmugrf
++              - rockchip,rk3588-usb2phy-grf
+               - rockchip,rv1108-grf
+               - rockchip,rv1108-pmugrf
+               - rockchip,rv1126-grf
+@@ -199,6 +200,7 @@ allOf:
+               - rockchip,rk3308-usb2phy-grf
+               - rockchip,rk3328-usb2phy-grf
+               - rockchip,rk3399-grf
++              - rockchip,rk3588-usb2phy-grf
+               - rockchip,rv1108-grf
+ 
+     then:

@@ -1,0 +1,31 @@
+From 13570bd7d59d75142960e6a6ded90f316e3ffd82 Mon Sep 17 00:00:00 2001
+From: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Date: Sun, 13 Nov 2022 22:12:47 +0300
+Subject: [PATCH 282/383] dt-bindings: PCI: dwc: Add max-link-speed common
+ property
+
+In accordance with [1] DW PCIe controllers support up to Gen5 link speed.
+Let's add the max-link-speed property upper bound to 5 then. The DT
+bindings of the particular devices are expected to setup more strict
+constraint on that parameter.
+
+[1] Synopsys DesignWare Cores PCI Express Controller Databook, Version
+5.40a, March 2019, p. 27
+
+Link: https://lore.kernel.org/r/20221113191301.5526-7-Sergey.Semin@baikalelectronics.ru
+Signed-off-by: Serge Semin <Sergey.Semin@baikalelectronics.ru>
+Signed-off-by: Lorenzo Pieralisi <lpieralisi@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
++++ b/Documentation/devicetree/bindings/pci/snps,dw-pcie.yaml
+@@ -74,4 +74,5 @@ examples:
+       phy-names = "pcie";
+ 
+       num-lanes = <1>;
++      max-link-speed = <3>;
+     };

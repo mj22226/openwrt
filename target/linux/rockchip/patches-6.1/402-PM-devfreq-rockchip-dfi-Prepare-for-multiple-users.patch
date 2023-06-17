@@ -1,0 +1,135 @@
+From 520ab63511920ec641657f8cc6838cc8645b1f08 Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Wed, 24 May 2023 10:31:42 +0200
+Subject: [PATCH 402/414] PM / devfreq: rockchip-dfi: Prepare for multiple
+ users
+
+When adding perf support later the DFI must be enabled when
+either of devfreq-event or perf is active. Prepare for that
+by adding a usage counter for the DFI. Also move enabling
+and disabling of the clock away from the devfreq-event specific
+functions to which the perf specific part won't have access.
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+---
+ drivers/devfreq/event/rockchip-dfi.c | 57 +++++++++++++++++++---------
+ 1 file changed, 40 insertions(+), 17 deletions(-)
+
+--- a/drivers/devfreq/event/rockchip-dfi.c
++++ b/drivers/devfreq/event/rockchip-dfi.c
+@@ -68,13 +68,28 @@ struct rockchip_dfi {
+ 	void __iomem *regs;
+ 	struct regmap *regmap_pmu;
+ 	struct clk *clk;
++	int usecount;
++	struct mutex mutex;
+ 	u32 ddr_type;
+ 	unsigned int channel_mask;
+ };
+ 
+-static void rockchip_dfi_start_hardware_counter(struct rockchip_dfi *dfi)
++static int rockchip_dfi_enable(struct rockchip_dfi *dfi)
+ {
+ 	void __iomem *dfi_regs = dfi->regs;
++	int ret = 0;
++
++	mutex_lock(&dfi->mutex);
++
++	dfi->usecount++;
++	if (dfi->usecount > 1)
++		goto out;
++
++	ret = clk_prepare_enable(dfi->clk);
++	if (ret) {
++		dev_err(&dfi->edev->dev, "failed to enable dfi clk: %d\n", ret);
++		goto out;
++	}
+ 
+ 	/* clear DDRMON_CTRL setting */
+ 	writel_relaxed(HIWORD_UPDATE(0, DDRMON_CTRL_TIMER_CNT_EN | DDRMON_CTRL_SOFTWARE_EN |
+@@ -99,14 +114,30 @@ static void rockchip_dfi_start_hardware_
+ 	/* enable count, use software mode */
+ 	writel_relaxed(HIWORD_UPDATE(DDRMON_CTRL_SOFTWARE_EN, DDRMON_CTRL_SOFTWARE_EN),
+ 		       dfi_regs + DDRMON_CTRL);
++out:
++	mutex_unlock(&dfi->mutex);
++
++	return ret;
+ }
+ 
+-static void rockchip_dfi_stop_hardware_counter(struct rockchip_dfi *dfi)
++static void rockchip_dfi_disable(struct rockchip_dfi *dfi)
+ {
+ 	void __iomem *dfi_regs = dfi->regs;
+ 
++	mutex_lock(&dfi->mutex);
++
++	dfi->usecount--;
++
++	WARN_ON_ONCE(dfi->usecount < 0);
++
++	if (dfi->usecount > 0)
++		goto out;
++
+ 	writel_relaxed(HIWORD_UPDATE(0, DDRMON_CTRL_SOFTWARE_EN),
+ 		       dfi_regs + DDRMON_CTRL);
++	clk_disable_unprepare(dfi->clk);
++out:
++	mutex_unlock(&dfi->mutex);
+ }
+ 
+ static void rockchip_dfi_read_counters(struct rockchip_dfi *dfi, struct dmc_count *count)
+@@ -124,29 +155,20 @@ static void rockchip_dfi_read_counters(s
+ 	}
+ }
+ 
+-static int rockchip_dfi_disable(struct devfreq_event_dev *edev)
++static int rockchip_dfi_event_disable(struct devfreq_event_dev *edev)
+ {
+ 	struct rockchip_dfi *dfi = devfreq_event_get_drvdata(edev);
+ 
+-	rockchip_dfi_stop_hardware_counter(dfi);
+-	clk_disable_unprepare(dfi->clk);
++	rockchip_dfi_disable(dfi);
+ 
+ 	return 0;
+ }
+ 
+-static int rockchip_dfi_enable(struct devfreq_event_dev *edev)
++static int rockchip_dfi_event_enable(struct devfreq_event_dev *edev)
+ {
+ 	struct rockchip_dfi *dfi = devfreq_event_get_drvdata(edev);
+-	int ret;
+ 
+-	ret = clk_prepare_enable(dfi->clk);
+-	if (ret) {
+-		dev_err(&edev->dev, "failed to enable dfi clk: %d\n", ret);
+-		return ret;
+-	}
+-
+-	rockchip_dfi_start_hardware_counter(dfi);
+-	return 0;
++	return rockchip_dfi_enable(dfi);
+ }
+ 
+ static int rockchip_dfi_set_event(struct devfreq_event_dev *edev)
+@@ -190,8 +212,8 @@ static int rockchip_dfi_get_event(struct
+ }
+ 
+ static const struct devfreq_event_ops rockchip_dfi_ops = {
+-	.disable = rockchip_dfi_disable,
+-	.enable = rockchip_dfi_enable,
++	.disable = rockchip_dfi_event_disable,
++	.enable = rockchip_dfi_event_enable,
+ 	.get_event = rockchip_dfi_get_event,
+ 	.set_event = rockchip_dfi_set_event,
+ };
+@@ -272,6 +294,7 @@ static int rockchip_dfi_probe(struct pla
+ 		return PTR_ERR(dfi->regmap_pmu);
+ 
+ 	dfi->dev = dev;
++	mutex_init(&dfi->mutex);
+ 
+ 	desc = &dfi->desc;
+ 	desc->ops = &rockchip_dfi_ops;

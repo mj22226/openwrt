@@ -1,0 +1,37 @@
+From e6818f0bc824d568f2de549dff6074125315dde2 Mon Sep 17 00:00:00 2001
+From: Shreeya Patel <shreeya.patel@collabora.com>
+Date: Wed, 17 May 2023 04:30:48 +0530
+Subject: [PATCH 351/383] iio: adc: rockchip_saradc: Match alignment with open
+ parenthesis
+
+Match alignment with open parenthesis for improving the code
+readability.
+
+Signed-off-by: Shreeya Patel <shreeya.patel@collabora.com>
+Reviewed-by: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ drivers/iio/adc/rockchip_saradc.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+--- a/drivers/iio/adc/rockchip_saradc.c
++++ b/drivers/iio/adc/rockchip_saradc.c
+@@ -141,7 +141,7 @@ static void rockchip_saradc_power_down(s
+ }
+ 
+ static int rockchip_saradc_conversion(struct rockchip_saradc *info,
+-				   struct iio_chan_spec const *chan)
++				      struct iio_chan_spec const *chan)
+ {
+ 	reinit_completion(&info->completion);
+ 
+@@ -384,8 +384,7 @@ out:
+ }
+ 
+ static int rockchip_saradc_volt_notify(struct notifier_block *nb,
+-						   unsigned long event,
+-						   void *data)
++				       unsigned long event, void *data)
+ {
+ 	struct rockchip_saradc *info =
+ 			container_of(nb, struct rockchip_saradc, nb);

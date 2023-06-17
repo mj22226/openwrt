@@ -1,0 +1,35 @@
+From 9396658a16c03132f65e294bdb3f32a7ca65e60e Mon Sep 17 00:00:00 2001
+From: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Date: Wed, 16 Nov 2022 12:53:34 +0100
+Subject: [PATCH 007/383] dt-bindings: arm: rockchip: Add SOQuartz Blade
+
+Add a compatible for the SOQuartz Blade base board to the rockchip
+platforms binding.
+
+The SOQuartz Blade is a PoE-capable carrier board for the CM4 SoM
+form factor, designed around the SOQuartz CM4 System-on-Module.
+
+The board features the usual connectivity (GPIO, USB, HDMI,
+Ethernet) and an M.2 slot for SSDs. It may also be powered from
+a 5V barrel jack input, and has a 3.5mm jack for UART debug
+output.
+
+Signed-off-by: Nicolas Frattaroli <frattaroli.nicolas@gmail.com>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Link: https://lore.kernel.org/r/20221116115337.541601-2-frattaroli.nicolas@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ Documentation/devicetree/bindings/arm/rockchip.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/Documentation/devicetree/bindings/arm/rockchip.yaml
++++ b/Documentation/devicetree/bindings/arm/rockchip.yaml
+@@ -593,6 +593,7 @@ properties:
+       - description: Pine64 SoQuartz SoM
+         items:
+           - enum:
++              - pine64,soquartz-blade
+               - pine64,soquartz-cm4io
+           - const: pine64,soquartz
+           - const: rockchip,rk3566

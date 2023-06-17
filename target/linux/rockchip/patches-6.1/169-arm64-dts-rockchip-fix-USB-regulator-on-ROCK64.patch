@@ -1,0 +1,62 @@
+From 5658597f406cb3075561b187bc413a9547b1fe4b Mon Sep 17 00:00:00 2001
+From: Lorenz Brun <lorenz@brun.one>
+Date: Fri, 21 Apr 2023 23:38:41 +0200
+Subject: [PATCH 169/383] arm64: dts: rockchip: fix USB regulator on ROCK64
+
+Currently the ROCK64 device tree specifies two regulators, vcc_host_5v
+and vcc_host1_5v for USB VBUS on the device. Both of those are however
+specified with RK_PA2 as the GPIO enabling them, causing the following
+error when booting:
+
+  rockchip-pinctrl pinctrl: pin gpio0-2 already requested by vcc-host-5v-regulator; cannot claim for vcc-host1-5v-regulator
+  rockchip-pinctrl pinctrl: pin-2 (vcc-host1-5v-regulator) status -22
+  rockchip-pinctrl pinctrl: could not request pin 2 (gpio0-2) from group usb20-host-drv  on device rockchip-pinctrl
+  reg-fixed-voltage vcc-host1-5v-regulator: Error applying setting, reverse things back
+
+Looking at the schematic, there are in fact three USB regulators,
+vcc_host_5v, vcc_host1_5v and vcc_otg_v5. But the enable signal for all
+three is driven by Q2604 which is in turn driven by GPIO_A2/PA2.
+
+Since these three regulators are not controllable separately, I removed
+the second one which was causing the error and added labels for all
+rails to the single regulator.
+
+Signed-off-by: Lorenz Brun <lorenz@brun.one>
+Tested-by: Diederik de Haas <didi.debian@cknow.org>
+Link: https://lore.kernel.org/r/20230421213841.3079632-1-lorenz@brun.one
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3328-rock64.dts | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3328-rock64.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3328-rock64.dts
+@@ -37,7 +37,8 @@
+ 		vin-supply = <&vcc_io>;
+ 	};
+ 
+-	vcc_host_5v: vcc-host-5v-regulator {
++	/* Common enable line for all of the rails mentioned in the labels */
++	vcc_host_5v: vcc_host1_5v: vcc_otg_5v: vcc-host-5v-regulator {
+ 		compatible = "regulator-fixed";
+ 		gpio = <&gpio0 RK_PA2 GPIO_ACTIVE_LOW>;
+ 		pinctrl-names = "default";
+@@ -46,17 +47,6 @@
+ 		regulator-always-on;
+ 		regulator-boot-on;
+ 		vin-supply = <&vcc_sys>;
+-	};
+-
+-	vcc_host1_5v: vcc_otg_5v: vcc-host1-5v-regulator {
+-		compatible = "regulator-fixed";
+-		gpio = <&gpio0 RK_PA2 GPIO_ACTIVE_LOW>;
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&usb20_host_drv>;
+-		regulator-name = "vcc_host1_5v";
+-		regulator-always-on;
+-		regulator-boot-on;
+-		vin-supply = <&vcc_sys>;
+ 	};
+ 
+ 	vcc_sys: vcc-sys {
