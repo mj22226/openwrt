@@ -1,0 +1,37 @@
+From 47e612268ea02f7d2bcbaa47528698b5be61a8cf Mon Sep 17 00:00:00 2001
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 23 May 2023 13:32:35 +0200
+Subject: [PATCH 119/136] wifi: rtw89: use flexible array member in
+ rtw89_btc_btf_tlv
+
+struct rtw89_btc_btf_tlv contains a one-byte member that is intended as a
+flexible array:
+
+In function 'fortify_memcpy_chk',
+    inlined from '_append_tdma' at drivers/net/wireless/realtek/rtw89/coex.c:1579:3:
+include/linux/fortify-string.h:583:25: error: call to '__write_overflow_field' declared with attribute warning: detected write beyond size of field (1st parameter); maybe use struct_group()? [-Werror=attribute-warning]
+  583 |                         __write_overflow_field(p_size_field, size);
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Make this actually use a flexible array to let the compiler understand.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Ping-Ke Shih <pkshih@realtek.com>
+Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230523113241.2772811-1-arnd@kernel.org
+---
+ drivers/net/wireless/realtek/rtw89/coex.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/coex.c
++++ b/drivers/net/wireless/realtek/rtw89/coex.c
+@@ -206,7 +206,7 @@ static const struct rtw89_btc_ver rtw89_
+ struct rtw89_btc_btf_tlv {
+ 	u8 type;
+ 	u8 len;
+-	u8 val[1];
++	u8 val[];
+ } __packed;
+ 
+ enum btc_btf_set_report_en {

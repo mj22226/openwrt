@@ -1,0 +1,168 @@
+From 20595db3c0681cc034e50fbcba85a1e6cf3325b5 Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Tue, 14 Mar 2023 10:06:15 +0800
+Subject: [PATCH 019/136] wifi: rtw89: coex: Update RTL8852B LNA2 hardware
+ parameter
+
+The LNA gain didn't set before, it will lead some WiFi RX issue.
+And the setting can increase both of WiFi & BT performance while
+they are both RX.
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230314020617.28193-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h     |  3 +-
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c | 11 ++--
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 51 ++++++++++++++++++-
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 11 ++--
+ 4 files changed, 68 insertions(+), 8 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -2186,12 +2186,13 @@ struct rtw89_btc_dm {
+ 	u32 wl_stb_chg: 1;
+ 	u32 pta_owner: 1;
+ 	u32 tdma_instant_excute: 1;
+-	u32 rsvd: 1;
+ 
+ 	u16 slot_dur[CXST_MAX];
+ 
+ 	u8 run_reason;
+ 	u8 run_action;
++
++	u8 wl_lna2: 1;
+ };
+ 
+ struct rtw89_btc_ctrl {
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -1947,20 +1947,25 @@ static void rtw8852a_set_wl_lna2(struct
+ 
+ static void rtw8852a_btc_set_wl_rx_gain(struct rtw89_dev *rtwdev, u32 level)
+ {
++	struct rtw89_btc *btc = &rtwdev->btc;
++
+ 	switch (level) {
+ 	case 0: /* original */
++	default:
+ 		rtw8852a_bb_ctrl_btc_preagc(rtwdev, false);
+-		rtw8852a_set_wl_lna2(rtwdev, 0);
++		btc->dm.wl_lna2 = 0;
+ 		break;
+ 	case 1: /* for FDD free-run */
+ 		rtw8852a_bb_ctrl_btc_preagc(rtwdev, true);
+-		rtw8852a_set_wl_lna2(rtwdev, 0);
++		btc->dm.wl_lna2 = 0;
+ 		break;
+ 	case 2: /* for BTG Co-Rx*/
+ 		rtw8852a_bb_ctrl_btc_preagc(rtwdev, false);
+-		rtw8852a_set_wl_lna2(rtwdev, 1);
++		btc->dm.wl_lna2 = 1;
+ 		break;
+ 	}
++
++	rtw8852a_set_wl_lna2(rtwdev, btc->dm.wl_lna2);
+ }
+ 
+ static void rtw8852a_fill_freq_with_ppdu(struct rtw89_dev *rtwdev,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2284,15 +2284,64 @@ static void rtw8852b_btc_wl_s1_standby(s
+ 
+ 	/* set WL standby = Rx for GNT_BT_Tx = 1->0 settle issue */
+ 	if (state)
+-		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x579);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x179);
+ 	else
+ 		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x20);
+ 
+ 	rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWE, RFREG_MASK, 0x0);
+ }
+ 
++static void rtw8852b_btc_set_wl_lna2(struct rtw89_dev *rtwdev, u8 level)
++{
++	switch (level) {
++	case 0: /* default */
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWE, RFREG_MASK, 0x1000);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWA, RFREG_MASK, 0x0);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x15);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWA, RFREG_MASK, 0x1);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x17);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWA, RFREG_MASK, 0x2);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x15);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWA, RFREG_MASK, 0x3);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x17);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWE, RFREG_MASK, 0x0);
++		break;
++	case 1: /* Fix LNA2=5  */
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWE, RFREG_MASK, 0x1000);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWA, RFREG_MASK, 0x0);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x15);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWA, RFREG_MASK, 0x1);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x5);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWA, RFREG_MASK, 0x2);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x15);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWA, RFREG_MASK, 0x3);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWD0, RFREG_MASK, 0x5);
++		rtw89_write_rf(rtwdev, RF_PATH_B, RR_LUTWE, RFREG_MASK, 0x0);
++		break;
++	}
++}
++
+ static void rtw8852b_btc_set_wl_rx_gain(struct rtw89_dev *rtwdev, u32 level)
+ {
++	struct rtw89_btc *btc = &rtwdev->btc;
++
++	switch (level) {
++	case 0: /* original */
++	default:
++		rtw8852b_bb_ctrl_btc_preagc(rtwdev, false);
++		btc->dm.wl_lna2 = 0;
++		break;
++	case 1: /* for FDD free-run */
++		rtw8852b_bb_ctrl_btc_preagc(rtwdev, true);
++		btc->dm.wl_lna2 = 0;
++		break;
++	case 2: /* for BTG Co-Rx*/
++		rtw8852b_bb_ctrl_btc_preagc(rtwdev, false);
++		btc->dm.wl_lna2 = 1;
++		break;
++	}
++
++	rtw8852b_btc_set_wl_lna2(rtwdev, btc->dm.wl_lna2);
+ }
+ 
+ static void rtw8852b_fill_freq_with_ppdu(struct rtw89_dev *rtwdev,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2633,20 +2633,25 @@ static void rtw8852c_set_wl_lna2(struct
+ 
+ static void rtw8852c_btc_set_wl_rx_gain(struct rtw89_dev *rtwdev, u32 level)
+ {
++	struct rtw89_btc *btc = &rtwdev->btc;
++
+ 	switch (level) {
+ 	case 0: /* original */
++	default:
+ 		rtw8852c_bb_ctrl_btc_preagc(rtwdev, false);
+-		rtw8852c_set_wl_lna2(rtwdev, 0);
++		btc->dm.wl_lna2 = 0;
+ 		break;
+ 	case 1: /* for FDD free-run */
+ 		rtw8852c_bb_ctrl_btc_preagc(rtwdev, true);
+-		rtw8852c_set_wl_lna2(rtwdev, 0);
++		btc->dm.wl_lna2 = 0;
+ 		break;
+ 	case 2: /* for BTG Co-Rx*/
+ 		rtw8852c_bb_ctrl_btc_preagc(rtwdev, false);
+-		rtw8852c_set_wl_lna2(rtwdev, 1);
++		btc->dm.wl_lna2 = 1;
+ 		break;
+ 	}
++
++	rtw8852c_set_wl_lna2(rtwdev, btc->dm.wl_lna2);
+ }
+ 
+ static void rtw8852c_fill_freq_with_ppdu(struct rtw89_dev *rtwdev,

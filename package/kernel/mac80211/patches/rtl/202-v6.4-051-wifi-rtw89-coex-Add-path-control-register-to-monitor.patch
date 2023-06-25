@@ -1,0 +1,44 @@
+From 9fde30562840837e4e2138bc3f88dba2b9963d98 Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Wed, 12 Apr 2023 09:28:29 +0800
+Subject: [PATCH 051/136] wifi: rtw89: coex: Add path control register to
+ monitor list
+
+Chips use similar hardware for path control, but could different
+path/antenna configuration. Add these register to monitor, if there are
+wrong settings, these register can help to debug.
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230412012831.10519-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 4 +++-
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 3 +++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -364,7 +364,9 @@ static const struct rtw89_btc_fbtc_mreg
+ 	RTW89_DEF_FBTC_MREG(REG_MAC, 4, 0xd200),
+ 	RTW89_DEF_FBTC_MREG(REG_MAC, 4, 0xd220),
+ 	RTW89_DEF_FBTC_MREG(REG_BB, 4, 0x980),
+-	RTW89_DEF_FBTC_MREG(REG_BT_MODEM, 4, 0x178),
++	RTW89_DEF_FBTC_MREG(REG_BB, 4, 0x4738),
++	RTW89_DEF_FBTC_MREG(REG_BB, 4, 0x4688),
++	RTW89_DEF_FBTC_MREG(REG_BB, 4, 0x4694),
+ };
+ 
+ static const u8 rtw89_btc_8852b_wl_rssi_thres[BTC_WL_RSSI_THMAX] = {70, 60, 50, 40};
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2576,6 +2576,9 @@ static const struct rtw89_btc_fbtc_mreg
+ 	RTW89_DEF_FBTC_MREG(REG_MAC, 4, 0xd200),
+ 	RTW89_DEF_FBTC_MREG(REG_MAC, 4, 0xd220),
+ 	RTW89_DEF_FBTC_MREG(REG_BB, 4, 0x980),
++	RTW89_DEF_FBTC_MREG(REG_BB, 4, 0x4aa4),
++	RTW89_DEF_FBTC_MREG(REG_BB, 4, 0x4778),
++	RTW89_DEF_FBTC_MREG(REG_BB, 4, 0x476c),
+ };
+ 
+ static

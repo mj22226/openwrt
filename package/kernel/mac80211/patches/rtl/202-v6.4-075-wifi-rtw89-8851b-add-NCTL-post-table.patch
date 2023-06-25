@@ -1,0 +1,101 @@
+From a24be8bbcbd22cfa53134f6dd399f026874aaa72 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 21 Apr 2023 10:45:46 +0800
+Subject: [PATCH 075/136] wifi: rtw89: 8851b: add NCTL post table
+
+NCTL (nano-controller) is used to assist RF calibration that sends
+commands to NCTL so it can reduce IO from driver. 8851B needs additional
+settings, so add a table to do things.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230421024551.29994-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h     | 1 +
+ drivers/net/wireless/realtek/rtw89/phy.c      | 6 +++++-
+ drivers/net/wireless/realtek/rtw89/rtw8851b.c | 2 ++
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 1 +
+ 6 files changed, 11 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3192,6 +3192,7 @@ struct rtw89_chip_info {
+ 	const struct rtw89_phy_table *bb_gain_table;
+ 	const struct rtw89_phy_table *rf_table[RF_PATH_MAX];
+ 	const struct rtw89_phy_table *nctl_table;
++	const struct rtw89_rfk_tbl *nctl_post_table;
+ 	const struct rtw89_txpwr_table *byr_table;
+ 	const struct rtw89_phy_dig_gain_table *dig_table;
+ 	const struct rtw89_dig_regs *dig_regs;
+--- a/drivers/net/wireless/realtek/rtw89/phy.c
++++ b/drivers/net/wireless/realtek/rtw89/phy.c
+@@ -1401,7 +1401,8 @@ static void rtw89_phy_init_rf_nctl(struc
+ 	rtw89_phy_write32_set(rtwdev, R_IOQ_IQK_DPK, 0x3);
+ 	rtw89_phy_write32_set(rtwdev, R_GNT_BT_WGT_EN, 0x1);
+ 	rtw89_phy_write32_set(rtwdev, R_P0_PATH_RST, 0x8000000);
+-	rtw89_phy_write32_set(rtwdev, R_P1_PATH_RST, 0x8000000);
++	if (chip->chip_id != RTL8851B)
++		rtw89_phy_write32_set(rtwdev, R_P1_PATH_RST, 0x8000000);
+ 	if (chip->chip_id == RTL8852B)
+ 		rtw89_phy_write32_set(rtwdev, R_IOQ_IQK_DPK, 0x2);
+ 
+@@ -1415,6 +1416,9 @@ static void rtw89_phy_init_rf_nctl(struc
+ 
+ 	nctl_table = chip->nctl_table;
+ 	rtw89_phy_init_reg(rtwdev, nctl_table, rtw89_phy_config_bb_reg, NULL);
++
++	if (chip->nctl_post_table)
++		rtw89_rfk_parser(rtwdev, chip->nctl_post_table);
+ }
+ 
+ static u32 rtw89_phy0_phy1_offset(struct rtw89_dev *rtwdev, u32 addr)
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b.c
+@@ -8,6 +8,7 @@
+ #include "phy.h"
+ #include "reg.h"
+ #include "rtw8851b.h"
++#include "rtw8851b_rfk_table.h"
+ #include "rtw8851b_table.h"
+ #include "txrx.h"
+ #include "util.h"
+@@ -44,6 +45,7 @@ const struct rtw89_chip_info rtw8851b_ch
+ 	.bb_gain_table		= &rtw89_8851b_phy_bb_gain_table,
+ 	.rf_table		= {&rtw89_8851b_phy_radioa_table,},
+ 	.nctl_table		= &rtw89_8851b_phy_nctl_table,
++	.nctl_post_table	= &rtw8851b_nctl_post_defs_tbl,
+ 	.byr_table		= &rtw89_8851b_byr_table,
+ 	.dflt_parms		= &rtw89_8851b_dflt_parms,
+ 	.rfe_parms_conf		= rtw89_8851b_rfe_parms_conf,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -2085,6 +2085,7 @@ const struct rtw89_chip_info rtw8852a_ch
+ 	.rf_table		= {&rtw89_8852a_phy_radioa_table,
+ 				   &rtw89_8852a_phy_radiob_table,},
+ 	.nctl_table		= &rtw89_8852a_phy_nctl_table,
++	.nctl_post_table	= NULL,
+ 	.byr_table		= &rtw89_8852a_byr_table,
+ 	.dflt_parms		= &rtw89_8852a_dflt_parms,
+ 	.rfe_parms_conf		= NULL,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2522,6 +2522,7 @@ const struct rtw89_chip_info rtw8852b_ch
+ 	.rf_table		= {&rtw89_8852b_phy_radioa_table,
+ 				   &rtw89_8852b_phy_radiob_table,},
+ 	.nctl_table		= &rtw89_8852b_phy_nctl_table,
++	.nctl_post_table	= NULL,
+ 	.byr_table		= &rtw89_8852b_byr_table,
+ 	.dflt_parms		= &rtw89_8852b_dflt_parms,
+ 	.rfe_parms_conf		= NULL,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2821,6 +2821,7 @@ const struct rtw89_chip_info rtw8852c_ch
+ 	.rf_table		= {&rtw89_8852c_phy_radiob_table,
+ 				   &rtw89_8852c_phy_radioa_table,},
+ 	.nctl_table		= &rtw89_8852c_phy_nctl_table,
++	.nctl_post_table	= NULL,
+ 	.byr_table		= &rtw89_8852c_byr_table,
+ 	.dflt_parms		= &rtw89_8852c_dflt_parms,
+ 	.rfe_parms_conf		= NULL,

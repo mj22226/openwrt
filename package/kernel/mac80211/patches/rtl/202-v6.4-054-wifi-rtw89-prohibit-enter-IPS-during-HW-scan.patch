@@ -1,0 +1,30 @@
+From e579e943bac3b52f69a25738fcbd8be945f72689 Mon Sep 17 00:00:00 2001
+From: Chih-Kang Chang <gary.chang@realtek.com>
+Date: Sat, 15 Apr 2023 11:48:55 +0800
+Subject: [PATCH 054/136] wifi: rtw89: prohibit enter IPS during HW scan
+
+Mac80211 core may ask driver to change to idle mode during HW scan,
+then H2C command for HW scan will send failed since chip is in idle
+mode. Therefore, We check the SCANNING flag before entering IPS to
+prevent this behavior.
+
+Signed-off-by: Chih-Kang Chang <gary.chang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230415034900.15679-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/mac80211.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac80211.c
++++ b/drivers/net/wireless/realtek/rtw89/mac80211.c
+@@ -105,7 +105,8 @@ static int rtw89_ops_config(struct ieee8
+ 	}
+ 
+ 	if ((changed & IEEE80211_CONF_CHANGE_IDLE) &&
+-	    (hw->conf.flags & IEEE80211_CONF_IDLE))
++	    (hw->conf.flags & IEEE80211_CONF_IDLE) &&
++	    !rtwdev->scanning)
+ 		rtw89_enter_ips(rtwdev);
+ 
+ 	mutex_unlock(&rtwdev->mutex);

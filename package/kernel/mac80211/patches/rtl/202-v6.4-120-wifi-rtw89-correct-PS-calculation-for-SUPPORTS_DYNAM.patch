@@ -1,0 +1,117 @@
+From 26a125f550a3bf86ac91d38752f4d446426dfe1c Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Sat, 27 May 2023 16:29:38 +0800
+Subject: [PATCH 120/136] wifi: rtw89: correct PS calculation for
+ SUPPORTS_DYNAMIC_PS
+
+This driver relies on IEEE80211_CONF_PS of hw->conf.flags to turn off PS or
+turn on dynamic PS controlled by driver and firmware. Though this would be
+incorrect, it did work before because the flag is always recalculated until
+the commit 28977e790b5d ("wifi: mac80211: skip powersave recalc if driver SUPPORTS_DYNAMIC_PS")
+is introduced by kernel 5.20 to skip to recalculate IEEE80211_CONF_PS
+of hw->conf.flags if driver sets SUPPORTS_DYNAMIC_PS.
+
+Correct this by doing recalculation while BSS_CHANGED_PS is changed and
+interface is added or removed. For now, it is allowed to enter PS only if
+single one station vif is working, and it could possible to have PS per
+vif after firmware can support it. Without this fix, driver doesn't
+enter PS anymore that causes higher power consumption.
+
+Fixes: e3ec7017f6a2 ("rtw89: add Realtek 802.11ax driver")
+Cc: stable@vger.kernel.org # 6.1+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230527082939.11206-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/mac80211.c | 15 +++++------
+ drivers/net/wireless/realtek/rtw89/ps.c       | 26 +++++++++++++++++++
+ drivers/net/wireless/realtek/rtw89/ps.h       |  1 +
+ 3 files changed, 33 insertions(+), 9 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac80211.c
++++ b/drivers/net/wireless/realtek/rtw89/mac80211.c
+@@ -89,15 +89,6 @@ static int rtw89_ops_config(struct ieee8
+ 	    !(hw->conf.flags & IEEE80211_CONF_IDLE))
+ 		rtw89_leave_ips(rtwdev);
+ 
+-	if (changed & IEEE80211_CONF_CHANGE_PS) {
+-		if (hw->conf.flags & IEEE80211_CONF_PS) {
+-			rtwdev->lps_enabled = true;
+-		} else {
+-			rtw89_leave_lps(rtwdev);
+-			rtwdev->lps_enabled = false;
+-		}
+-	}
+-
+ 	if (changed & IEEE80211_CONF_CHANGE_CHANNEL) {
+ 		rtw89_config_entity_chandef(rtwdev, RTW89_SUB_ENTITY_0,
+ 					    &hw->conf.chandef);
+@@ -168,6 +159,8 @@ static int rtw89_ops_add_interface(struc
+ 	rtw89_core_txq_init(rtwdev, vif->txq);
+ 
+ 	rtw89_btc_ntfy_role_info(rtwdev, rtwvif, NULL, BTC_ROLE_START);
++
++	rtw89_recalc_lps(rtwdev);
+ out:
+ 	mutex_unlock(&rtwdev->mutex);
+ 
+@@ -192,6 +185,7 @@ static void rtw89_ops_remove_interface(s
+ 	rtw89_mac_remove_vif(rtwdev, rtwvif);
+ 	rtw89_core_release_bit_map(rtwdev->hw_port, rtwvif->port);
+ 	list_del_init(&rtwvif->list);
++	rtw89_recalc_lps(rtwdev);
+ 	rtw89_enter_ips_by_hwflags(rtwdev);
+ 
+ 	mutex_unlock(&rtwdev->mutex);
+@@ -451,6 +445,9 @@ static void rtw89_ops_bss_info_changed(s
+ 	if (changed & BSS_CHANGED_CQM)
+ 		rtw89_fw_h2c_set_bcn_fltr_cfg(rtwdev, vif, true);
+ 
++	if (changed & BSS_CHANGED_PS)
++		rtw89_recalc_lps(rtwdev);
++
+ 	mutex_unlock(&rtwdev->mutex);
+ }
+ 
+--- a/drivers/net/wireless/realtek/rtw89/ps.c
++++ b/drivers/net/wireless/realtek/rtw89/ps.c
+@@ -252,3 +252,29 @@ void rtw89_process_p2p_ps(struct rtw89_d
+ 	rtw89_p2p_disable_all_noa(rtwdev, vif);
+ 	rtw89_p2p_update_noa(rtwdev, vif);
+ }
++
++void rtw89_recalc_lps(struct rtw89_dev *rtwdev)
++{
++	struct ieee80211_vif *vif, *found_vif = NULL;
++	struct rtw89_vif *rtwvif;
++	int count = 0;
++
++	rtw89_for_each_rtwvif(rtwdev, rtwvif) {
++		vif = rtwvif_to_vif(rtwvif);
++
++		if (vif->type != NL80211_IFTYPE_STATION) {
++			count = 0;
++			break;
++		}
++
++		count++;
++		found_vif = vif;
++	}
++
++	if (count == 1 && found_vif->cfg.ps) {
++		rtwdev->lps_enabled = true;
++	} else {
++		rtw89_leave_lps(rtwdev);
++		rtwdev->lps_enabled = false;
++	}
++}
+--- a/drivers/net/wireless/realtek/rtw89/ps.h
++++ b/drivers/net/wireless/realtek/rtw89/ps.h
+@@ -15,6 +15,7 @@ void rtw89_enter_ips(struct rtw89_dev *r
+ void rtw89_leave_ips(struct rtw89_dev *rtwdev);
+ void rtw89_set_coex_ctrl_lps(struct rtw89_dev *rtwdev, bool btc_ctrl);
+ void rtw89_process_p2p_ps(struct rtw89_dev *rtwdev, struct ieee80211_vif *vif);
++void rtw89_recalc_lps(struct rtw89_dev *rtwdev);
+ 
+ static inline void rtw89_leave_ips_by_hwflags(struct rtw89_dev *rtwdev)
+ {

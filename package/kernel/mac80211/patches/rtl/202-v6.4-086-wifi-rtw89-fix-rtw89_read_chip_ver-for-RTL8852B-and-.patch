@@ -1,0 +1,32 @@
+From 9d4f491b860ea6d04471c3342093b86a46eee63e Mon Sep 17 00:00:00 2001
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Date: Fri, 21 Apr 2023 13:44:04 +0300
+Subject: [PATCH 086/136] wifi: rtw89: fix rtw89_read_chip_ver() for RTL8852B
+ and RTL8851B
+
+The if statement is reversed so it will not record the chip version.
+This was detected using Smatch:
+
+    drivers/net/wireless/realtek/rtw89/core.c:3593 rtw89_read_chip_ver()
+    error: uninitialized symbol 'val'.
+
+Fixes: a6fb2bb84654 ("wifi: rtw89: read version of analog hardware")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Acked-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/e4d912a2-37f8-4068-8861-7b9494ae731b@kili.mountain
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -3668,7 +3668,7 @@ static void rtw89_read_chip_ver(struct r
+ 
+ 	if (chip->chip_id == RTL8852B || chip->chip_id == RTL8851B) {
+ 		ret = rtw89_mac_read_xtal_si(rtwdev, XTAL_SI_CV, &val);
+-		if (!ret)
++		if (ret)
+ 			return;
+ 
+ 		rtwdev->hal.acv = u8_get_bits(val, XTAL_SI_ACV_MASK);

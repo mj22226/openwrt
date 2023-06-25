@@ -1,0 +1,58 @@
+From 32bb12eb73dceeb78c04a46c333f6f319cf1cebd Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Wed, 19 Apr 2023 11:46:01 +0000
+Subject: [PATCH 071/136] wifi: rtw89: mac: handle C2H receive/done ACK in
+ interrupt context
+
+We have some MAC H2Cs (host to chip packets), which have no clear
+individual C2Hs (chip to host packets) to indicate FW execution
+response, but they are going to require to wait for FW completion.
+So, we have to deal with this via common MAC C2H receive/done ACKs.
+
+This commit changes the context, where common MAC C2H receive/done
+ACK handlers are executed, to interrupt context. And, code comments
+are added to prevent future commits from using it incorrectly.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/c4d766885e00b9f9dcf7954a80096c8b9d21149b.camel@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/mac.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -4336,6 +4336,8 @@ rtw89_mac_c2h_bcn_fltr_rpt(struct rtw89_
+ static void
+ rtw89_mac_c2h_rec_ack(struct rtw89_dev *rtwdev, struct sk_buff *c2h, u32 len)
+ {
++	/* N.B. This will run in interrupt context. */
++
+ 	rtw89_debug(rtwdev, RTW89_DBG_FW,
+ 		    "C2H rev ack recv, cat: %d, class: %d, func: %d, seq : %d\n",
+ 		    RTW89_GET_MAC_C2H_REV_ACK_CAT(c2h->data),
+@@ -4347,6 +4349,8 @@ rtw89_mac_c2h_rec_ack(struct rtw89_dev *
+ static void
+ rtw89_mac_c2h_done_ack(struct rtw89_dev *rtwdev, struct sk_buff *c2h, u32 len)
+ {
++	/* N.B. This will run in interrupt context. */
++
+ 	rtw89_debug(rtwdev, RTW89_DBG_FW,
+ 		    "C2H done ack recv, cat: %d, class: %d, func: %d, ret: %d, seq : %d\n",
+ 		    RTW89_GET_MAC_C2H_DONE_ACK_CAT(c2h->data),
+@@ -4592,6 +4596,14 @@ bool rtw89_mac_c2h_chk_atomic(struct rtw
+ 	switch (class) {
+ 	default:
+ 		return false;
++	case RTW89_MAC_C2H_CLASS_INFO:
++		switch (func) {
++		default:
++			return false;
++		case RTW89_MAC_C2H_FUNC_REC_ACK:
++		case RTW89_MAC_C2H_FUNC_DONE_ACK:
++			return true;
++		}
+ 	case RTW89_MAC_C2H_CLASS_OFLD:
+ 		switch (func) {
+ 		default:

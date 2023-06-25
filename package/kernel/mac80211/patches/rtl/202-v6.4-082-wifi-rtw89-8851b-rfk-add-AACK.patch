@@ -1,0 +1,103 @@
+From 27d5559fd169676496c65a1d07678115c90dfd34 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Mon, 24 Apr 2023 14:52:39 +0800
+Subject: [PATCH 082/136] wifi: rtw89: 8851b: rfk: add AACK
+
+Automatic amplitude control calibration (AACK) is the calibration to ensure
+the oscillator is biased for a constant output amplitude. We do this
+calibration if card does power on.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230424065242.17477-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/reg.h      |  6 +++
+ .../net/wireless/realtek/rtw89/rtw8851b_rfk.c | 42 +++++++++++++++++++
+ .../net/wireless/realtek/rtw89/rtw8851b_rfk.h |  1 +
+ 3 files changed, 49 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/reg.h
++++ b/drivers/net/wireless/realtek/rtw89/reg.h
+@@ -3782,15 +3782,21 @@
+ #define RR_LOGEN 0xa3
+ #define RR_LOGEN_RPT GENMASK(19, 16)
+ #define RR_SX 0xaf
++#define RR_IBD 0xc9
++#define RR_IBD_VAL GENMASK(4, 0)
+ #define RR_LDO 0xb1
+ #define RR_LDO_SEL GENMASK(8, 6)
+ #define RR_VCO 0xb2
++#define RR_VCO_SEL GENMASK(9, 8)
++#define RR_VCI 0xb3
++#define RR_VCI_ON BIT(7)
+ #define RR_LPF 0xb7
+ #define RR_LPF_BUSY BIT(8)
+ #define RR_XTALX2 0xb8
+ #define RR_MALSEL 0xbe
+ #define RR_SYNFB 0xc5
+ #define RR_SYNFB_LK BIT(15)
++#define RR_AACK 0xca
+ #define RR_LCKST 0xcf
+ #define RR_LCKST_BIN BIT(0)
+ #define RR_LCK_TRG 0xd3
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c
+@@ -17,6 +17,48 @@ static u8 _kpath(struct rtw89_dev *rtwde
+ 	return RF_A;
+ }
+ 
++void rtw8851b_aack(struct rtw89_dev *rtwdev)
++{
++	u32 tmp05, ib[4];
++	u32 tmp;
++	int ret;
++	int rek;
++	int i;
++
++	rtw89_debug(rtwdev, RTW89_DBG_RFK, "[LCK]DO AACK\n");
++
++	tmp05 = rtw89_read_rf(rtwdev, RF_PATH_A, RR_RSV1, RFREG_MASK);
++	rtw89_write_rf(rtwdev, RF_PATH_A, RR_MOD, RR_MOD_MASK, 0x3);
++	rtw89_write_rf(rtwdev, RF_PATH_A, RR_RSV1, RFREG_MASK, 0x0);
++
++	for (rek = 0; rek < 4; rek++) {
++		rtw89_write_rf(rtwdev, RF_PATH_A, RR_AACK, RFREG_MASK, 0x8201e);
++		rtw89_write_rf(rtwdev, RF_PATH_A, RR_AACK, RFREG_MASK, 0x8201f);
++		fsleep(100);
++
++		ret = read_poll_timeout_atomic(rtw89_read_rf, tmp, tmp,
++					       1, 1000, false,
++					       rtwdev, RF_PATH_A, 0xd0, BIT(16));
++		if (ret)
++			rtw89_warn(rtwdev, "[LCK]AACK timeout\n");
++
++		rtw89_write_rf(rtwdev, RF_PATH_A, RR_VCI, RR_VCI_ON, 0x1);
++		for (i = 0; i < 4; i++) {
++			rtw89_write_rf(rtwdev, RF_PATH_A, RR_VCO, RR_VCO_SEL, i);
++			ib[i] = rtw89_read_rf(rtwdev, RF_PATH_A, RR_IBD, RR_IBD_VAL);
++		}
++		rtw89_write_rf(rtwdev, RF_PATH_A, RR_VCI, RR_VCI_ON, 0x0);
++
++		if (ib[0] != 0 && ib[1] != 0 && ib[2] != 0 && ib[3] != 0)
++			break;
++	}
++
++	if (rek != 0)
++		rtw89_debug(rtwdev, RTW89_DBG_RFK, "[LCK]AACK rek = %d\n", rek);
++
++	rtw89_write_rf(rtwdev, RF_PATH_A, RR_RSV1, RFREG_MASK, tmp05);
++}
++
+ static void _bw_setting(struct rtw89_dev *rtwdev, enum rtw89_rf_path path,
+ 			enum rtw89_bandwidth bw, bool dav)
+ {
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.h
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.h
+@@ -7,6 +7,7 @@
+ 
+ #include "core.h"
+ 
++void rtw8851b_aack(struct rtw89_dev *rtwdev);
+ void rtw8851b_set_channel_rf(struct rtw89_dev *rtwdev,
+ 			     const struct rtw89_chan *chan,
+ 			     enum rtw89_phy_idx phy_idx);

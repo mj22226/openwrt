@@ -1,0 +1,76 @@
+From 9805500606c256cf61ef73a767d7e797fe5ba18e Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Tue, 18 Apr 2023 09:28:14 +0800
+Subject: [PATCH 061/136] wifi: rtw89: use struct rtw89_phy_sts_ie0 instead of
+ macro to access PHY IE0 status
+
+To be more clear to know where it gets information from PHY IE0 data,
+change to use struct and standard le32_get_bits() to access. This doesn't
+change logic at all.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230418012820.5139-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 15 ++++++++++-----
+ drivers/net/wireless/realtek/rtw89/txrx.h | 16 ++++++++++------
+ 2 files changed, 20 insertions(+), 11 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -1277,9 +1277,11 @@ static u16 rtw89_core_get_phy_status_ie_
+ static void rtw89_core_parse_phy_status_ie01(struct rtw89_dev *rtwdev, u8 *addr,
+ 					     struct rtw89_rx_phy_ppdu *phy_ppdu)
+ {
++	const struct rtw89_phy_sts_ie0 *ie = (const struct rtw89_phy_sts_ie0 *)addr;
+ 	s16 cfo;
++	u32 t;
+ 
+-	phy_ppdu->chan_idx = RTW89_GET_PHY_STS_IE01_CH_IDX(addr);
++	phy_ppdu->chan_idx = le32_get_bits(ie->w0, RTW89_PHY_STS_IE01_W0_CH_IDX);
+ 	if (phy_ppdu->rate < RTW89_HW_RATE_OFDM6)
+ 		return;
+ 
+@@ -1287,10 +1289,13 @@ static void rtw89_core_parse_phy_status_
+ 		return;
+ 
+ 	/* sign conversion for S(12,2) */
+-	if (rtwdev->chip->cfo_src_fd)
+-		cfo = sign_extend32(RTW89_GET_PHY_STS_IE01_FD_CFO(addr), 11);
+-	else
+-		cfo = sign_extend32(RTW89_GET_PHY_STS_IE01_PREMB_CFO(addr), 11);
++	if (rtwdev->chip->cfo_src_fd) {
++		t = le32_get_bits(ie->w1, RTW89_PHY_STS_IE01_W1_FD_CFO);
++		cfo = sign_extend32(t, 11);
++	} else {
++		t = le32_get_bits(ie->w1, RTW89_PHY_STS_IE01_W1_PREMB_CFO);
++		cfo = sign_extend32(t, 11);
++	}
+ 
+ 	rtw89_phy_cfo_parse(rtwdev, cfo, phy_ppdu);
+ }
+--- a/drivers/net/wireless/realtek/rtw89/txrx.h
++++ b/drivers/net/wireless/realtek/rtw89/txrx.h
+@@ -298,12 +298,16 @@
+ 	le32_get_bits(*((const __le32 *)ie), GENMASK(4, 0))
+ #define RTW89_GET_PHY_STS_IE_LEN(ie) \
+ 	le32_get_bits(*((const __le32 *)ie), GENMASK(11, 5))
+-#define RTW89_GET_PHY_STS_IE01_CH_IDX(ie) \
+-	le32_get_bits(*((const __le32 *)ie), GENMASK(23, 16))
+-#define RTW89_GET_PHY_STS_IE01_FD_CFO(ie) \
+-	le32_get_bits(*((const __le32 *)(ie) + 1), GENMASK(19, 8))
+-#define RTW89_GET_PHY_STS_IE01_PREMB_CFO(ie) \
+-	le32_get_bits(*((const __le32 *)(ie) + 1), GENMASK(31, 20))
++
++struct rtw89_phy_sts_ie0 {
++	__le32 w0;
++	__le32 w1;
++	__le32 w2;
++} __packed;
++
++#define RTW89_PHY_STS_IE01_W0_CH_IDX GENMASK(23, 16)
++#define RTW89_PHY_STS_IE01_W1_FD_CFO GENMASK(19, 8)
++#define RTW89_PHY_STS_IE01_W1_PREMB_CFO GENMASK(31, 20)
+ 
+ enum rtw89_tx_channel {
+ 	RTW89_TXCH_ACH0	= 0,

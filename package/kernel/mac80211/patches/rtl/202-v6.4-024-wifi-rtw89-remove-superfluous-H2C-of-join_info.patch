@@ -1,0 +1,47 @@
+From 41209362d700f868ae7f0f30dc7634d0e0026880 Mon Sep 17 00:00:00 2001
+From: Chin-Yen Lee <timlee@realtek.com>
+Date: Mon, 20 Mar 2023 17:31:11 +0800
+Subject: [PATCH 024/136] wifi: rtw89: remove superfluous H2C of join_info
+
+We find that when starting WoWLAN, the second join_info H2C is
+unnecessary and leads WoWLAN not enter power save mode if using new
+firmware, so remove it.
+
+Signed-off-by: Chin-Yen Lee <timlee@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230320093112.30466-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/wow.c | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/wow.c
++++ b/drivers/net/wireless/realtek/rtw89/wow.c
+@@ -420,14 +420,11 @@ static int rtw89_wow_cfg_wake(struct rtw
+ 	struct rtw89_vif *rtwvif = (struct rtw89_vif *)wow_vif->drv_priv;
+ 	struct ieee80211_sta *wow_sta;
+ 	struct rtw89_sta *rtwsta = NULL;
+-	bool is_conn = true;
+ 	int ret;
+ 
+ 	wow_sta = ieee80211_find_sta(wow_vif, rtwvif->bssid);
+ 	if (wow_sta)
+ 		rtwsta = (struct rtw89_sta *)wow_sta->drv_priv;
+-	else
+-		is_conn = false;
+ 
+ 	if (wow) {
+ 		if (rtw_wow->pattern_cnt)
+@@ -454,12 +451,6 @@ static int rtw89_wow_cfg_wake(struct rtw
+ 		}
+ 	}
+ 
+-	ret = rtw89_fw_h2c_join_info(rtwdev, rtwvif, rtwsta, !is_conn);
+-	if (ret) {
+-		rtw89_warn(rtwdev, "failed to send h2c join info\n");
+-		return ret;
+-	}
+-
+ 	ret = rtw89_fw_h2c_cam(rtwdev, rtwvif, rtwsta, NULL);
+ 	if (ret) {
+ 		rtw89_warn(rtwdev, "failed to send h2c cam\n");

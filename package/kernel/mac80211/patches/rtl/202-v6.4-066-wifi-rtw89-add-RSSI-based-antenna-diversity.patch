@@ -1,0 +1,345 @@
+From e3715859c75322fae560c46384f944006f367515 Mon Sep 17 00:00:00 2001
+From: Eric Huang <echuang@realtek.com>
+Date: Tue, 18 Apr 2023 09:28:19 +0800
+Subject: [PATCH 066/136] wifi: rtw89: add RSSI based antenna diversity
+
+RSSI statistics are grouped by CCK, OFDM or non-legacy rate. These
+statistics will be collected in training state for both (main/aux)
+antenna. There is a time period (ANTDIV_DELAY) for rate adaptive
+settle down before start collect statistics when switch antenna.
+
+Antenna diversity checks packet count from training state for each
+group and use the most one as the final RSSI for comparison, and
+then choose the better one as target antenna.
+
+Signed-off-by: Eric Huang <echuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230418012820.5139-7-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c |   5 +
+ drivers/net/wireless/realtek/rtw89/core.h |  20 +++
+ drivers/net/wireless/realtek/rtw89/phy.c  | 177 ++++++++++++++++++++++
+ drivers/net/wireless/realtek/rtw89/phy.h  |  12 ++
+ 4 files changed, 214 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -1391,6 +1391,8 @@ static int rtw89_core_rx_parse_phy_sts(s
+ 		}
+ 	}
+ 
++	rtw89_phy_antdiv_parse(rtwdev, phy_ppdu);
++
+ 	return 0;
+ }
+ 
+@@ -2628,6 +2630,7 @@ static void rtw89_track_work(struct work
+ 	rtw89_phy_ra_update(rtwdev);
+ 	rtw89_phy_cfo_track(rtwdev);
+ 	rtw89_phy_tx_path_div_track(rtwdev);
++	rtw89_phy_antdiv_track(rtwdev);
+ 	rtw89_phy_ul_tb_ctrl_track(rtwdev);
+ 
+ 	if (rtwdev->lps_enabled && !rtwdev->btc.lps)
+@@ -3482,6 +3485,7 @@ void rtw89_core_stop(struct rtw89_dev *r
+ 	cancel_delayed_work_sync(&rtwdev->coex_rfk_chk_work);
+ 	cancel_delayed_work_sync(&rtwdev->cfo_track_work);
+ 	cancel_delayed_work_sync(&rtwdev->forbid_ba_work);
++	cancel_delayed_work_sync(&rtwdev->antdiv_work);
+ 
+ 	mutex_lock(&rtwdev->mutex);
+ 
+@@ -3517,6 +3521,7 @@ int rtw89_core_init(struct rtw89_dev *rt
+ 	INIT_DELAYED_WORK(&rtwdev->coex_rfk_chk_work, rtw89_coex_rfk_chk_work);
+ 	INIT_DELAYED_WORK(&rtwdev->cfo_track_work, rtw89_phy_cfo_track_work);
+ 	INIT_DELAYED_WORK(&rtwdev->forbid_ba_work, rtw89_forbid_ba_work);
++	INIT_DELAYED_WORK(&rtwdev->antdiv_work, rtw89_phy_antdiv_work);
+ 	rtwdev->txq_wq = alloc_workqueue("rtw89_tx_wq", WQ_UNBOUND | WQ_HIGHPRI, 0);
+ 	if (!rtwdev->txq_wq)
+ 		return -ENOMEM;
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3127,6 +3127,24 @@ struct rtw89_phy_ul_tb_info {
+ 	u8 def_if_bandedge;
+ };
+ 
++struct rtw89_antdiv_stats {
++	struct ewma_rssi cck_rssi_avg;
++	struct ewma_rssi ofdm_rssi_avg;
++	struct ewma_rssi non_legacy_rssi_avg;
++	u16 pkt_cnt_cck;
++	u16 pkt_cnt_ofdm;
++	u16 pkt_cnt_non_legacy;
++};
++
++struct rtw89_antdiv_info {
++	struct rtw89_antdiv_stats target_stats;
++	struct rtw89_antdiv_stats main_stats;
++	struct rtw89_antdiv_stats aux_stats;
++	u8 training_count;
++	u8 rssi_pre;
++	bool get_stats;
++};
++
+ struct rtw89_chip_info {
+ 	enum rtw89_core_chip_id chip_id;
+ 	const struct rtw89_chip_ops *ops;
+@@ -4099,6 +4117,7 @@ struct rtw89_dev {
+ 	struct rtw89_phy_bb_gain_info bb_gain;
+ 	struct rtw89_phy_efuse_gain efuse_gain;
+ 	struct rtw89_phy_ul_tb_info ul_tb_info;
++	struct rtw89_antdiv_info antdiv;
+ 
+ 	struct delayed_work track_work;
+ 	struct delayed_work coex_act1_work;
+@@ -4107,6 +4126,7 @@ struct rtw89_dev {
+ 	struct delayed_work cfo_track_work;
+ 	struct delayed_work forbid_ba_work;
+ 	struct delayed_work roc_work;
++	struct delayed_work antdiv_work;
+ 	struct rtw89_ppdu_sts_info ppdu_sts;
+ 	u8 total_sta_assoc;
+ 	bool scanning;
+--- a/drivers/net/wireless/realtek/rtw89/phy.c
++++ b/drivers/net/wireless/realtek/rtw89/phy.c
+@@ -10,6 +10,7 @@
+ #include "ps.h"
+ #include "reg.h"
+ #include "sar.h"
++#include "txrx.h"
+ #include "util.h"
+ 
+ static u16 get_max_amsdu_len(struct rtw89_dev *rtwdev,
+@@ -2946,6 +2947,67 @@ static void rtw89_phy_ul_tb_info_init(st
+ 		rtw89_phy_read32_mask(rtwdev, R_BANDEDGE, B_BANDEDGE_EN);
+ }
+ 
++static
++void rtw89_phy_antdiv_sts_instance_reset(struct rtw89_antdiv_stats *antdiv_sts)
++{
++	ewma_rssi_init(&antdiv_sts->cck_rssi_avg);
++	ewma_rssi_init(&antdiv_sts->ofdm_rssi_avg);
++	ewma_rssi_init(&antdiv_sts->non_legacy_rssi_avg);
++	antdiv_sts->pkt_cnt_cck = 0;
++	antdiv_sts->pkt_cnt_ofdm = 0;
++	antdiv_sts->pkt_cnt_non_legacy = 0;
++}
++
++static void rtw89_phy_antdiv_sts_instance_add(struct rtw89_dev *rtwdev,
++					      struct rtw89_rx_phy_ppdu *phy_ppdu,
++					      struct rtw89_antdiv_stats *stats)
++{
++	if (GET_DATA_RATE_MODE(phy_ppdu->rate) == DATA_RATE_MODE_NON_HT) {
++		if (phy_ppdu->rate < RTW89_HW_RATE_OFDM6) {
++			ewma_rssi_add(&stats->cck_rssi_avg, phy_ppdu->rssi_avg);
++			stats->pkt_cnt_cck++;
++		} else {
++			ewma_rssi_add(&stats->ofdm_rssi_avg, phy_ppdu->rssi_avg);
++			stats->pkt_cnt_ofdm++;
++		}
++	} else {
++		ewma_rssi_add(&stats->non_legacy_rssi_avg, phy_ppdu->rssi_avg);
++		stats->pkt_cnt_non_legacy++;
++	}
++}
++
++static u8 rtw89_phy_antdiv_sts_instance_get_rssi(struct rtw89_antdiv_stats *stats)
++{
++	if (stats->pkt_cnt_non_legacy >= stats->pkt_cnt_cck &&
++	    stats->pkt_cnt_non_legacy >= stats->pkt_cnt_ofdm)
++		return ewma_rssi_read(&stats->non_legacy_rssi_avg);
++	else if (stats->pkt_cnt_ofdm >= stats->pkt_cnt_cck &&
++		 stats->pkt_cnt_ofdm >= stats->pkt_cnt_non_legacy)
++		return ewma_rssi_read(&stats->ofdm_rssi_avg);
++	else
++		return ewma_rssi_read(&stats->cck_rssi_avg);
++}
++
++void rtw89_phy_antdiv_parse(struct rtw89_dev *rtwdev,
++			    struct rtw89_rx_phy_ppdu *phy_ppdu)
++{
++	struct rtw89_antdiv_info *antdiv = &rtwdev->antdiv;
++	struct rtw89_hal *hal = &rtwdev->hal;
++
++	if (!hal->ant_diversity || hal->ant_diversity_fixed)
++		return;
++
++	rtw89_phy_antdiv_sts_instance_add(rtwdev, phy_ppdu, &antdiv->target_stats);
++
++	if (!antdiv->get_stats)
++		return;
++
++	if (hal->antenna_rx == RF_A)
++		rtw89_phy_antdiv_sts_instance_add(rtwdev, phy_ppdu, &antdiv->main_stats);
++	else if (hal->antenna_rx == RF_B)
++		rtw89_phy_antdiv_sts_instance_add(rtwdev, phy_ppdu, &antdiv->aux_stats);
++}
++
+ static void rtw89_phy_antdiv_reg_init(struct rtw89_dev *rtwdev)
+ {
+ 	rtw89_phy_write32_idx(rtwdev, R_P0_TRSW, B_P0_ANT_TRAIN_EN,
+@@ -2974,13 +3036,26 @@ static void rtw89_phy_antdiv_reg_init(st
+ 			      0x0, RTW89_PHY_0);
+ }
+ 
++static void rtw89_phy_antdiv_sts_reset(struct rtw89_dev *rtwdev)
++{
++	struct rtw89_antdiv_info *antdiv = &rtwdev->antdiv;
++
++	rtw89_phy_antdiv_sts_instance_reset(&antdiv->target_stats);
++	rtw89_phy_antdiv_sts_instance_reset(&antdiv->main_stats);
++	rtw89_phy_antdiv_sts_instance_reset(&antdiv->aux_stats);
++}
++
+ static void rtw89_phy_antdiv_init(struct rtw89_dev *rtwdev)
+ {
++	struct rtw89_antdiv_info *antdiv = &rtwdev->antdiv;
+ 	struct rtw89_hal *hal = &rtwdev->hal;
+ 
+ 	if (!hal->ant_diversity)
+ 		return;
+ 
++	antdiv->get_stats = false;
++	antdiv->rssi_pre = 0;
++	rtw89_phy_antdiv_sts_reset(rtwdev);
+ 	rtw89_phy_antdiv_reg_init(rtwdev);
+ }
+ 
+@@ -4181,6 +4256,108 @@ static void rtw89_phy_antdiv_set_ant(str
+ 			      default_ant, RTW89_PHY_0);
+ }
+ 
++static void rtw89_phy_swap_hal_antenna(struct rtw89_dev *rtwdev)
++{
++	struct rtw89_hal *hal = &rtwdev->hal;
++
++	hal->antenna_rx = hal->antenna_rx == RF_A ? RF_B : RF_A;
++	hal->antenna_tx = hal->antenna_rx;
++}
++
++static void rtw89_phy_antdiv_decision_state(struct rtw89_dev *rtwdev)
++{
++	struct rtw89_antdiv_info *antdiv = &rtwdev->antdiv;
++	struct rtw89_hal *hal = &rtwdev->hal;
++	bool no_change = false;
++	u8 main_rssi, aux_rssi;
++	u32 candidate;
++
++	antdiv->get_stats = false;
++	antdiv->training_count = 0;
++
++	main_rssi = rtw89_phy_antdiv_sts_instance_get_rssi(&antdiv->main_stats);
++	aux_rssi = rtw89_phy_antdiv_sts_instance_get_rssi(&antdiv->aux_stats);
++
++	if (main_rssi > aux_rssi + RTW89_TX_DIV_RSSI_RAW_TH)
++		candidate = RF_A;
++	else if (aux_rssi > main_rssi + RTW89_TX_DIV_RSSI_RAW_TH)
++		candidate = RF_B;
++	else
++		no_change = true;
++
++	if (no_change) {
++		/* swap back from training antenna to original */
++		rtw89_phy_swap_hal_antenna(rtwdev);
++		return;
++	}
++
++	hal->antenna_tx = candidate;
++	hal->antenna_rx = candidate;
++}
++
++static void rtw89_phy_antdiv_training_state(struct rtw89_dev *rtwdev)
++{
++	struct rtw89_antdiv_info *antdiv = &rtwdev->antdiv;
++	u64 state_period;
++
++	if (antdiv->training_count % 2 == 0) {
++		if (antdiv->training_count == 0)
++			rtw89_phy_antdiv_sts_reset(rtwdev);
++
++		antdiv->get_stats = true;
++		state_period = msecs_to_jiffies(ANTDIV_TRAINNING_INTVL);
++	} else {
++		antdiv->get_stats = false;
++		state_period = msecs_to_jiffies(ANTDIV_DELAY);
++
++		rtw89_phy_swap_hal_antenna(rtwdev);
++		rtw89_phy_antdiv_set_ant(rtwdev);
++	}
++
++	antdiv->training_count++;
++	ieee80211_queue_delayed_work(rtwdev->hw, &rtwdev->antdiv_work,
++				     state_period);
++}
++
++void rtw89_phy_antdiv_work(struct work_struct *work)
++{
++	struct rtw89_dev *rtwdev = container_of(work, struct rtw89_dev,
++						antdiv_work.work);
++	struct rtw89_antdiv_info *antdiv = &rtwdev->antdiv;
++
++	mutex_lock(&rtwdev->mutex);
++
++	if (antdiv->training_count <= ANTDIV_TRAINNING_CNT) {
++		rtw89_phy_antdiv_training_state(rtwdev);
++	} else {
++		rtw89_phy_antdiv_decision_state(rtwdev);
++		rtw89_phy_antdiv_set_ant(rtwdev);
++	}
++
++	mutex_unlock(&rtwdev->mutex);
++}
++
++void rtw89_phy_antdiv_track(struct rtw89_dev *rtwdev)
++{
++	struct rtw89_antdiv_info *antdiv = &rtwdev->antdiv;
++	struct rtw89_hal *hal = &rtwdev->hal;
++	u8 rssi, rssi_pre;
++
++	if (!hal->ant_diversity || hal->ant_diversity_fixed)
++		return;
++
++	rssi = rtw89_phy_antdiv_sts_instance_get_rssi(&antdiv->target_stats);
++	rssi_pre = antdiv->rssi_pre;
++	antdiv->rssi_pre = rssi;
++	rtw89_phy_antdiv_sts_instance_reset(&antdiv->target_stats);
++
++	if (abs((int)rssi - (int)rssi_pre) < ANTDIV_RSSI_DIFF_TH)
++		return;
++
++	antdiv->training_count = 0;
++	ieee80211_queue_delayed_work(rtwdev->hw, &rtwdev->antdiv_work, 0);
++}
++
+ static void rtw89_phy_env_monitor_init(struct rtw89_dev *rtwdev)
+ {
+ 	rtw89_phy_ccx_top_setting_init(rtwdev);
+--- a/drivers/net/wireless/realtek/rtw89/phy.h
++++ b/drivers/net/wireless/realtek/rtw89/phy.h
+@@ -67,6 +67,14 @@
+ #define UL_TB_TF_CNT_L2H_TH 100
+ #define UL_TB_TF_CNT_H2L_TH 70
+ 
++#define ANTDIV_TRAINNING_CNT 2
++#define ANTDIV_TRAINNING_INTVL 30
++#define ANTDIV_DELAY 110
++#define ANTDIV_TP_DIFF_TH_HIGH 100
++#define ANTDIV_TP_DIFF_TH_LOW 5
++#define ANTDIV_EVM_DIFF_TH 8
++#define ANTDIV_RSSI_DIFF_TH 3
++
+ #define CCX_MAX_PERIOD 2097
+ #define CCX_MAX_PERIOD_UNIT 32
+ #define MS_TO_4US_RATIO 250
+@@ -549,6 +557,10 @@ void rtw89_phy_set_phy_regs(struct rtw89
+ void rtw89_phy_dig_reset(struct rtw89_dev *rtwdev);
+ void rtw89_phy_dig(struct rtw89_dev *rtwdev);
+ void rtw89_phy_tx_path_div_track(struct rtw89_dev *rtwdev);
++void rtw89_phy_antdiv_parse(struct rtw89_dev *rtwdev,
++			    struct rtw89_rx_phy_ppdu *phy_ppdu);
++void rtw89_phy_antdiv_track(struct rtw89_dev *rtwdev);
++void rtw89_phy_antdiv_work(struct work_struct *work);
+ void rtw89_phy_set_bss_color(struct rtw89_dev *rtwdev, struct ieee80211_vif *vif);
+ void rtw89_phy_tssi_ctrl_set_bandedge_cfg(struct rtw89_dev *rtwdev,
+ 					  enum rtw89_mac_idx mac_idx,

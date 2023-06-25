@@ -1,0 +1,164 @@
+From b6335d91607d6297d3f586e8a4dc6ce8f90652e7 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 21 Apr 2023 10:45:49 +0800
+Subject: [PATCH 078/136] wifi: rtw89: change naming of BA CAM from V1 to
+ V0_EXT
+
+BA CAM of 8852C has more entries and more fields of H2C, and needs
+initialization before using. Due to differences from 8852A/8852B, we name
+it as V1 before. However, real V1 of BA CAM is introduced now, so change
+it to V0_EXT to avoid confusing with firmware design.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230421024551.29994-7-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h     |  9 ++++++++-
+ drivers/net/wireless/realtek/rtw89/fw.c       | 12 ++++++------
+ drivers/net/wireless/realtek/rtw89/fw.h       |  6 +++---
+ drivers/net/wireless/realtek/rtw89/rtw8851b.c |  2 +-
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c |  2 +-
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c |  2 +-
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c |  2 +-
+ 7 files changed, 21 insertions(+), 14 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -122,6 +122,13 @@ enum rtw89_cv {
+ 	CHIP_CV_INVALID = CHIP_CV_MAX,
+ };
+ 
++enum rtw89_bacam_ver {
++	RTW89_BACAM_V0,
++	RTW89_BACAM_V1,
++
++	RTW89_BACAM_V0_EXT = 99,
++};
++
+ enum rtw89_core_tx_type {
+ 	RTW89_CORE_TX_TYPE_DATA,
+ 	RTW89_CORE_TX_TYPE_MGMT,
+@@ -3182,7 +3189,7 @@ struct rtw89_chip_info {
+ 	u8 scam_num;
+ 	u8 bacam_num;
+ 	u8 bacam_dynamic_num;
+-	bool bacam_v1;
++	enum rtw89_bacam_ver bacam_ver;
+ 
+ 	u8 sec_ctrl_efuse_size;
+ 	u32 physical_efuse_size;
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -809,7 +809,7 @@ int rtw89_fw_h2c_ba_cam(struct rtw89_dev
+ 	}
+ 	skb_put(skb, H2C_BA_CAM_LEN);
+ 	SET_BA_CAM_MACID(skb->data, macid);
+-	if (chip->bacam_v1)
++	if (chip->bacam_ver == RTW89_BACAM_V0_EXT)
+ 		SET_BA_CAM_ENTRY_IDX_V1(skb->data, entry_idx);
+ 	else
+ 		SET_BA_CAM_ENTRY_IDX(skb->data, entry_idx);
+@@ -825,7 +825,7 @@ int rtw89_fw_h2c_ba_cam(struct rtw89_dev
+ 	SET_BA_CAM_INIT_REQ(skb->data, 1);
+ 	SET_BA_CAM_SSN(skb->data, params->ssn);
+ 
+-	if (chip->bacam_v1) {
++	if (chip->bacam_ver == RTW89_BACAM_V0_EXT) {
+ 		SET_BA_CAM_STD_EN(skb->data, 1);
+ 		SET_BA_CAM_BAND(skb->data, rtwvif->mac_idx);
+ 	}
+@@ -850,8 +850,8 @@ fail:
+ 	return ret;
+ }
+ 
+-static int rtw89_fw_h2c_init_dynamic_ba_cam_v1(struct rtw89_dev *rtwdev,
+-					       u8 entry_idx, u8 uid)
++static int rtw89_fw_h2c_init_ba_cam_v0_ext(struct rtw89_dev *rtwdev,
++					   u8 entry_idx, u8 uid)
+ {
+ 	struct sk_buff *skb;
+ 	int ret;
+@@ -888,7 +888,7 @@ fail:
+ 	return ret;
+ }
+ 
+-void rtw89_fw_h2c_init_ba_cam_v1(struct rtw89_dev *rtwdev)
++void rtw89_fw_h2c_init_dynamic_ba_cam_v0_ext(struct rtw89_dev *rtwdev)
+ {
+ 	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	u8 entry_idx = chip->bacam_num;
+@@ -896,7 +896,7 @@ void rtw89_fw_h2c_init_ba_cam_v1(struct
+ 	int i;
+ 
+ 	for (i = 0; i < chip->bacam_dynamic_num; i++) {
+-		rtw89_fw_h2c_init_dynamic_ba_cam_v1(rtwdev, entry_idx, uid);
++		rtw89_fw_h2c_init_ba_cam_v0_ext(rtwdev, entry_idx, uid);
+ 		entry_idx++;
+ 		uid++;
+ 	}
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -3676,7 +3676,7 @@ void rtw89_fw_release_general_pkt_list_v
+ void rtw89_fw_release_general_pkt_list(struct rtw89_dev *rtwdev, bool notify_fw);
+ int rtw89_fw_h2c_ba_cam(struct rtw89_dev *rtwdev, struct rtw89_sta *rtwsta,
+ 			bool valid, struct ieee80211_ampdu_params *params);
+-void rtw89_fw_h2c_init_ba_cam_v1(struct rtw89_dev *rtwdev);
++void rtw89_fw_h2c_init_dynamic_ba_cam_v0_ext(struct rtw89_dev *rtwdev);
+ 
+ int rtw89_fw_h2c_lps_parm(struct rtw89_dev *rtwdev,
+ 			  struct rtw89_lps_parm *lps_param);
+@@ -3739,8 +3739,8 @@ static inline void rtw89_fw_h2c_init_ba_
+ {
+ 	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 
+-	if (chip->bacam_v1)
+-		rtw89_fw_h2c_init_ba_cam_v1(rtwdev);
++	if (chip->bacam_ver == RTW89_BACAM_V0_EXT)
++		rtw89_fw_h2c_init_dynamic_ba_cam_v0_ext(rtwdev);
+ }
+ 
+ #endif
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b.c
+@@ -74,7 +74,7 @@ const struct rtw89_chip_info rtw8851b_ch
+ 	.scam_num		= 128,
+ 	.bacam_num		= 2,
+ 	.bacam_dynamic_num	= 4,
+-	.bacam_v1		= false,
++	.bacam_ver		= RTW89_BACAM_V0,
+ 	.sec_ctrl_efuse_size	= 4,
+ 	.physical_efuse_size	= 1216,
+ 	.logical_efuse_size	= 2048,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -2115,7 +2115,7 @@ const struct rtw89_chip_info rtw8852a_ch
+ 	.scam_num		= 128,
+ 	.bacam_num		= 2,
+ 	.bacam_dynamic_num	= 4,
+-	.bacam_v1		= false,
++	.bacam_ver		= RTW89_BACAM_V0,
+ 	.sec_ctrl_efuse_size	= 4,
+ 	.physical_efuse_size	= 1216,
+ 	.logical_efuse_size	= 1536,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2546,7 +2546,7 @@ const struct rtw89_chip_info rtw8852b_ch
+ 	.scam_num		= 128,
+ 	.bacam_num		= 2,
+ 	.bacam_dynamic_num	= 4,
+-	.bacam_v1		= false,
++	.bacam_ver		= RTW89_BACAM_V0,
+ 	.sec_ctrl_efuse_size	= 4,
+ 	.physical_efuse_size	= 1216,
+ 	.logical_efuse_size	= 2048,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2846,7 +2846,7 @@ const struct rtw89_chip_info rtw8852c_ch
+ 	.scam_num		= 128,
+ 	.bacam_num		= 8,
+ 	.bacam_dynamic_num	= 8,
+-	.bacam_v1		= true,
++	.bacam_ver		= RTW89_BACAM_V0_EXT,
+ 	.sec_ctrl_efuse_size	= 4,
+ 	.physical_efuse_size	= 1216,
+ 	.logical_efuse_size	= 2048,

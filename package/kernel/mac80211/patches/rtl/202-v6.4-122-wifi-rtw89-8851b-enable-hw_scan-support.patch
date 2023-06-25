@@ -1,0 +1,40 @@
+From 9c52e8bf07c7097e09503fcad7cb156deffef619 Mon Sep 17 00:00:00 2001
+From: Po-Hao Huang <phhuang@realtek.com>
+Date: Wed, 31 May 2023 14:07:10 +0800
+Subject: [PATCH 122/136] wifi: rtw89: 8851b: enable hw_scan support
+
+This enables hw_scan for 8851b after firmware version 0.29.37.1.
+Extend the channel info struct with padding zeros so newer firmware
+can work properly, this change is backward compatible with older
+firmware.
+
+Signed-off-by: Po-Hao Huang <phhuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230531060713.57203-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c | 1 +
+ drivers/net/wireless/realtek/rtw89/fw.h | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -257,6 +257,7 @@ struct __fw_feat_cfg {
+ 
+ static const struct __fw_feat_cfg fw_feat_tbl[] = {
+ 	__CFG_FW_FEAT(RTL8851B, ge, 0, 29, 37, 1, TX_WAKE),
++	__CFG_FW_FEAT(RTL8851B, ge, 0, 29, 37, 1, SCAN_OFFLOAD),
+ 	__CFG_FW_FEAT(RTL8852A, le, 0, 13, 29, 0, OLD_HT_RA_FORMAT),
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 35, 0, SCAN_OFFLOAD),
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 35, 0, TX_WAKE),
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -243,7 +243,7 @@ struct rtw89_fw_macid_pause_grp {
+ #define RTW89_SCANOFLD_MAX_IE_LEN 512
+ #define RTW89_SCANOFLD_PKT_NONE 0xFF
+ #define RTW89_SCANOFLD_DEBUG_MASK 0x1F
+-#define RTW89_MAC_CHINFO_SIZE 24
++#define RTW89_MAC_CHINFO_SIZE 28
+ #define RTW89_SCAN_LIST_GUARD 4
+ #define RTW89_SCAN_LIST_LIMIT \
+ 		((RTW89_H2C_MAX_SIZE / RTW89_MAC_CHINFO_SIZE) - RTW89_SCAN_LIST_GUARD)

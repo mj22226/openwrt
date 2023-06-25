@@ -1,0 +1,152 @@
+From 3ea1cd8d027f189c044de142d58c4b0162396db3 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Wed, 19 Apr 2023 11:45:55 +0000
+Subject: [PATCH 069/136] wifi: rtw89: refine packet offload delete flow of 6
+ GHz probe
+
+There are two places where offload packets of 6 GHz probe would be deleted
+from FW, i.e. calling rtw89_fw_h2c_del_pkt_offload().
+* rtw89_core_cancel_6ghz_probe_tx()
+* rtw89_release_pkt_list()
+It is possible that we try to delete the same one from FW twice. Although
+it might not be a big problem for now, it will depend on the runtime chip
+firmware. So, we add a check to avoid it. In case things becomes complex
+due to racing problem, we don't choose to do list_del(info->list) and
+kfree(info) in both sides.
+
+Besides, rtw89_fw_h2c_del_pkt_offload() will needs to wait for completion
+after the follow-up commit. However, rtw89_core_cancel_6ghz_probe_tx()
+was called in interrupt context. So, we move the stuffs of calling
+rtw89_fw_h2c_del_pkt_offload() from rtw89_core_cancel_6ghz_probe_tx()
+into a work. Then, we also need a check there before we call it.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/091966e5709cd7caecf9b81f7fd6388ae2b70a7e.camel@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 43 +++++++++++++++++++++--
+ drivers/net/wireless/realtek/rtw89/core.h |  1 +
+ drivers/net/wireless/realtek/rtw89/fw.c   |  3 +-
+ drivers/net/wireless/realtek/rtw89/fw.h   |  1 +
+ 4 files changed, 44 insertions(+), 4 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -1515,6 +1515,34 @@ static void rtw89_stats_trigger_frame(st
+ 	}
+ }
+ 
++static void rtw89_cancel_6ghz_probe_work(struct work_struct *work)
++{
++	struct rtw89_dev *rtwdev = container_of(work, struct rtw89_dev,
++						cancel_6ghz_probe_work);
++	struct list_head *pkt_list = rtwdev->scan_info.pkt_list;
++	struct rtw89_pktofld_info *info;
++
++	mutex_lock(&rtwdev->mutex);
++
++	if (!rtwdev->scanning)
++		goto out;
++
++	list_for_each_entry(info, &pkt_list[NL80211_BAND_6GHZ], list) {
++		if (!info->cancel || !test_bit(info->id, rtwdev->pkt_offload))
++			continue;
++
++		rtw89_fw_h2c_del_pkt_offload(rtwdev, info->id);
++
++		/* Don't delete/free info from pkt_list at this moment. Let it
++		 * be deleted/freed in rtw89_release_pkt_list() after scanning,
++		 * since if during scanning, pkt_list is accessed in bottom half.
++		 */
++	}
++
++out:
++	mutex_unlock(&rtwdev->mutex);
++}
++
+ static void rtw89_core_cancel_6ghz_probe_tx(struct rtw89_dev *rtwdev,
+ 					    struct sk_buff *skb)
+ {
+@@ -1523,6 +1551,7 @@ static void rtw89_core_cancel_6ghz_probe
+ 	struct list_head *pkt_list = rtwdev->scan_info.pkt_list;
+ 	struct rtw89_pktofld_info *info;
+ 	const u8 *ies = mgmt->u.beacon.variable, *ssid_ie;
++	bool queue_work = false;
+ 
+ 	if (rx_status->band != NL80211_BAND_6GHZ)
+ 		return;
+@@ -1531,16 +1560,22 @@ static void rtw89_core_cancel_6ghz_probe
+ 
+ 	list_for_each_entry(info, &pkt_list[NL80211_BAND_6GHZ], list) {
+ 		if (ether_addr_equal(info->bssid, mgmt->bssid)) {
+-			rtw89_fw_h2c_del_pkt_offload(rtwdev, info->id);
++			info->cancel = true;
++			queue_work = true;
+ 			continue;
+ 		}
+ 
+ 		if (!ssid_ie || ssid_ie[1] != info->ssid_len || info->ssid_len == 0)
+ 			continue;
+ 
+-		if (memcmp(&ssid_ie[2], info->ssid, info->ssid_len) == 0)
+-			rtw89_fw_h2c_del_pkt_offload(rtwdev, info->id);
++		if (memcmp(&ssid_ie[2], info->ssid, info->ssid_len) == 0) {
++			info->cancel = true;
++			queue_work = true;
++		}
+ 	}
++
++	if (queue_work)
++		ieee80211_queue_work(rtwdev->hw, &rtwdev->cancel_6ghz_probe_work);
+ }
+ 
+ static void rtw89_vif_rx_stats_iter(void *data, u8 *mac,
+@@ -3474,6 +3509,7 @@ void rtw89_core_stop(struct rtw89_dev *r
+ 	mutex_unlock(&rtwdev->mutex);
+ 
+ 	cancel_work_sync(&rtwdev->c2h_work);
++	cancel_work_sync(&rtwdev->cancel_6ghz_probe_work);
+ 	cancel_work_sync(&btc->eapol_notify_work);
+ 	cancel_work_sync(&btc->arp_notify_work);
+ 	cancel_work_sync(&btc->dhcp_notify_work);
+@@ -3536,6 +3572,7 @@ int rtw89_core_init(struct rtw89_dev *rt
+ 	INIT_WORK(&rtwdev->c2h_work, rtw89_fw_c2h_work);
+ 	INIT_WORK(&rtwdev->ips_work, rtw89_ips_work);
+ 	INIT_WORK(&rtwdev->load_firmware_work, rtw89_load_firmware_work);
++	INIT_WORK(&rtwdev->cancel_6ghz_probe_work, rtw89_cancel_6ghz_probe_work);
+ 
+ 	skb_queue_head_init(&rtwdev->c2h_queue);
+ 	rtw89_core_ppdu_sts_init(rtwdev);
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -4086,6 +4086,7 @@ struct rtw89_dev {
+ 	struct work_struct c2h_work;
+ 	struct work_struct ips_work;
+ 	struct work_struct load_firmware_work;
++	struct work_struct cancel_6ghz_probe_work;
+ 
+ 	struct list_head early_h2c_list;
+ 
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -3020,7 +3020,8 @@ static void rtw89_release_pkt_list(struc
+ 			continue;
+ 
+ 		list_for_each_entry_safe(info, tmp, &pkt_list[idx], list) {
+-			rtw89_fw_h2c_del_pkt_offload(rtwdev, info->id);
++			if (test_bit(info->id, rtwdev->pkt_offload))
++				rtw89_fw_h2c_del_pkt_offload(rtwdev, info->id);
+ 			list_del(&info->list);
+ 			kfree(info);
+ 		}
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -277,6 +277,7 @@ struct rtw89_pktofld_info {
+ 	u8 ssid_len;
+ 	u8 bssid[ETH_ALEN];
+ 	u16 channel_6ghz;
++	bool cancel;
+ };
+ 
+ static inline void RTW89_SET_FWCMD_RA_IS_DIS(void *cmd, u32 val)

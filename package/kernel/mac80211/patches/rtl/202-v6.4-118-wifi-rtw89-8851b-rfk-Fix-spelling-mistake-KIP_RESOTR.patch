@@ -1,0 +1,27 @@
+From 56fc4d482783f5e45a6a2b3ec0d9f557908cdf77 Mon Sep 17 00:00:00 2001
+From: Colin Ian King <colin.i.king@gmail.com>
+Date: Mon, 22 May 2023 09:59:24 +0100
+Subject: [PATCH 118/136] wifi: rtw89: 8851b: rfk: Fix spelling mistake
+ KIP_RESOTRE -> KIP_RESTORE
+
+There is a spelling mistake in a literal string. Fix it.
+
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Reviewed-by: Simon Horman <simon.horman@corigine.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230522085924.913649-1-colin.i.king@gmail.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c
+@@ -1705,7 +1705,7 @@ static void _dpk_one_shot(struct rtw89_d
+ 		    id == 0x2c ? "GAIN_LOSS" :
+ 		    id == 0x2d ? "MDPK_IDL" :
+ 		    id == 0x2f ? "DPK_GAIN_NORM" :
+-		    id == 0x31 ? "KIP_RESOTRE" :
++		    id == 0x31 ? "KIP_RESTORE" :
+ 		    id == 0x6 ? "LBK_RXIQK" : "Unknown id",
+ 		    dpk_cmd);
+ }

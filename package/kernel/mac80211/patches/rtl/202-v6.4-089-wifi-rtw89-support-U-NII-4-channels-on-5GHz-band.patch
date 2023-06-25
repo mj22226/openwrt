@@ -1,0 +1,62 @@
+From e3b77c06c8863a53a0d80f7dcaff923c590e3edd Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Mon, 8 May 2023 16:12:11 +0800
+Subject: [PATCH 089/136] wifi: rtw89: support U-NII-4 channels on 5GHz band
+
+U-NII-4 band, i.e 5.9GHz channels, can be supported by chip 8852C, 8852B
+and 8851B. But, it is not supported by chip 8852A. Flag support_unii4 is
+added in chip info and defined by chip accordingly to indicate that.
+We reference this flag of runtime chip to decide whether to register
+5.9GHz channels.
+
+After that, we consider if U-NII-4 band is allowed by our regulatory
+rule of U-NII-4. If chip::support_unii4 but not regd::allow_unii4,
+we stll do not register 5.9GHz channels.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230508081211.38760-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c |  3 +++
+ drivers/net/wireless/realtek/rtw89/regd.c | 10 ++++++++++
+ 2 files changed, 13 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -77,6 +77,9 @@ static struct ieee80211_channel rtw89_ch
+ 	RTW89_DEF_CHAN_5G(5785, 157),
+ 	RTW89_DEF_CHAN_5G(5805, 161),
+ 	RTW89_DEF_CHAN_5G_NO_HT40MINUS(5825, 165),
++	RTW89_DEF_CHAN_5G(5845, 169),
++	RTW89_DEF_CHAN_5G(5865, 173),
++	RTW89_DEF_CHAN_5G(5885, 177),
+ };
+ 
+ static struct ieee80211_channel rtw89_channels_6ghz[] = {
+--- a/drivers/net/wireless/realtek/rtw89/regd.c
++++ b/drivers/net/wireless/realtek/rtw89/regd.c
+@@ -288,6 +288,7 @@ static void rtw89_regd_setup_unii4(struc
+ {
+ 	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	bool regd_allow_unii_4 = chip->support_unii4;
++	struct ieee80211_supported_band *sband;
+ 	int ret;
+ 	u8 val;
+ 
+@@ -318,6 +319,15 @@ static void rtw89_regd_setup_unii4(struc
+ bottom:
+ 	rtw89_debug(rtwdev, RTW89_DBG_REGD, "regd: allow unii 4: %d\n",
+ 		    regd_allow_unii_4);
++
++	if (regd_allow_unii_4)
++		return;
++
++	sband = wiphy->bands[NL80211_BAND_5GHZ];
++	if (!sband)
++		return;
++
++	sband->n_channels -= 3;
+ }
+ 
+ int rtw89_regd_setup(struct rtw89_dev *rtwdev)

@@ -1,0 +1,29 @@
+From 31c416e69dbf416583d0d8245d91e7e82b7846b1 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Mon, 20 Feb 2023 15:01:58 +0800
+Subject: [PATCH 003/136] wifi: rtw89: fw: configure CRASH_TRIGGER feature for
+ 8852B
+
+RTL8852B firmware supports CRASH_TRIGGER feature from v0.29.29.0.
+After this is configured, debugfs fw_crash can support type 1 on
+RTL8852B to trigger firmware crash and verify L2 recovery through
+simulation.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230220070202.29868-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -259,6 +259,7 @@ static const struct __fw_feat_cfg fw_fea
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 38, 0, PACKET_DROP),
+ 	__CFG_FW_FEAT(RTL8852B, ge, 0, 29, 26, 0, NO_LPS_PG),
+ 	__CFG_FW_FEAT(RTL8852B, ge, 0, 29, 26, 0, TX_WAKE),
++	__CFG_FW_FEAT(RTL8852B, ge, 0, 29, 29, 0, CRASH_TRIGGER),
+ 	__CFG_FW_FEAT(RTL8852C, ge, 0, 27, 20, 0, PACKET_DROP),
+ 	__CFG_FW_FEAT(RTL8852C, le, 0, 27, 33, 0, NO_DEEP_PS),
+ 	__CFG_FW_FEAT(RTL8852C, ge, 0, 27, 34, 0, TX_WAKE),

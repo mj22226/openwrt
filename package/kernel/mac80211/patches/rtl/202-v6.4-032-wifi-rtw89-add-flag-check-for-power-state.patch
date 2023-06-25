@@ -1,0 +1,65 @@
+From 6cfb6cc20a61aa17bdb5440459a3503a885ee913 Mon Sep 17 00:00:00 2001
+From: Po-Hao Huang <phhuang@realtek.com>
+Date: Tue, 11 Apr 2023 20:48:31 +0800
+Subject: [PATCH 032/136] wifi: rtw89: add flag check for power state
+
+Use POWER_ON flag to make sure power on/off is symmetric. Since both
+remain_on_channel and hw_scan both alter the power state, this makes
+sure that we don't enter/leave IPS mode twice.
+Also, replace IPS related functions with inline function that does
+similar logic so we can track it more easily.
+
+Signed-off-by: Po-Hao Huang <phhuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230411124832.14965-5-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 7 +++----
+ drivers/net/wireless/realtek/rtw89/ps.c   | 6 ++++++
+ 2 files changed, 9 insertions(+), 4 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -2207,8 +2207,7 @@ static void rtw89_ips_work(struct work_s
+ 	struct rtw89_dev *rtwdev = container_of(work, struct rtw89_dev,
+ 						ips_work);
+ 	mutex_lock(&rtwdev->mutex);
+-	if (rtwdev->hw->conf.flags & IEEE80211_CONF_IDLE)
+-		rtw89_enter_ips(rtwdev);
++	rtw89_enter_ips_by_hwflags(rtwdev);
+ 	mutex_unlock(&rtwdev->mutex);
+ }
+ 
+@@ -3501,8 +3500,8 @@ void rtw89_core_scan_start(struct rtw89_
+ 
+ 	rtwdev->scanning = true;
+ 	rtw89_leave_lps(rtwdev);
+-	if (hw_scan && (rtwdev->hw->conf.flags & IEEE80211_CONF_IDLE))
+-		rtw89_leave_ips(rtwdev);
++	if (hw_scan)
++		rtw89_leave_ips_by_hwflags(rtwdev);
+ 
+ 	ether_addr_copy(rtwvif->mac_addr, mac_addr);
+ 	rtw89_btc_ntfy_scan_start(rtwdev, RTW89_PHY_0, chan->band_type);
+--- a/drivers/net/wireless/realtek/rtw89/ps.c
++++ b/drivers/net/wireless/realtek/rtw89/ps.c
+@@ -155,6 +155,9 @@ void rtw89_enter_ips(struct rtw89_dev *r
+ 
+ 	set_bit(RTW89_FLAG_INACTIVE_PS, rtwdev->flags);
+ 
++	if (!test_bit(RTW89_FLAG_POWERON, rtwdev->flags))
++		return;
++
+ 	rtw89_for_each_rtwvif(rtwdev, rtwvif)
+ 		rtw89_mac_vif_deinit(rtwdev, rtwvif);
+ 
+@@ -166,6 +169,9 @@ void rtw89_leave_ips(struct rtw89_dev *r
+ 	struct rtw89_vif *rtwvif;
+ 	int ret;
+ 
++	if (test_bit(RTW89_FLAG_POWERON, rtwdev->flags))
++		return;
++
+ 	ret = rtw89_core_start(rtwdev);
+ 	if (ret)
+ 		rtw89_err(rtwdev, "failed to leave idle state\n");

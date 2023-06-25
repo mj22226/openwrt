@@ -1,0 +1,114 @@
+From e897b0bef38a8b40101c0e6e009395506c256460 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Mon, 8 May 2023 16:12:09 +0800
+Subject: [PATCH 087/136] wifi: rtw89: introduce realtek ACPI DSM method
+
+Introduce realtek ACPI DSM method to get required BIOS
+configurations. It will be used in the following commits.
+
+And, enum rtw89_acpi_dsm_func is added for listing the functions
+which are currently recognized.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230508081211.38760-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/Makefile |  3 +-
+ drivers/net/wireless/realtek/rtw89/acpi.c   | 52 +++++++++++++++++++++
+ drivers/net/wireless/realtek/rtw89/acpi.h   | 21 +++++++++
+ 3 files changed, 75 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/net/wireless/realtek/rtw89/acpi.c
+ create mode 100644 drivers/net/wireless/realtek/rtw89/acpi.h
+
+--- a/drivers/net/wireless/realtek/rtw89/Makefile
++++ b/drivers/net/wireless/realtek/rtw89/Makefile
+@@ -13,7 +13,8 @@ rtw89_core-y += core.o \
+ 		coex.o \
+ 		ps.o \
+ 		chan.o \
+-		ser.o
++		ser.o \
++		acpi.o
+ 
+ rtw89_core-$(CPTCFG_PM) += wow.o
+ 
+--- /dev/null
++++ b/drivers/net/wireless/realtek/rtw89/acpi.c
+@@ -0,0 +1,52 @@
++// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
++/* Copyright(c) 2021-2023  Realtek Corporation
++ */
++
++#include <linux/acpi.h>
++#include <linux/uuid.h>
++
++#include "acpi.h"
++#include "debug.h"
++
++static const guid_t rtw89_guid = GUID_INIT(0xD2A8C3E8, 0x4B69, 0x4F00,
++					   0x82, 0xBD, 0xFE, 0x86,
++					   0x07, 0x80, 0x3A, 0xA7);
++
++static int rtw89_acpi_dsm_get(struct rtw89_dev *rtwdev, union acpi_object *obj,
++			      u8 *value)
++{
++	switch (obj->type) {
++	case ACPI_TYPE_INTEGER:
++		*value = (u8)obj->integer.value;
++		break;
++	case ACPI_TYPE_BUFFER:
++		*value = obj->buffer.pointer[0];
++		break;
++	default:
++		rtw89_debug(rtwdev, RTW89_DBG_UNEXP,
++			    "acpi dsm return unhandled type: %d\n", obj->type);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++int rtw89_acpi_evaluate_dsm(struct rtw89_dev *rtwdev,
++			    enum rtw89_acpi_dsm_func func, u8 *value)
++{
++	union acpi_object *obj;
++	int ret;
++
++	obj = acpi_evaluate_dsm(ACPI_HANDLE(rtwdev->dev), &rtw89_guid,
++				0, func, NULL);
++	if (!obj) {
++		rtw89_debug(rtwdev, RTW89_DBG_UNEXP,
++			    "acpi dsm fail to evaluate func: %d\n", func);
++		return -ENOENT;
++	}
++
++	ret = rtw89_acpi_dsm_get(rtwdev, obj, value);
++
++	ACPI_FREE(obj);
++	return ret;
++}
+--- /dev/null
++++ b/drivers/net/wireless/realtek/rtw89/acpi.h
+@@ -0,0 +1,21 @@
++/* SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause */
++/* Copyright(c) 2021-2023  Realtek Corporation
++ */
++
++#ifndef __RTW89_ACPI_H__
++#define __RTW89_ACPI_H__
++
++#include "core.h"
++
++enum rtw89_acpi_dsm_func {
++	RTW89_ACPI_DSM_FUNC_IDN_BAND_SUP = 2,
++	RTW89_ACPI_DSM_FUNC_6G_DIS = 3,
++	RTW89_ACPI_DSM_FUNC_6G_BP = 4,
++	RTW89_ACPI_DSM_FUNC_TAS_EN = 5,
++	RTW89_ACPI_DSM_FUNC_59G_EN = 6,
++};
++
++int rtw89_acpi_evaluate_dsm(struct rtw89_dev *rtwdev,
++			    enum rtw89_acpi_dsm_func func, u8 *value);
++
++#endif

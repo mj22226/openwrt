@@ -1,0 +1,62 @@
+From db67b03b04b4363251c0d8eecaf7a631449b6f3d Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Wed, 31 May 2023 14:07:12 +0800
+Subject: [PATCH 124/136] wifi: rtw89: set TX power without precondition during
+ setting channel
+
+The key condition to check in wrapper of setting TX power is whether entity
+is active or not. Before entity is active, we restrict TX power from being
+set by outside callers, e.g. SAR/regulatory.
+
+We mark entity as inactive when powering off MAC. Then, we will mark it as
+active when we initialize HW channel stuffs after MAC power on. Although we
+can get an active entity after leaving idle phase, TX power doesn't be set
+well for default channel until stack set target channel for connection. It
+causes that RF things cannot use better TX power during this interval.
+
+Below are some cases which may encounter this or a similar situation.
+* hw scan process before connection
+	As described above.
+* right after restart hardware process (SER L2)
+	HW stuffs of target channel is initialized after mac80211 restart
+	hardware, but we unexpectedly need to wait one more command to set
+	channel again or to set TX power.
+
+To fix it and improve RF behavior in that interval, during setting channel,
+we don't need to check entity state before setting TX power, which actually
+is used to restrict outside callers. It means we call chip ops directly to
+replace the wrapper call. Then, TX power can be initialized as long as we
+initialize/setup HW stuffs on one channel.
+
+Besides, all chips should configure ops of setting TX power, so we remove
+trivial check on pointer.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230531060713.57203-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -336,8 +336,7 @@ void rtw89_core_set_chip_txpwr(struct rt
+ 	sub_entity_idx = RTW89_SUB_ENTITY_0;
+ 	phy_idx = RTW89_PHY_0;
+ 	chan = rtw89_chan_get(rtwdev, sub_entity_idx);
+-	if (chip->ops->set_txpwr)
+-		chip->ops->set_txpwr(rtwdev, chan, phy_idx);
++	chip->ops->set_txpwr(rtwdev, chan, phy_idx);
+ }
+ 
+ void rtw89_set_channel(struct rtw89_dev *rtwdev)
+@@ -373,7 +372,7 @@ void rtw89_set_channel(struct rtw89_dev
+ 
+ 	chip->ops->set_channel(rtwdev, &chan, mac_idx, phy_idx);
+ 
+-	rtw89_core_set_chip_txpwr(rtwdev);
++	chip->ops->set_txpwr(rtwdev, &chan, phy_idx);
+ 
+ 	rtw89_chip_set_channel_done(rtwdev, &bak, &chan, mac_idx, phy_idx);
+ 

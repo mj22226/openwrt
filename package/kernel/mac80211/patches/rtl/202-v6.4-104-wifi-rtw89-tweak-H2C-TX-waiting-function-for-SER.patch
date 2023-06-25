@@ -1,0 +1,78 @@
+From b79a84fbbdb0a715b130ab470c241db211539dfb Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Tue, 16 May 2023 16:24:40 +0800
+Subject: [PATCH 104/136] wifi: rtw89: tweak H2C TX waiting function for SER
+
+Some specific H2C (host to chip command) needs waiting until FW ACK by
+C2H (chip to host event). However, during SER (system error recovery),
+most interrupts are disabled, so we can't receive C2H immediately. It
+causes this kind of H2C TX waits will always time out during SER.
+
+To save time spent by SER, we don't do these redundant waits. And, to
+make a difference from -ETIMEDOUT in other cases, we make the function
+return 1 for SER case. When some H2C callers really catch `ret == 1` at
+runtime, they can determine whether it's reasonable or not, and consider
+how to resolve their flow if needed.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230516082441.11154-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h | 1 +
+ drivers/net/wireless/realtek/rtw89/fw.c   | 8 ++++++++
+ drivers/net/wireless/realtek/rtw89/ser.c  | 2 ++
+ 3 files changed, 11 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3505,6 +3505,7 @@ enum rtw89_flags {
+ 	RTW89_FLAG_LOW_POWER_MODE,
+ 	RTW89_FLAG_INACTIVE_PS,
+ 	RTW89_FLAG_CRASH_SIMULATING,
++	RTW89_FLAG_SER_HANDLING,
+ 	RTW89_FLAG_WOWLAN,
+ 	RTW89_FLAG_FORBIDDEN_TRACK_WROK,
+ 	RTW89_FLAG_CHANGING_INTERFACE,
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -3792,6 +3792,11 @@ fail:
+ 	return ret;
+ }
+ 
++/* Return < 0, if failures happen during waiting for the condition.
++ * Return 0, when waiting for the condition succeeds.
++ * Return > 0, if the wait is considered unreachable due to driver/FW design,
++ * where 1 means during SER.
++ */
+ static int rtw89_h2c_tx_and_wait(struct rtw89_dev *rtwdev, struct sk_buff *skb,
+ 				 struct rtw89_wait_info *wait, unsigned int cond)
+ {
+@@ -3804,6 +3809,9 @@ static int rtw89_h2c_tx_and_wait(struct
+ 		return -EBUSY;
+ 	}
+ 
++	if (test_bit(RTW89_FLAG_SER_HANDLING, rtwdev->flags))
++		return 1;
++
+ 	return rtw89_wait_for_cond(wait, cond);
+ }
+ 
+--- a/drivers/net/wireless/realtek/rtw89/ser.c
++++ b/drivers/net/wireless/realtek/rtw89/ser.c
+@@ -409,6 +409,7 @@ static void ser_idle_st_hdl(struct rtw89
+ 	switch (evt) {
+ 	case SER_EV_STATE_IN:
+ 		rtw89_hci_recovery_complete(rtwdev);
++		clear_bit(RTW89_FLAG_SER_HANDLING, rtwdev->flags);
+ 		clear_bit(RTW89_FLAG_CRASH_SIMULATING, rtwdev->flags);
+ 		break;
+ 	case SER_EV_L1_RESET_PREPARE:
+@@ -421,6 +422,7 @@ static void ser_idle_st_hdl(struct rtw89
+ 		ser_state_goto(ser, SER_L2_RESET_ST);
+ 		break;
+ 	case SER_EV_STATE_OUT:
++		set_bit(RTW89_FLAG_SER_HANDLING, rtwdev->flags);
+ 		rtw89_hci_recovery_start(rtwdev);
+ 		break;
+ 	default:

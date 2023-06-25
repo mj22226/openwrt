@@ -1,0 +1,35 @@
+From 829b3a8b212a71b55598b9bd5861a41906a611ae Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Tue, 14 Mar 2023 10:06:14 +0800
+Subject: [PATCH 018/136] wifi: rtw89: coex: Not to enable firmware report when
+ WiFi is power saving
+
+If driver enable firmware report during WiFi power saving, the
+firmware timer will lead to some power saving issue like,
+fail to enter LPS, can not leave LPS or some unexpected issue.
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230314020617.28193-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/coex.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/coex.c
++++ b/drivers/net/wireless/realtek/rtw89/coex.c
+@@ -1741,10 +1741,14 @@ static void rtw89_btc_fw_en_rpt(struct r
+ 				u32 rpt_map, bool rpt_state)
+ {
+ 	struct rtw89_btc *btc = &rtwdev->btc;
++	struct rtw89_btc_wl_smap *wl_smap = &btc->cx.wl.status.map;
+ 	struct rtw89_btc_btf_fwinfo *fwinfo = &btc->fwinfo;
+ 	struct rtw89_btc_btf_set_report r = {0};
+ 	u32 val, bit_map;
+ 
++	if ((wl_smap->rf_off || wl_smap->lps != BTC_LPS_OFF) && rpt_state != 0)
++		return;
++
+ 	bit_map = rtw89_btc_fw_rpt_ver(rtwdev, rpt_map);
+ 
+ 	rtw89_debug(rtwdev, RTW89_DBG_BTC,

@@ -1,0 +1,72 @@
+From 4cfad52a5df718a615f8de5ba14370d99537db4c Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 19 May 2023 11:14:58 +0800
+Subject: [PATCH 110/136] wifi: rtw89: enlarge supported length of read_reg
+ debugfs entry
+
+The register ranges of upcoming chips are different from current, and even
+existing chips have different ranges, so support longer length to dump
+registers. Then, user space can decide the ranges according to chip.
+
+Since arbitrary length (e.g. 7) would be a little complicated, so simply
+make length a multiple of 16. The output looks like
+
+18620000h : 8580801f 82828282 82828282 080800fd
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230519031500.21087-6-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/debug.c | 23 +++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/debug.c
++++ b/drivers/net/wireless/realtek/rtw89/debug.c
+@@ -30,7 +30,7 @@ struct rtw89_debugfs_priv {
+ 		u32 cb_data;
+ 		struct {
+ 			u32 addr;
+-			u8 len;
++			u32 len;
+ 		} read_reg;
+ 		struct {
+ 			u32 addr;
+@@ -164,12 +164,15 @@ static int rtw89_debug_priv_read_reg_get
+ {
+ 	struct rtw89_debugfs_priv *debugfs_priv = m->private;
+ 	struct rtw89_dev *rtwdev = debugfs_priv->rtwdev;
+-	u32 addr, data;
+-	u8 len;
++	u32 addr, end, data, k;
++	u32 len;
+ 
+ 	len = debugfs_priv->read_reg.len;
+ 	addr = debugfs_priv->read_reg.addr;
+ 
++	if (len > 4)
++		goto ndata;
++
+ 	switch (len) {
+ 	case 1:
+ 		data = rtw89_read8(rtwdev, addr);
+@@ -188,6 +191,20 @@ static int rtw89_debug_priv_read_reg_get
+ 	seq_printf(m, "get %d bytes at 0x%08x=0x%08x\n", len, addr, data);
+ 
+ 	return 0;
++
++ndata:
++	end = addr + len;
++
++	for (; addr < end; addr += 16) {
++		seq_printf(m, "%08xh : ", 0x18600000 + addr);
++		for (k = 0; k < 16; k += 4) {
++			data = rtw89_read32(rtwdev, addr + k);
++			seq_printf(m, "%08x ", data);
++		}
++		seq_puts(m, "\n");
++	}
++
++	return 0;
+ }
+ 
+ static ssize_t rtw89_debug_priv_write_reg_set(struct file *filp,

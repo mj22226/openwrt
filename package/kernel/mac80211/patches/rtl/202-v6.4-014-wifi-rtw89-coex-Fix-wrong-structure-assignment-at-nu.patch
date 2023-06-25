@@ -1,0 +1,28 @@
+From 9dfa09e0628d2024ce4574f645344c00fe88a535 Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Wed, 8 Mar 2023 13:32:23 +0800
+Subject: [PATCH 014/136] wifi: rtw89: coex: Fix wrong structure assignment at
+ null data report
+
+Correct pointer assignment of v1 null data report. It doesn't really
+change logic at all, but it looks more readable.
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230308053225.24377-6-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/coex.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/coex.c
++++ b/drivers/net/wireless/realtek/rtw89/coex.c
+@@ -1065,7 +1065,7 @@ static u32 _chk_btc_report(struct rtw89_
+ 	case BTC_RPT_TYPE_NULLSTA:
+ 		pcinfo = &pfwinfo->rpt_fbtc_nullsta.cinfo;
+ 		if (ver->fcxnullsta == 1) {
+-			pfinfo = &pfwinfo->rpt_fbtc_nullsta.finfo;
++			pfinfo = &pfwinfo->rpt_fbtc_nullsta.finfo.v1;
+ 			pcinfo->req_len = sizeof(pfwinfo->rpt_fbtc_nullsta.finfo.v1);
+ 		} else if (ver->fcxnullsta == 2) {
+ 			pfinfo = &pfwinfo->rpt_fbtc_nullsta.finfo.v2;

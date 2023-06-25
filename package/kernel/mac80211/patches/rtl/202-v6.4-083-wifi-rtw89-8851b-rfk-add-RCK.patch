@@ -1,0 +1,83 @@
+From ae546f0a23904761edeee1a154b94fb38b6195c0 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Mon, 24 Apr 2023 14:52:40 +0800
+Subject: [PATCH 083/136] wifi: rtw89: 8851b: rfk: add RCK
+
+RCK is synchronize RC calibration. Driver triggers this calibration and
+sets the result to register. This calibration is needed once when interface
+is going to up.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230424065242.17477-4-pkshih@realtek.com
+---
+ .../net/wireless/realtek/rtw89/rtw8851b_rfk.c | 40 +++++++++++++++++++
+ .../net/wireless/realtek/rtw89/rtw8851b_rfk.h |  1 +
+ 2 files changed, 41 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c
+@@ -17,6 +17,41 @@ static u8 _kpath(struct rtw89_dev *rtwde
+ 	return RF_A;
+ }
+ 
++static void _rck(struct rtw89_dev *rtwdev, enum rtw89_rf_path path)
++{
++	u32 rf_reg5;
++	u32 rck_val;
++	u32 val;
++	int ret;
++
++	rtw89_debug(rtwdev, RTW89_DBG_RFK, "[RCK] ====== S%d RCK ======\n", path);
++
++	rf_reg5 = rtw89_read_rf(rtwdev, path, RR_RSV1, RFREG_MASK);
++
++	rtw89_write_rf(rtwdev, path, RR_RSV1, RR_RSV1_RST, 0x0);
++	rtw89_write_rf(rtwdev, path, RR_MOD, RR_MOD_MASK, RR_MOD_V_RX);
++
++	rtw89_debug(rtwdev, RTW89_DBG_RFK, "[RCK] RF0x00 = 0x%05x\n",
++		    rtw89_read_rf(rtwdev, path, RR_MOD, RFREG_MASK));
++
++	/* RCK trigger */
++	rtw89_write_rf(rtwdev, path, RR_RCKC, RFREG_MASK, 0x00240);
++
++	ret = read_poll_timeout_atomic(rtw89_read_rf, val, val, 2, 30,
++				       false, rtwdev, path, RR_RCKS, BIT(3));
++
++	rck_val = rtw89_read_rf(rtwdev, path, RR_RCKC, RR_RCKC_CA);
++
++	rtw89_debug(rtwdev, RTW89_DBG_RFK, "[RCK] rck_val = 0x%x, ret = %d\n",
++		    rck_val, ret);
++
++	rtw89_write_rf(rtwdev, path, RR_RCKC, RFREG_MASK, rck_val);
++	rtw89_write_rf(rtwdev, path, RR_RSV1, RFREG_MASK, rf_reg5);
++
++	rtw89_debug(rtwdev, RTW89_DBG_RFK, "[RCK] RF 0x1b = 0x%x\n",
++		    rtw89_read_rf(rtwdev, path, RR_RCKC, RFREG_MASK));
++}
++
+ void rtw8851b_aack(struct rtw89_dev *rtwdev)
+ {
+ 	u32 tmp05, ib[4];
+@@ -59,6 +94,11 @@ void rtw8851b_aack(struct rtw89_dev *rtw
+ 	rtw89_write_rf(rtwdev, RF_PATH_A, RR_RSV1, RFREG_MASK, tmp05);
+ }
+ 
++void rtw8851b_rck(struct rtw89_dev *rtwdev)
++{
++	_rck(rtwdev, RF_PATH_A);
++}
++
+ static void _bw_setting(struct rtw89_dev *rtwdev, enum rtw89_rf_path path,
+ 			enum rtw89_bandwidth bw, bool dav)
+ {
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.h
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.h
+@@ -8,6 +8,7 @@
+ #include "core.h"
+ 
+ void rtw8851b_aack(struct rtw89_dev *rtwdev);
++void rtw8851b_rck(struct rtw89_dev *rtwdev);
+ void rtw8851b_set_channel_rf(struct rtw89_dev *rtwdev,
+ 			     const struct rtw89_chan *chan,
+ 			     enum rtw89_phy_idx phy_idx);

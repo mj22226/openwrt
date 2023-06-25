@@ -1,0 +1,269 @@
+From 8febd68be526c9f256c5490dd4b094a70e1b91ba Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Wed, 19 Apr 2023 11:45:58 +0000
+Subject: [PATCH 070/136] wifi: rtw89: packet offload wait for FW response
+
+The H2Cs (host to chip packets) related to packet offload functions
+need to wait for FW responses in case FW state machine gets wrong
+and makes driver status no longer able to align FW one. In flow,
+driver may continuously send multiple H2Cs of packet offload series.
+If somehow FW doesn't deal with the former yet but the latter has
+gotten in, it might cause the problem mentioned above.
+
+So, we block these H2Cs by rtw89_wait_for_cond(). And then, when
+the corresponding C2Hs (chip to host packets) is received, we call
+rtw89_complete_cond(). Besides, RTW89_MAC_C2H_FUNC_PKT_OFLD_RSP's
+C2H handler should be executed in interrupt context to make our
+wait/complete process work as expected.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/9ae8c1f105901c65e3171276a9fd6c99ae51803f.camel@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c |  1 +
+ drivers/net/wireless/realtek/rtw89/core.h | 19 +++++----
+ drivers/net/wireless/realtek/rtw89/fw.c   | 34 +++++++++-------
+ drivers/net/wireless/realtek/rtw89/fw.h   | 48 +++++++++++++++++------
+ drivers/net/wireless/realtek/rtw89/mac.c  | 22 ++++++++++-
+ 5 files changed, 90 insertions(+), 34 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -3568,6 +3568,7 @@ int rtw89_core_init(struct rtw89_dev *rt
+ 	rtwdev->total_sta_assoc = 0;
+ 
+ 	rtw89_init_wait(&rtwdev->mcc.wait);
++	rtw89_init_wait(&rtwdev->mac.fw_ofld_wait);
+ 
+ 	INIT_WORK(&rtwdev->c2h_work, rtw89_fw_c2h_work);
+ 	INIT_WORK(&rtwdev->ips_work, rtw89_ips_work);
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3278,14 +3278,6 @@ enum rtw89_host_rpr_mode {
+ 	RTW89_RPR_MODE_STF
+ };
+ 
+-struct rtw89_mac_info {
+-	struct rtw89_dle_info dle_info;
+-	struct rtw89_hfc_param hfc_param;
+-	enum rtw89_qta_mode qta_mode;
+-	u8 rpwm_seq_num;
+-	u8 cpwm_seq_num;
+-};
+-
+ #define RTW89_COMPLETION_BUF_SIZE 24
+ #define RTW89_WAIT_COND_IDLE UINT_MAX
+ 
+@@ -3308,6 +3300,17 @@ static inline void rtw89_init_wait(struc
+ 	atomic_set(&wait->cond, RTW89_WAIT_COND_IDLE);
+ }
+ 
++struct rtw89_mac_info {
++	struct rtw89_dle_info dle_info;
++	struct rtw89_hfc_param hfc_param;
++	enum rtw89_qta_mode qta_mode;
++	u8 rpwm_seq_num;
++	u8 cpwm_seq_num;
++
++	/* see RTW89_FW_OFLD_WAIT_COND series for wait condition */
++	struct rtw89_wait_info fw_ofld_wait;
++};
++
+ enum rtw89_fw_type {
+ 	RTW89_FW_NORMAL = 1,
+ 	RTW89_FW_WOWLAN = 3,
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -14,6 +14,8 @@
+ 
+ static void rtw89_fw_c2h_cmd_handle(struct rtw89_dev *rtwdev,
+ 				    struct sk_buff *skb);
++static int rtw89_h2c_tx_and_wait(struct rtw89_dev *rtwdev, struct sk_buff *skb,
++				 struct rtw89_wait_info *wait, unsigned int cond);
+ 
+ static struct sk_buff *rtw89_fw_h2c_alloc_skb(struct rtw89_dev *rtwdev, u32 len,
+ 					      bool header)
+@@ -2440,7 +2442,9 @@ fail:
+ #define H2C_LEN_PKT_OFLD 4
+ int rtw89_fw_h2c_del_pkt_offload(struct rtw89_dev *rtwdev, u8 id)
+ {
++	struct rtw89_wait_info *wait = &rtwdev->mac.fw_ofld_wait;
+ 	struct sk_buff *skb;
++	unsigned int cond;
+ 	u8 *cmd;
+ 	int ret;
+ 
+@@ -2460,24 +2464,26 @@ int rtw89_fw_h2c_del_pkt_offload(struct
+ 			      H2C_FUNC_PACKET_OFLD, 1, 1,
+ 			      H2C_LEN_PKT_OFLD);
+ 
+-	ret = rtw89_h2c_tx(rtwdev, skb, false);
++	cond = RTW89_FW_OFLD_WAIT_COND_PKT_OFLD(id, RTW89_PKT_OFLD_OP_DEL);
++
++	ret = rtw89_h2c_tx_and_wait(rtwdev, skb, wait, cond);
+ 	if (ret) {
+-		rtw89_err(rtwdev, "failed to send h2c\n");
+-		goto fail;
++		rtw89_debug(rtwdev, RTW89_DBG_FW,
++			    "failed to del pkt ofld: id %d, ret %d\n",
++			    id, ret);
++		return ret;
+ 	}
+ 
+ 	rtw89_core_release_bit_map(rtwdev->pkt_offload, id);
+ 	return 0;
+-fail:
+-	dev_kfree_skb_any(skb);
+-
+-	return ret;
+ }
+ 
+ int rtw89_fw_h2c_add_pkt_offload(struct rtw89_dev *rtwdev, u8 *id,
+ 				 struct sk_buff *skb_ofld)
+ {
++	struct rtw89_wait_info *wait = &rtwdev->mac.fw_ofld_wait;
+ 	struct sk_buff *skb;
++	unsigned int cond;
+ 	u8 *cmd;
+ 	u8 alloc_id;
+ 	int ret;
+@@ -2508,18 +2514,18 @@ int rtw89_fw_h2c_add_pkt_offload(struct
+ 			      H2C_FUNC_PACKET_OFLD, 1, 1,
+ 			      H2C_LEN_PKT_OFLD + skb_ofld->len);
+ 
+-	ret = rtw89_h2c_tx(rtwdev, skb, false);
++	cond = RTW89_FW_OFLD_WAIT_COND_PKT_OFLD(alloc_id, RTW89_PKT_OFLD_OP_ADD);
++
++	ret = rtw89_h2c_tx_and_wait(rtwdev, skb, wait, cond);
+ 	if (ret) {
+-		rtw89_err(rtwdev, "failed to send h2c\n");
++		rtw89_debug(rtwdev, RTW89_DBG_FW,
++			    "failed to add pkt ofld: id %d, ret %d\n",
++			    alloc_id, ret);
+ 		rtw89_core_release_bit_map(rtwdev->pkt_offload, alloc_id);
+-		goto fail;
++		return ret;
+ 	}
+ 
+ 	return 0;
+-fail:
+-	dev_kfree_skb_any(skb);
+-
+-	return ret;
+ }
+ 
+ #define H2C_LEN_SCAN_LIST_OFFLOAD 4
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -138,8 +138,13 @@ enum rtw89_pkt_offload_op {
+ 	RTW89_PKT_OFLD_OP_ADD,
+ 	RTW89_PKT_OFLD_OP_DEL,
+ 	RTW89_PKT_OFLD_OP_READ,
++
++	NUM_OF_RTW89_PKT_OFFLOAD_OP,
+ };
+ 
++#define RTW89_PKT_OFLD_WAIT_TAG(pkt_id, pkt_op) \
++	((pkt_id) * NUM_OF_RTW89_PKT_OFFLOAD_OP + (pkt_op))
++
+ enum rtw89_scanofld_notify_reason {
+ 	RTW89_SCAN_DWELL_NOTIFY,
+ 	RTW89_SCAN_PRE_TX_NOTIFY,
+@@ -3340,6 +3345,16 @@ static_assert(sizeof(struct rtw89_mac_mc
+ #define RTW89_GET_MAC_C2H_MCC_STATUS_RPT_TSF_HIGH(c2h) \
+ 	le32_get_bits(*((const __le32 *)(c2h) + 4), GENMASK(31, 0))
+ 
++struct rtw89_c2h_pkt_ofld_rsp {
++	__le32 w0;
++	__le32 w1;
++	__le32 w2;
++} __packed;
++
++#define RTW89_C2H_PKT_OFLD_RSP_W2_PTK_ID GENMASK(7, 0)
++#define RTW89_C2H_PKT_OFLD_RSP_W2_PTK_OP GENMASK(10, 8)
++#define RTW89_C2H_PKT_OFLD_RSP_W2_PTK_LEN GENMASK(31, 16)
++
+ struct rtw89_h2c_bcnfltr {
+ 	__le32 w0;
+ } __packed;
+@@ -3498,17 +3513,28 @@ struct rtw89_fw_h2c_rf_reg_info {
+ 
+ /* CLASS 9 - FW offload */
+ #define H2C_CL_MAC_FW_OFLD		0x9
+-#define H2C_FUNC_PACKET_OFLD		0x1
+-#define H2C_FUNC_MAC_MACID_PAUSE	0x8
+-#define H2C_FUNC_USR_EDCA		0xF
+-#define H2C_FUNC_TSF32_TOGL		0x10
+-#define H2C_FUNC_OFLD_CFG		0x14
+-#define H2C_FUNC_ADD_SCANOFLD_CH	0x16
+-#define H2C_FUNC_SCANOFLD		0x17
+-#define H2C_FUNC_PKT_DROP		0x1b
+-#define H2C_FUNC_CFG_BCNFLTR		0x1e
+-#define H2C_FUNC_OFLD_RSSI		0x1f
+-#define H2C_FUNC_OFLD_TP		0x20
++enum rtw89_fw_ofld_h2c_func {
++	H2C_FUNC_PACKET_OFLD		= 0x1,
++	H2C_FUNC_MAC_MACID_PAUSE	= 0x8,
++	H2C_FUNC_USR_EDCA		= 0xF,
++	H2C_FUNC_TSF32_TOGL		= 0x10,
++	H2C_FUNC_OFLD_CFG		= 0x14,
++	H2C_FUNC_ADD_SCANOFLD_CH	= 0x16,
++	H2C_FUNC_SCANOFLD		= 0x17,
++	H2C_FUNC_PKT_DROP		= 0x1b,
++	H2C_FUNC_CFG_BCNFLTR		= 0x1e,
++	H2C_FUNC_OFLD_RSSI		= 0x1f,
++	H2C_FUNC_OFLD_TP		= 0x20,
++
++	NUM_OF_RTW89_FW_OFLD_H2C_FUNC,
++};
++
++#define RTW89_FW_OFLD_WAIT_COND(tag, func) \
++	((tag) * NUM_OF_RTW89_FW_OFLD_H2C_FUNC + (func))
++
++#define RTW89_FW_OFLD_WAIT_COND_PKT_OFLD(pkt_id, pkt_op) \
++	RTW89_FW_OFLD_WAIT_COND(RTW89_PKT_OFLD_WAIT_TAG(pkt_id, pkt_op), \
++				H2C_FUNC_PACKET_OFLD)
+ 
+ /* CLASS 10 - Security CAM */
+ #define H2C_CL_MAC_SEC_CAM		0xa
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -4369,9 +4369,22 @@ rtw89_mac_c2h_bcn_cnt(struct rtw89_dev *
+ }
+ 
+ static void
+-rtw89_mac_c2h_pkt_ofld_rsp(struct rtw89_dev *rtwdev, struct sk_buff *c2h,
++rtw89_mac_c2h_pkt_ofld_rsp(struct rtw89_dev *rtwdev, struct sk_buff *skb_c2h,
+ 			   u32 len)
+ {
++	struct rtw89_wait_info *wait = &rtwdev->mac.fw_ofld_wait;
++	const struct rtw89_c2h_pkt_ofld_rsp *c2h =
++		(const struct rtw89_c2h_pkt_ofld_rsp *)skb_c2h->data;
++	u16 pkt_len = le32_get_bits(c2h->w2, RTW89_C2H_PKT_OFLD_RSP_W2_PTK_LEN);
++	u8 pkt_id = le32_get_bits(c2h->w2, RTW89_C2H_PKT_OFLD_RSP_W2_PTK_ID);
++	u8 pkt_op = le32_get_bits(c2h->w2, RTW89_C2H_PKT_OFLD_RSP_W2_PTK_OP);
++	struct rtw89_completion_data data = {};
++	unsigned int cond;
++
++	data.err = !pkt_len;
++	cond = RTW89_FW_OFLD_WAIT_COND_PKT_OFLD(pkt_id, pkt_op);
++
++	rtw89_complete_cond(wait, cond, &data);
+ }
+ 
+ static void
+@@ -4579,6 +4592,13 @@ bool rtw89_mac_c2h_chk_atomic(struct rtw
+ 	switch (class) {
+ 	default:
+ 		return false;
++	case RTW89_MAC_C2H_CLASS_OFLD:
++		switch (func) {
++		default:
++			return false;
++		case RTW89_MAC_C2H_FUNC_PKT_OFLD_RSP:
++			return true;
++		}
+ 	case RTW89_MAC_C2H_CLASS_MCC:
+ 		return true;
+ 	}

@@ -1,0 +1,50 @@
+From 5bc9a34ce87bee0ca53b86ff1a5ca340a62c2117 Mon Sep 17 00:00:00 2001
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Date: Wed, 14 Jun 2023 11:15:55 +0300
+Subject: [PATCH 136/136] wifi: rtw89: fix spelling typo of IQK debug messages
+
+Fix spelling typo of IQK debug messages.
+
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Acked-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230614081555.91395-3-dmantipov@yandex.ru
+---
+ drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c | 2 +-
+ drivers/net/wireless/realtek/rtw89/rtw8852b_rfk.c | 2 +-
+ drivers/net/wireless/realtek/rtw89/rtw8852c_rfk.c | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c
+@@ -1586,7 +1586,7 @@ static void _doiqk(struct rtw89_dev *rtw
+ 			      BTC_WRFK_ONESHOT_START);
+ 
+ 	rtw89_debug(rtwdev, RTW89_DBG_RFK,
+-		    "[IQK]==========IQK strat!!!!!==========\n");
++		    "[IQK]==========IQK start!!!!!==========\n");
+ 	iqk_info->iqk_times++;
+ 	iqk_info->version = RTW8851B_IQK_VER;
+ 
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b_rfk.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b_rfk.c
+@@ -1617,7 +1617,7 @@ static void _doiqk(struct rtw89_dev *rtw
+ 	rtw89_btc_ntfy_wl_rfk(rtwdev, phy_map, BTC_WRFKT_IQK, BTC_WRFK_ONESHOT_START);
+ 
+ 	rtw89_debug(rtwdev, RTW89_DBG_RFK,
+-		    "[IQK]==========IQK strat!!!!!==========\n");
++		    "[IQK]==========IQK start!!!!!==========\n");
+ 	iqk_info->iqk_times++;
+ 	iqk_info->version = RTW8852B_IQK_VER;
+ 
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c_rfk.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c_rfk.c
+@@ -1525,7 +1525,7 @@ static void _doiqk(struct rtw89_dev *rtw
+ 	rtw89_btc_ntfy_wl_rfk(rtwdev, phy_map, BTC_WRFKT_IQK, BTC_WRFK_ONESHOT_START);
+ 
+ 	rtw89_debug(rtwdev, RTW89_DBG_RFK,
+-		    "[IQK]==========IQK strat!!!!!==========\n");
++		    "[IQK]==========IQK start!!!!!==========\n");
+ 	iqk_info->iqk_times++;
+ 	iqk_info->version = RTW8852C_IQK_VER;
+ 

@@ -1,0 +1,225 @@
+From b80ad23a8f2e0b63384cadc0aa2c1135b1dc03eb Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Mon, 20 Mar 2023 21:06:05 +0800
+Subject: [PATCH 035/136] wifi: rtw89: use schedule_work to request firmware
+
+Since we are going to load more than one firmware and some are not
+presented or optional, using asynchronous API request_firmware_nowait()
+will become complicated. Also, we want to use firmware_request_nowarn()
+to avoid warning messages when loading optional files. So, use
+schedule_work to be simpler.
+
+To abstract loading a firmware or file, define a struct rtw89_fw_req_info
+containing a struct firmware and a completion to ensure this firmware is
+loaded completely.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230320130606.20777-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 17 +++---
+ drivers/net/wireless/realtek/rtw89/core.h |  8 ++-
+ drivers/net/wireless/realtek/rtw89/fw.c   | 68 ++++++++++-------------
+ drivers/net/wireless/realtek/rtw89/fw.h   |  2 +-
+ 4 files changed, 45 insertions(+), 50 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -3423,7 +3423,6 @@ void rtw89_core_stop(struct rtw89_dev *r
+ int rtw89_core_init(struct rtw89_dev *rtwdev)
+ {
+ 	struct rtw89_btc *btc = &rtwdev->btc;
+-	int ret;
+ 	u8 band;
+ 
+ 	INIT_LIST_HEAD(&rtwdev->ba_list);
+@@ -3457,6 +3456,8 @@ int rtw89_core_init(struct rtw89_dev *rt
+ 
+ 	INIT_WORK(&rtwdev->c2h_work, rtw89_fw_c2h_work);
+ 	INIT_WORK(&rtwdev->ips_work, rtw89_ips_work);
++	INIT_WORK(&rtwdev->load_firmware_work, rtw89_load_firmware_work);
++
+ 	skb_queue_head_init(&rtwdev->c2h_queue);
+ 	rtw89_core_ppdu_sts_init(rtwdev);
+ 	rtw89_traffic_stats_init(rtwdev, &rtwdev->stats);
+@@ -3468,12 +3469,10 @@ int rtw89_core_init(struct rtw89_dev *rt
+ 	INIT_WORK(&btc->dhcp_notify_work, rtw89_btc_ntfy_dhcp_packet_work);
+ 	INIT_WORK(&btc->icmp_notify_work, rtw89_btc_ntfy_icmp_packet_work);
+ 
+-	ret = rtw89_load_firmware(rtwdev);
+-	if (ret) {
+-		rtw89_warn(rtwdev, "no firmware loaded\n");
+-		destroy_workqueue(rtwdev->txq_wq);
+-		return ret;
+-	}
++	init_completion(&rtwdev->fw.req.completion);
++
++	schedule_work(&rtwdev->load_firmware_work);
++
+ 	rtw89_ser_init(rtwdev);
+ 	rtw89_entity_init(rtwdev);
+ 
+@@ -3792,7 +3791,7 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
+ 	rtwdev->dev = device;
+ 	rtwdev->ops = ops;
+ 	rtwdev->chip = chip;
+-	rtwdev->fw.firmware = firmware;
++	rtwdev->fw.req.firmware = firmware;
+ 
+ 	rtw89_debug(rtwdev, RTW89_DBG_FW, "probe driver %s chanctx\n",
+ 		    no_chanctx ? "without" : "with");
+@@ -3809,7 +3808,7 @@ EXPORT_SYMBOL(rtw89_alloc_ieee80211_hw);
+ void rtw89_free_ieee80211_hw(struct rtw89_dev *rtwdev)
+ {
+ 	kfree(rtwdev->ops);
+-	release_firmware(rtwdev->fw.firmware);
++	release_firmware(rtwdev->fw.req.firmware);
+ 	ieee80211_free_hw(rtwdev->hw);
+ }
+ EXPORT_SYMBOL(rtw89_free_ieee80211_hw);
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3297,10 +3297,13 @@ struct rtw89_fw_suit {
+ 			  GET_FW_HDR_SUBVERSION(fw_hdr),	\
+ 			  GET_FW_HDR_SUBINDEX(fw_hdr))
+ 
+-struct rtw89_fw_info {
++struct rtw89_fw_req_info {
+ 	const struct firmware *firmware;
+-	struct rtw89_dev *rtwdev;
+ 	struct completion completion;
++};
++
++struct rtw89_fw_info {
++	struct rtw89_fw_req_info req;
+ 	u8 h2c_seq;
+ 	u8 rec_seq;
+ 	u8 h2c_counter;
+@@ -4018,6 +4021,7 @@ struct rtw89_dev {
+ 	struct sk_buff_head c2h_queue;
+ 	struct work_struct c2h_work;
+ 	struct work_struct ips_work;
++	struct work_struct load_firmware_work;
+ 
+ 	struct list_head early_h2c_list;
+ 
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -155,8 +155,9 @@ int rtw89_mfw_recognize(struct rtw89_dev
+ 			struct rtw89_fw_suit *fw_suit, bool nowarn)
+ {
+ 	struct rtw89_fw_info *fw_info = &rtwdev->fw;
+-	const u8 *mfw = fw_info->firmware->data;
+-	u32 mfw_len = fw_info->firmware->size;
++	const struct firmware *firmware = fw_info->req.firmware;
++	const u8 *mfw = firmware->data;
++	u32 mfw_len = firmware->size;
+ 	const struct rtw89_mfw_hdr *mfw_hdr = (const struct rtw89_mfw_hdr *)mfw;
+ 	const struct rtw89_mfw_info *mfw_info;
+ 	int i;
+@@ -631,67 +632,58 @@ int rtw89_wait_firmware_completion(struc
+ {
+ 	struct rtw89_fw_info *fw = &rtwdev->fw;
+ 
+-	wait_for_completion(&fw->completion);
+-	if (!fw->firmware)
++	wait_for_completion(&fw->req.completion);
++	if (!fw->req.firmware)
+ 		return -EINVAL;
+ 
+ 	return 0;
+ }
+ 
+-static void rtw89_load_firmware_cb(const struct firmware *firmware, void *context)
++static int rtw89_load_firmware_req(struct rtw89_dev *rtwdev,
++				   struct rtw89_fw_req_info *req,
++				   const char *fw_name, bool nowarn)
+ {
+-	struct rtw89_fw_info *fw = context;
+-	struct rtw89_dev *rtwdev = fw->rtwdev;
+-
+-	if (!firmware || !firmware->data) {
+-		rtw89_err(rtwdev, "failed to request firmware\n");
+-		complete_all(&fw->completion);
+-		return;
+-	}
+-
+-	fw->firmware = firmware;
+-	complete_all(&fw->completion);
+-}
+-
+-int rtw89_load_firmware(struct rtw89_dev *rtwdev)
+-{
+-	struct rtw89_fw_info *fw = &rtwdev->fw;
+-	const char *fw_name = rtwdev->chip->fw_name;
+ 	int ret;
+ 
+-	fw->rtwdev = rtwdev;
+-	init_completion(&fw->completion);
+-
+-	if (fw->firmware) {
++	if (req->firmware) {
+ 		rtw89_debug(rtwdev, RTW89_DBG_FW,
+ 			    "full firmware has been early requested\n");
+-		complete_all(&fw->completion);
++		complete_all(&req->completion);
+ 		return 0;
+ 	}
+ 
+-	ret = request_firmware_nowait(THIS_MODULE, true, fw_name, rtwdev->dev,
+-				      GFP_KERNEL, fw, rtw89_load_firmware_cb);
+-	if (ret) {
+-		rtw89_err(rtwdev, "failed to async firmware request\n");
+-		return ret;
+-	}
++	if (nowarn)
++		ret = firmware_request_nowarn(&req->firmware, fw_name, rtwdev->dev);
++	else
++		ret = request_firmware(&req->firmware, fw_name, rtwdev->dev);
+ 
+-	return 0;
++	complete_all(&req->completion);
++
++	return ret;
++}
++
++void rtw89_load_firmware_work(struct work_struct *work)
++{
++	struct rtw89_dev *rtwdev =
++		container_of(work, struct rtw89_dev, load_firmware_work);
++	const char *fw_name = rtwdev->chip->fw_name;
++
++	rtw89_load_firmware_req(rtwdev, &rtwdev->fw.req, fw_name, false);
+ }
+ 
+ void rtw89_unload_firmware(struct rtw89_dev *rtwdev)
+ {
+ 	struct rtw89_fw_info *fw = &rtwdev->fw;
+ 
+-	rtw89_wait_firmware_completion(rtwdev);
++	cancel_work_sync(&rtwdev->load_firmware_work);
+ 
+-	if (fw->firmware) {
+-		release_firmware(fw->firmware);
++	if (fw->req.firmware) {
++		release_firmware(fw->req.firmware);
+ 
+ 		/* assign NULL back in case rtw89_free_ieee80211_hw()
+ 		 * try to release the same one again.
+ 		 */
+-		fw->firmware = NULL;
++		fw->req.firmware = NULL;
+ 	}
+ }
+ 
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -3660,7 +3660,7 @@ rtw89_early_fw_feature_recognize(struct
+ 				 const struct rtw89_chip_info *chip,
+ 				 struct rtw89_fw_info *early_fw);
+ int rtw89_fw_download(struct rtw89_dev *rtwdev, enum rtw89_fw_type type);
+-int rtw89_load_firmware(struct rtw89_dev *rtwdev);
++void rtw89_load_firmware_work(struct work_struct *work);
+ void rtw89_unload_firmware(struct rtw89_dev *rtwdev);
+ int rtw89_wait_firmware_completion(struct rtw89_dev *rtwdev);
+ void rtw89_h2c_pkt_set_hdr(struct rtw89_dev *rtwdev, struct sk_buff *skb,

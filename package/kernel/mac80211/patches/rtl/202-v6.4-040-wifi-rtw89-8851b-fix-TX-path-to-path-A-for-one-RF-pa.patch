@@ -1,0 +1,40 @@
+From d5289b2d69a777d24686d7ee8264a55761dc9f93 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Thu, 30 Mar 2023 21:33:22 +0800
+Subject: [PATCH 040/136] wifi: rtw89: 8851b: fix TX path to path A for one RF
+ path chip
+
+For two RF paths chips, we normally set path B as main path by default.
+8851B has single one RF path, so set TX path to A and set mapping of
+path B to 0.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230330133324.19538-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -1161,9 +1161,18 @@ fail:
+ static void __rtw89_fw_h2c_set_tx_path(struct rtw89_dev *rtwdev,
+ 				       struct sk_buff *skb)
+ {
++	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	struct rtw89_hal *hal = &rtwdev->hal;
+-	u8 ntx_path = hal->antenna_tx ? hal->antenna_tx : RF_B;
+-	u8 map_b = hal->antenna_tx == RF_AB ? 1 : 0;
++	u8 ntx_path;
++	u8 map_b;
++
++	if (chip->rf_path_num == 1) {
++		ntx_path = RF_A;
++		map_b = 0;
++	} else {
++		ntx_path = hal->antenna_tx ? hal->antenna_tx : RF_B;
++		map_b = hal->antenna_tx == RF_AB ? 1 : 0;
++	}
+ 
+ 	SET_CMC_TBL_NTX_PATH_EN(skb->data, ntx_path);
+ 	SET_CMC_TBL_PATH_MAP_A(skb->data, 0);

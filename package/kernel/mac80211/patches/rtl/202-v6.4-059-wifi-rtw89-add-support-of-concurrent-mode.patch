@@ -1,0 +1,59 @@
+From f22c0bffe8d9528ace89a853c6065b79dcb88c43 Mon Sep 17 00:00:00 2001
+From: Po-Hao Huang <phhuang@realtek.com>
+Date: Sat, 15 Apr 2023 11:50:16 +0800
+Subject: [PATCH 059/136] wifi: rtw89: add support of concurrent mode
+
+Add iface_combination declaration to enable concurrent mode. Only two
+interfaces under same frequency is supported currently. We limit the
+role combination to be STA + P2P or STA + AP only for now until new
+feature is requested.
+
+Signed-off-by: Po-Hao Huang <phhuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230415035016.15788-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 25 +++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -156,6 +156,28 @@ static struct ieee80211_rate rtw89_bitra
+ 	{ .bitrate = 540, .hw_value = 0x0b, },
+ };
+ 
++static const struct ieee80211_iface_limit rtw89_iface_limits[] = {
++	{
++		.max = 1,
++		.types = BIT(NL80211_IFTYPE_STATION),
++	},
++	{
++		.max = 1,
++		.types = BIT(NL80211_IFTYPE_P2P_CLIENT) |
++			 BIT(NL80211_IFTYPE_P2P_GO) |
++			 BIT(NL80211_IFTYPE_AP),
++	},
++};
++
++static const struct ieee80211_iface_combination rtw89_iface_combs[] = {
++	{
++		.limits = rtw89_iface_limits,
++		.n_limits = ARRAY_SIZE(rtw89_iface_limits),
++		.max_interfaces = 2,
++		.num_different_channels = 1,
++	}
++};
++
+ bool rtw89_ra_report_to_bitrate(struct rtw89_dev *rtwdev, u8 rpt_rate, u16 *bitrate)
+ {
+ 	struct ieee80211_rate rate;
+@@ -3834,6 +3856,9 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
+ 	if (!hw)
+ 		goto err;
+ 
++	hw->wiphy->iface_combinations = rtw89_iface_combs;
++	hw->wiphy->n_iface_combinations = ARRAY_SIZE(rtw89_iface_combs);
++
+ 	rtwdev = hw->priv;
+ 	rtwdev->hw = hw;
+ 	rtwdev->dev = device;

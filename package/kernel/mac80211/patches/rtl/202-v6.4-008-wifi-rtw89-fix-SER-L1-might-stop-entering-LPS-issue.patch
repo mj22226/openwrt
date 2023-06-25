@@ -1,0 +1,42 @@
+From 5c48f9432d06bf85ca934d7c4ecb14a7ec0c7f5d Mon Sep 17 00:00:00 2001
+From: Chih-Kang Chang <gary.chang@realtek.com>
+Date: Fri, 24 Feb 2023 16:21:17 +0800
+Subject: [PATCH 008/136] wifi: rtw89: fix SER L1 might stop entering LPS issue
+
+When SER L1 triggered, driver need to stop Rx and clear RTW89_FLAG_RUNNING
+flag. If track_work check RTW89_FLAG_RUNNING simultaneously, it will check
+failed and never queue track_work again, and LPS won't enter either.
+Therefore, we cancel delayed work when enter SER L1, and queue delayed work
+when leave SER L1.
+
+Signed-off-by: Chih-Kang Chang <gary.chang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230224082117.21241-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/ser.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/ser.c
++++ b/drivers/net/wireless/realtek/rtw89/ser.c
+@@ -414,8 +414,11 @@ static void ser_idle_st_hdl(struct rtw89
+ 
+ static void ser_reset_trx_st_hdl(struct rtw89_ser *ser, u8 evt)
+ {
++	struct rtw89_dev *rtwdev = container_of(ser, struct rtw89_dev, ser);
++
+ 	switch (evt) {
+ 	case SER_EV_STATE_IN:
++		cancel_delayed_work_sync(&rtwdev->track_work);
+ 		drv_stop_tx(ser);
+ 
+ 		if (hal_stop_dma(ser)) {
+@@ -446,6 +449,8 @@ static void ser_reset_trx_st_hdl(struct
+ 		hal_enable_dma(ser);
+ 		drv_resume_rx(ser);
+ 		drv_resume_tx(ser);
++		ieee80211_queue_delayed_work(rtwdev->hw, &rtwdev->track_work,
++					     RTW89_TRACK_WORK_PERIOD);
+ 		break;
+ 
+ 	default:

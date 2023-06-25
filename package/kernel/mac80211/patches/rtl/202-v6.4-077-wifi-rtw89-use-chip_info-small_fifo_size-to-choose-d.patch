@@ -1,0 +1,87 @@
+From ce816ab54bc927f893e17e7e6b9b68e30dd4b4a1 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 21 Apr 2023 10:45:48 +0800
+Subject: [PATCH 077/136] wifi: rtw89: use chip_info::small_fifo_size to choose
+ debug_mask
+
+Previously, 8852B has smaller FIFO size than others, so I use chip_id to
+choose debug_mask before. 8851B has similar design, so add a field to
+chip_info as a general expression.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230421024551.29994-6-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h     | 1 +
+ drivers/net/wireless/realtek/rtw89/pci.c      | 4 ++--
+ drivers/net/wireless/realtek/rtw89/rtw8851b.c | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 1 +
+ 6 files changed, 7 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3159,6 +3159,7 @@ struct rtw89_chip_info {
+ 	u8 fw_format_max;
+ 	bool try_ce_fw;
+ 	u32 fifo_size;
++	bool small_fifo_size;
+ 	u32 dle_scc_rsvd_size;
+ 	u16 max_amsdu_limit;
+ 	bool dis_2g_40m_ul_ofdma;
+--- a/drivers/net/wireless/realtek/rtw89/pci.c
++++ b/drivers/net/wireless/realtek/rtw89/pci.c
+@@ -1003,10 +1003,10 @@ static u32 __rtw89_pci_check_and_reclaim
+ 	min_cnt = min(bd_cnt, wd_cnt);
+ 	if (min_cnt == 0) {
+ 		/* This message can be frequently shown in low power mode or
+-		 * high traffic with 8852B, and we have recognized it as normal
++		 * high traffic with small FIFO chips, and we have recognized it as normal
+ 		 * behavior, so print with mask RTW89_DBG_TXRX in these situations.
+ 		 */
+-		if (rtwpci->low_power || chip->chip_id == RTL8852B)
++		if (rtwpci->low_power || chip->small_fifo_size)
+ 			debug_mask = RTW89_DBG_TXRX;
+ 		else
+ 			debug_mask = RTW89_DBG_UNEXP;
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b.c
+@@ -38,6 +38,7 @@ const struct rtw89_chip_info rtw8851b_ch
+ 	.fw_format_max		= RTW8851B_FW_FORMAT_MAX,
+ 	.try_ce_fw		= true,
+ 	.fifo_size		= 196608,
++	.small_fifo_size	= true,
+ 	.dle_scc_rsvd_size	= 98304,
+ 	.max_amsdu_limit	= 3500,
+ 	.dis_2g_40m_ul_ofdma	= true,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -2075,6 +2075,7 @@ const struct rtw89_chip_info rtw8852a_ch
+ 	.fw_format_max		= RTW8852A_FW_FORMAT_MAX,
+ 	.try_ce_fw		= false,
+ 	.fifo_size		= 458752,
++	.small_fifo_size	= false,
+ 	.dle_scc_rsvd_size	= 0,
+ 	.max_amsdu_limit	= 3500,
+ 	.dis_2g_40m_ul_ofdma	= true,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2506,6 +2506,7 @@ const struct rtw89_chip_info rtw8852b_ch
+ 	.fw_format_max		= RTW8852B_FW_FORMAT_MAX,
+ 	.try_ce_fw		= true,
+ 	.fifo_size		= 196608,
++	.small_fifo_size	= true,
+ 	.dle_scc_rsvd_size	= 98304,
+ 	.max_amsdu_limit	= 3500,
+ 	.dis_2g_40m_ul_ofdma	= true,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2805,6 +2805,7 @@ const struct rtw89_chip_info rtw8852c_ch
+ 	.fw_format_max		= RTW8852C_FW_FORMAT_MAX,
+ 	.try_ce_fw		= false,
+ 	.fifo_size		= 458752,
++	.small_fifo_size	= false,
+ 	.dle_scc_rsvd_size	= 0,
+ 	.max_amsdu_limit	= 8000,
+ 	.dis_2g_40m_ul_ofdma	= false,

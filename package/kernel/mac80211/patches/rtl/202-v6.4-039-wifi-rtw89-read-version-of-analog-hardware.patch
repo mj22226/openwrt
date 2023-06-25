@@ -1,0 +1,72 @@
+From a6fb2bb84654dde55fab94251c9119b6917d098d Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Thu, 30 Mar 2023 21:33:21 +0800
+Subject: [PATCH 039/136] wifi: rtw89: read version of analog hardware
+
+The chip contains digital and analog parts, and each of them has its own
+version number. This is used by BT coexistence mechanism to make strategy
+decision for different analog version.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230330133324.19538-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 10 ++++++++++
+ drivers/net/wireless/realtek/rtw89/core.h |  2 ++
+ drivers/net/wireless/realtek/rtw89/mac.h  |  1 +
+ 3 files changed, 13 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -3535,6 +3535,8 @@ void rtw89_core_scan_complete(struct rtw
+ static void rtw89_read_chip_ver(struct rtw89_dev *rtwdev)
+ {
+ 	const struct rtw89_chip_info *chip = rtwdev->chip;
++	int ret;
++	u8 val;
+ 	u8 cv;
+ 
+ 	cv = rtw89_read32_mask(rtwdev, R_AX_SYS_CFG1, B_AX_CHIP_VER_MASK);
+@@ -3546,6 +3548,14 @@ static void rtw89_read_chip_ver(struct r
+ 	}
+ 
+ 	rtwdev->hal.cv = cv;
++
++	if (chip->chip_id == RTL8852B || chip->chip_id == RTL8851B) {
++		ret = rtw89_mac_read_xtal_si(rtwdev, XTAL_SI_CV, &val);
++		if (!ret)
++			return;
++
++		rtwdev->hal.acv = u8_get_bits(val, XTAL_SI_ACV_MASK);
++	}
+ }
+ 
+ static void rtw89_core_setup_phycap(struct rtw89_dev *rtwdev)
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -108,6 +108,7 @@ enum rtw89_core_chip_id {
+ 	RTL8852A,
+ 	RTL8852B,
+ 	RTL8852C,
++	RTL8851B,
+ };
+ 
+ enum rtw89_cv {
+@@ -3412,6 +3413,7 @@ struct rtw89_sub_entity {
+ struct rtw89_hal {
+ 	u32 rx_fltr;
+ 	u8 cv;
++	u8 acv;
+ 	u32 sw_amsdu_max_size;
+ 	u32 antenna_tx;
+ 	u32 antenna_rx;
+--- a/drivers/net/wireless/realtek/rtw89/mac.h
++++ b/drivers/net/wireless/realtek/rtw89/mac.h
+@@ -1117,6 +1117,7 @@ enum rtw89_mac_xtal_si_offset {
+ 	XTAL_SI_XTAL_XMD_4 = 0x26,
+ #define XTAL_SI_LPS_CAP		GENMASK(3, 0)
+ 	XTAL_SI_CV = 0x41,
++#define XTAL_SI_ACV_MASK	GENMASK(3, 0)
+ 	XTAL_SI_LOW_ADDR = 0x62,
+ #define XTAL_SI_LOW_ADDR_MASK	GENMASK(7, 0)
+ 	XTAL_SI_CTRL = 0x63,

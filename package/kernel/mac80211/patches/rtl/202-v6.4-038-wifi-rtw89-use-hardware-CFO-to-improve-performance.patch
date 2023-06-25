@@ -1,0 +1,169 @@
+From 9f9882dbe2eecdb27f5f3832f215679747f94d8f Mon Sep 17 00:00:00 2001
+From: Eric Huang <echuang@realtek.com>
+Date: Thu, 30 Mar 2023 21:23:52 +0800
+Subject: [PATCH 038/136] wifi: rtw89: use hardware CFO to improve performance
+
+Turn on hardware CFO (central frequency offset) compensation based on IC
+capability, and improve digital CFO compensation accuracy by using
+more fixed points number.
+
+Signed-off-by: Eric Huang <echuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230330132352.13647-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h     |  3 ++
+ drivers/net/wireless/realtek/rtw89/phy.c      | 28 +++++++++++++------
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c |  3 +-
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c |  3 +-
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c |  3 +-
+ 5 files changed, 29 insertions(+), 11 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3202,6 +3202,7 @@ struct rtw89_chip_info {
+ 	struct rtw89_reg_def c2h_counter_reg;
+ 	const struct rtw89_page_regs *page_regs;
+ 	bool cfo_src_fd;
++	bool cfo_hw_comp;
+ 	const struct rtw89_reg_def *dcfo_comp;
+ 	u8 dcfo_comp_sft;
+ 	const struct rtw89_imr_info *imr_info;
+@@ -3684,6 +3685,8 @@ struct rtw89_cfo_tracking_info {
+ 	s32 cfo_avg_pre;
+ 	s32 cfo_avg[CFO_TRACK_MAX_USER];
+ 	s32 pre_cfo_avg[CFO_TRACK_MAX_USER];
++	s32 dcfo_avg;
++	s32 dcfo_avg_pre;
+ 	u32 packet_count;
+ 	u32 packet_count_pre;
+ 	s32 residual_cfo_acc;
+--- a/drivers/net/wireless/realtek/rtw89/phy.c
++++ b/drivers/net/wireless/realtek/rtw89/phy.c
+@@ -2417,7 +2417,6 @@ static void rtw89_dcfo_comp(struct rtw89
+ 	bool is_linked = rtwdev->total_sta_assoc > 0;
+ 	s32 cfo_avg_312;
+ 	s32 dcfo_comp_val;
+-	u8 dcfo_comp_sft = rtwdev->chip->dcfo_comp_sft;
+ 	int sign;
+ 
+ 	if (!is_linked) {
+@@ -2430,8 +2429,8 @@ static void rtw89_dcfo_comp(struct rtw89
+ 		return;
+ 	dcfo_comp_val = rtw89_phy_read32_mask(rtwdev, R_DCFO, B_DCFO);
+ 	sign = curr_cfo > 0 ? 1 : -1;
+-	cfo_avg_312 = (curr_cfo << dcfo_comp_sft) / 5 + sign * dcfo_comp_val;
+-	rtw89_debug(rtwdev, RTW89_DBG_CFO, "DCFO: avg_cfo=%d\n", cfo_avg_312);
++	cfo_avg_312 = curr_cfo / 625 + sign * dcfo_comp_val;
++	rtw89_debug(rtwdev, RTW89_DBG_CFO, "avg_cfo_312=%d step\n", cfo_avg_312);
+ 	if (rtwdev->chip->chip_id == RTL8852A && rtwdev->hal.cv == CHIP_CBV)
+ 		cfo_avg_312 = -cfo_avg_312;
+ 	rtw89_phy_set_phy_regs(rtwdev, dcfo_comp->addr, dcfo_comp->mask,
+@@ -2440,9 +2439,16 @@ static void rtw89_dcfo_comp(struct rtw89
+ 
+ static void rtw89_dcfo_comp_init(struct rtw89_dev *rtwdev)
+ {
++	const struct rtw89_chip_info *chip = rtwdev->chip;
++
+ 	rtw89_phy_set_phy_regs(rtwdev, R_DCFO_OPT, B_DCFO_OPT_EN, 1);
+ 	rtw89_phy_set_phy_regs(rtwdev, R_DCFO_WEIGHT, B_DCFO_WEIGHT_MSK, 8);
+-	rtw89_write32_clr(rtwdev, R_AX_PWR_UL_CTRL2, B_AX_PWR_UL_CFO_MASK);
++
++	if (chip->cfo_hw_comp)
++		rtw89_write32_mask(rtwdev, R_AX_PWR_UL_CTRL2,
++				   B_AX_PWR_UL_CFO_MASK, 0x6);
++	else
++		rtw89_write32_clr(rtwdev, R_AX_PWR_UL_CTRL2, B_AX_PWR_UL_CFO_MASK);
+ }
+ 
+ static void rtw89_phy_cfo_init(struct rtw89_dev *rtwdev)
+@@ -2512,6 +2518,7 @@ static void rtw89_phy_cfo_crystal_cap_ad
+ 
+ static s32 rtw89_phy_average_cfo_calc(struct rtw89_dev *rtwdev)
+ {
++	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	struct rtw89_cfo_tracking_info *cfo = &rtwdev->cfo_tracking;
+ 	s32 cfo_khz_all = 0;
+ 	s32 cfo_cnt_all = 0;
+@@ -2528,6 +2535,8 @@ static s32 rtw89_phy_average_cfo_calc(st
+ 		cfo_cnt_all += cfo->cfo_cnt[i];
+ 		cfo_all_avg = phy_div(cfo_khz_all, cfo_cnt_all);
+ 		cfo->pre_cfo_avg[i] = cfo->cfo_avg[i];
++		cfo->dcfo_avg = phy_div(cfo_khz_all << chip->dcfo_comp_sft,
++					cfo_cnt_all);
+ 	}
+ 	rtw89_debug(rtwdev, RTW89_DBG_CFO,
+ 		    "CFO track for macid = %d\n", i);
+@@ -2654,7 +2663,9 @@ static void rtw89_phy_cfo_dm(struct rtw8
+ 	s32 new_cfo = 0;
+ 	bool x_cap_update = false;
+ 	u8 pre_x_cap = cfo->crystal_cap;
++	u8 dcfo_comp_sft = rtwdev->chip->dcfo_comp_sft;
+ 
++	cfo->dcfo_avg = 0;
+ 	rtw89_debug(rtwdev, RTW89_DBG_CFO, "CFO:total_sta_assoc=%d\n",
+ 		    rtwdev->total_sta_assoc);
+ 	if (rtwdev->total_sta_assoc == 0) {
+@@ -2696,18 +2707,19 @@ static void rtw89_phy_cfo_dm(struct rtw8
+ 
+ 	rtw89_phy_cfo_crystal_cap_adjust(rtwdev, new_cfo);
+ 	cfo->cfo_avg_pre = new_cfo;
++	cfo->dcfo_avg_pre = cfo->dcfo_avg;
+ 	x_cap_update =  cfo->crystal_cap != pre_x_cap;
+ 	rtw89_debug(rtwdev, RTW89_DBG_CFO, "Xcap_up=%d\n", x_cap_update);
+ 	rtw89_debug(rtwdev, RTW89_DBG_CFO, "Xcap: D:%x C:%x->%x, ofst=%d\n",
+ 		    cfo->def_x_cap, pre_x_cap, cfo->crystal_cap,
+ 		    cfo->x_cap_ofst);
+ 	if (x_cap_update) {
+-		if (new_cfo > 0)
+-			new_cfo -= CFO_SW_COMP_FINE_TUNE;
++		if (cfo->dcfo_avg > 0)
++			cfo->dcfo_avg -= CFO_SW_COMP_FINE_TUNE << dcfo_comp_sft;
+ 		else
+-			new_cfo += CFO_SW_COMP_FINE_TUNE;
++			cfo->dcfo_avg += CFO_SW_COMP_FINE_TUNE << dcfo_comp_sft;
+ 	}
+-	rtw89_dcfo_comp(rtwdev, new_cfo);
++	rtw89_dcfo_comp(rtwdev, cfo->dcfo_avg);
+ 	rtw89_phy_cfo_statistics_reset(rtwdev);
+ }
+ 
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -2147,8 +2147,9 @@ const struct rtw89_chip_info rtw8852a_ch
+ 	.c2h_counter_reg	= {R_AX_UDM1 + 1, B_AX_UDM1_HALMAC_C2H_ENQ_CNT_MASK >> 8},
+ 	.page_regs		= &rtw8852a_page_regs,
+ 	.cfo_src_fd		= false,
++	.cfo_hw_comp            = false,
+ 	.dcfo_comp		= &rtw8852a_dcfo_comp,
+-	.dcfo_comp_sft		= 3,
++	.dcfo_comp_sft		= 10,
+ 	.imr_info		= &rtw8852a_imr_info,
+ 	.rrsr_cfgs		= &rtw8852a_rrsr_cfgs,
+ 	.bss_clr_map_reg	= R_BSS_CLR_MAP,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2568,8 +2568,9 @@ const struct rtw89_chip_info rtw8852b_ch
+ 	.c2h_regs		= rtw8852b_c2h_regs,
+ 	.page_regs		= &rtw8852b_page_regs,
+ 	.cfo_src_fd		= true,
++	.cfo_hw_comp		= true,
+ 	.dcfo_comp		= &rtw8852b_dcfo_comp,
+-	.dcfo_comp_sft		= 3,
++	.dcfo_comp_sft		= 10,
+ 	.imr_info		= &rtw8852b_imr_info,
+ 	.rrsr_cfgs		= &rtw8852b_rrsr_cfgs,
+ 	.bss_clr_map_reg	= R_BSS_CLR_MAP_V1,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2881,8 +2881,9 @@ const struct rtw89_chip_info rtw8852c_ch
+ 	.c2h_regs		= rtw8852c_c2h_regs,
+ 	.page_regs		= &rtw8852c_page_regs,
+ 	.cfo_src_fd		= false,
++	.cfo_hw_comp            = false,
+ 	.dcfo_comp		= &rtw8852c_dcfo_comp,
+-	.dcfo_comp_sft		= 5,
++	.dcfo_comp_sft		= 12,
+ 	.imr_info		= &rtw8852c_imr_info,
+ 	.rrsr_cfgs		= &rtw8852c_rrsr_cfgs,
+ 	.bss_clr_map_reg	= R_BSS_CLR_MAP,

@@ -1,0 +1,28 @@
+From b408f33b35a4de606bfbd0de33b8f971bc5488ba Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Sat, 27 May 2023 16:29:39 +0800
+Subject: [PATCH 121/136] wifi: rtw89: remove redundant check of entering LPS
+
+Originally, add this check rule to prevent entering LPS if more than one
+vif (in station mode) connect to AP. Since we have checked this by previous
+commit, remove this redundant check.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230527082939.11206-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -2619,9 +2619,6 @@ static void rtw89_vif_enter_lps(struct r
+ 	    rtwvif->tdls_peer)
+ 		return;
+ 
+-	if (rtwdev->total_sta_assoc > 1)
+-		return;
+-
+ 	if (rtwvif->offchan)
+ 		return;
+ 

@@ -1,0 +1,60 @@
+From 8b21c08ef7df41aa615439beac323a7b3b1df0e6 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Tue, 16 May 2023 16:24:41 +0800
+Subject: [PATCH 105/136] wifi: rtw89: refine packet offload handling under SER
+
+H2C of packet offload needs to wait FW ACK by C2H. But, it's possible
+that packet offload happens during SER (system error recovery), e.g.
+SER L2 which restarts HW. More, packet offload flow isn't deferrable.
+So, the H2C wait may get `ret == 1` (unreachable).
+
+However, the logic FW deals with packet offload is simple enough, just
+clone content. It means that as long as the H2C is issued successfully,
+the thing will succeed sooner or later. Therefore, after we add a debug
+log when receiving ACK to packet offload, it would be acceptable that
+during SER, packet offload don't really wait for ACK. And, if debugging,
+we can still check its debug logs. Besides, we can expect that if we see
+SER before receiving ACK to packet offload, those debug logs of the ACK
+have a time difference.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230516082441.11154-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c  | 4 ++--
+ drivers/net/wireless/realtek/rtw89/mac.c | 3 +++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -2467,7 +2467,7 @@ int rtw89_fw_h2c_del_pkt_offload(struct
+ 	cond = RTW89_FW_OFLD_WAIT_COND_PKT_OFLD(id, RTW89_PKT_OFLD_OP_DEL);
+ 
+ 	ret = rtw89_h2c_tx_and_wait(rtwdev, skb, wait, cond);
+-	if (ret) {
++	if (ret < 0) {
+ 		rtw89_debug(rtwdev, RTW89_DBG_FW,
+ 			    "failed to del pkt ofld: id %d, ret %d\n",
+ 			    id, ret);
+@@ -2517,7 +2517,7 @@ int rtw89_fw_h2c_add_pkt_offload(struct
+ 	cond = RTW89_FW_OFLD_WAIT_COND_PKT_OFLD(alloc_id, RTW89_PKT_OFLD_OP_ADD);
+ 
+ 	ret = rtw89_h2c_tx_and_wait(rtwdev, skb, wait, cond);
+-	if (ret) {
++	if (ret < 0) {
+ 		rtw89_debug(rtwdev, RTW89_DBG_FW,
+ 			    "failed to add pkt ofld: id %d, ret %d\n",
+ 			    alloc_id, ret);
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -4460,6 +4460,9 @@ rtw89_mac_c2h_pkt_ofld_rsp(struct rtw89_
+ 	struct rtw89_completion_data data = {};
+ 	unsigned int cond;
+ 
++	rtw89_debug(rtwdev, RTW89_DBG_FW, "pkt ofld rsp: id %d op %d len %d\n",
++		    pkt_id, pkt_op, pkt_len);
++
+ 	data.err = !pkt_len;
+ 	cond = RTW89_FW_OFLD_WAIT_COND_PKT_OFLD(pkt_id, pkt_op);
+ 

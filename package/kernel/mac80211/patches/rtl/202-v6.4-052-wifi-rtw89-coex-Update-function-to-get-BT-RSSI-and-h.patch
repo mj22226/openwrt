@@ -1,0 +1,55 @@
+From 2380a220316fc2e753014b1862ed579796d29ac5 Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Wed, 12 Apr 2023 09:28:30 +0800
+Subject: [PATCH 052/136] wifi: rtw89: coex: Update function to get BT RSSI and
+ hardware counter
+
+Correct Bluetooth RSSI count method. The 6dB is the gap between hardware
+packet sampled value and real RSSI value.
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230412012831.10519-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c | 3 ++-
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 3 ++-
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 3 ++-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -1832,7 +1832,8 @@ rtw8852a_btc_set_wl_txpwr_ctrl(struct rt
+ static
+ s8 rtw8852a_btc_get_bt_rssi(struct rtw89_dev *rtwdev, s8 val)
+ {
+-	return clamp_t(s8, val, -100, 0) + 100;
++	/* +6 for compensate offset */
++	return clamp_t(s8, val + 6, -100, 0) + 100;
+ }
+ 
+ static struct rtw89_btc_rf_trx_para rtw89_btc_8852a_rf_ul[] = {
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2279,7 +2279,8 @@ do {								\
+ static
+ s8 rtw8852b_btc_get_bt_rssi(struct rtw89_dev *rtwdev, s8 val)
+ {
+-	return clamp_t(s8, val, -100, 0) + 100;
++	/* +6 for compensate offset */
++	return clamp_t(s8, val + 6, -100, 0) + 100;
+ }
+ 
+ static
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2533,7 +2533,8 @@ do {								\
+ static
+ s8 rtw8852c_btc_get_bt_rssi(struct rtw89_dev *rtwdev, s8 val)
+ {
+-	return clamp_t(s8, val, -100, 0) + 100;
++	/* +6 for compensate offset */
++	return clamp_t(s8, val + 6, -100, 0) + 100;
+ }
+ 
+ static const struct rtw89_btc_rf_trx_para rtw89_btc_8852c_rf_ul[] = {

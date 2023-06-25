@@ -1,0 +1,62 @@
+From 25a7e5072ef1901e671e6f39df40b5028b241804 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Wed, 19 Apr 2023 11:45:51 +0000
+Subject: [PATCH 068/136] wifi: rtw89: release bit in
+ rtw89_fw_h2c_del_pkt_offload()
+
+We have a pair of FW functions, rtw89_fw_h2c_add_pkt_offload() and
+rtw89_fw_h2c_del_pkt_offload(). The rtw89_fw_h2c_add_pkt_offload()
+acquires the bit itself, but the bit needs to be released by the
+caller of rtw89_fw_h2c_del_pkt_offload(). This looks asymmetrical
+and is not friendly to callers.
+
+Second, if callers always releases the bits, it might make driver
+unaligned to bitmap status of FW after some failures of calling
+rtw89_fw_h2c_del_pkt_offload(). So, this commit move bit release
+into rtw89_fw_h2c_del_pkt_offload().
+
+In general, driver will call rtw89_fw_h2c_add_pkt_offload() and
+rtw89_fw_h2c_del_pkt_offload(), and then, SW bitmap can align
+with FW one. There is one exception when notify_fw is false.
+It happens when driver detects FW problems and is going to
+reset FW. Only in this case, driver needs to release bits
+outside rtw89_fw_h2c_del_pkt_offload().
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/8cf5d45c5b04e7b680d4eb9dda62056cdce14cec.camel@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -997,8 +997,8 @@ void rtw89_fw_release_general_pkt_list_v
+ 	list_for_each_entry_safe(info, tmp, pkt_list, list) {
+ 		if (notify_fw)
+ 			rtw89_fw_h2c_del_pkt_offload(rtwdev, info->id);
+-		rtw89_core_release_bit_map(rtwdev->pkt_offload,
+-					   info->id);
++		else
++			rtw89_core_release_bit_map(rtwdev->pkt_offload, info->id);
+ 		list_del(&info->list);
+ 		kfree(info);
+ 	}
+@@ -2466,6 +2466,7 @@ int rtw89_fw_h2c_del_pkt_offload(struct
+ 		goto fail;
+ 	}
+ 
++	rtw89_core_release_bit_map(rtwdev->pkt_offload, id);
+ 	return 0;
+ fail:
+ 	dev_kfree_skb_any(skb);
+@@ -3020,8 +3021,6 @@ static void rtw89_release_pkt_list(struc
+ 
+ 		list_for_each_entry_safe(info, tmp, &pkt_list[idx], list) {
+ 			rtw89_fw_h2c_del_pkt_offload(rtwdev, info->id);
+-			rtw89_core_release_bit_map(rtwdev->pkt_offload,
+-						   info->id);
+ 			list_del(&info->list);
+ 			kfree(info);
+ 		}

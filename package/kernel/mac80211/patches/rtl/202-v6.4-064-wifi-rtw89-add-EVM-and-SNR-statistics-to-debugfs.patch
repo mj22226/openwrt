@@ -1,0 +1,179 @@
+From 4bb223a19f9b8c226b357ceedad47a00d88fef3a Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Tue, 18 Apr 2023 09:28:17 +0800
+Subject: [PATCH 064/136] wifi: rtw89: add EVM and SNR statistics to debugfs
+
+To help debug performance problem, add EVM and SNR statistics to debugfs
+that shows
+
+  EVM: [(26.75, 26.75) (25.75, 25.75)]    SNR: 40
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230418012820.5139-5-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c  | 29 ++++++++++++++++++----
+ drivers/net/wireless/realtek/rtw89/core.h  | 11 ++++++++
+ drivers/net/wireless/realtek/rtw89/debug.c | 16 ++++++++++++
+ drivers/net/wireless/realtek/rtw89/txrx.h  |  3 +++
+ 4 files changed, 54 insertions(+), 5 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -1247,13 +1247,16 @@ static void rtw89_core_rx_process_phy_pp
+ 	struct rtw89_hal *hal = &rtwdev->hal;
+ 	u8 ant_num = hal->ant_diversity ? 2 : rtwdev->chip->rf_path_num;
+ 	u8 ant_pos = U8_MAX;
++	u8 evm_pos = 0;
+ 	int i;
+ 
+ 	if (rtwsta->mac_id != phy_ppdu->mac_id || !phy_ppdu->to_self)
+ 		return;
+ 
+-	if (hal->ant_diversity && hal->antenna_rx)
++	if (hal->ant_diversity && hal->antenna_rx) {
+ 		ant_pos = __ffs(hal->antenna_rx);
++		evm_pos = ant_pos;
++	}
+ 
+ 	ewma_rssi_add(&rtwsta->avg_rssi, phy_ppdu->rssi_avg);
+ 
+@@ -1263,6 +1266,12 @@ static void rtw89_core_rx_process_phy_pp
+ 		for (i = 0; i < rtwdev->chip->rf_path_num; i++)
+ 			ewma_rssi_add(&rtwsta->rssi[i], phy_ppdu->rssi[i]);
+ 	}
++
++	if (phy_ppdu->ofdm.has) {
++		ewma_snr_add(&rtwsta->avg_snr, phy_ppdu->ofdm.avg_snr);
++		ewma_evm_add(&rtwsta->evm_min[evm_pos], phy_ppdu->ofdm.evm_min);
++		ewma_evm_add(&rtwsta->evm_max[evm_pos], phy_ppdu->ofdm.evm_max);
++	}
+ }
+ 
+ #define VAR_LEN 0xff
+@@ -1300,6 +1309,11 @@ static void rtw89_core_parse_phy_status_
+ 	if (!phy_ppdu->to_self)
+ 		return;
+ 
++	phy_ppdu->ofdm.avg_snr = le32_get_bits(ie->w2, RTW89_PHY_STS_IE01_W2_AVG_SNR);
++	phy_ppdu->ofdm.evm_max = le32_get_bits(ie->w2, RTW89_PHY_STS_IE01_W2_EVM_MAX);
++	phy_ppdu->ofdm.evm_min = le32_get_bits(ie->w2, RTW89_PHY_STS_IE01_W2_EVM_MIN);
++	phy_ppdu->ofdm.has = true;
++
+ 	/* sign conversion for S(12,2) */
+ 	if (rtwdev->chip->cfo_src_fd) {
+ 		t = le32_get_bits(ie->w1, RTW89_PHY_STS_IE01_W1_FD_CFO);
+@@ -1350,9 +1364,6 @@ static int rtw89_core_rx_process_phy_ppd
+ 		return -EINVAL;
+ 	}
+ 	rtw89_core_update_phy_ppdu(phy_ppdu);
+-	ieee80211_iterate_stations_atomic(rtwdev->hw,
+-					  rtw89_core_rx_process_phy_ppdu_iter,
+-					  phy_ppdu);
+ 
+ 	return 0;
+ }
+@@ -1393,6 +1404,10 @@ static void rtw89_core_rx_process_phy_st
+ 		rtw89_debug(rtwdev, RTW89_DBG_TXRX, "parse phy sts failed\n");
+ 	else
+ 		phy_ppdu->valid = true;
++
++	ieee80211_iterate_stations_atomic(rtwdev->hw,
++					  rtw89_core_rx_process_phy_ppdu_iter,
++					  phy_ppdu);
+ }
+ 
+ static u8 rtw89_rxdesc_to_nl_he_gi(struct rtw89_dev *rtwdev,
+@@ -2791,8 +2806,12 @@ int rtw89_core_sta_add(struct rtw89_dev
+ 		rtw89_core_txq_init(rtwdev, sta->txq[i]);
+ 
+ 	ewma_rssi_init(&rtwsta->avg_rssi);
+-	for (i = 0; i < ant_num; i++)
++	ewma_snr_init(&rtwsta->avg_snr);
++	for (i = 0; i < ant_num; i++) {
+ 		ewma_rssi_init(&rtwsta->rssi[i]);
++		ewma_evm_init(&rtwsta->evm_min[i]);
++		ewma_evm_init(&rtwsta->evm_max[i]);
++	}
+ 
+ 	if (vif->type == NL80211_IFTYPE_STATION && !sta->tdls) {
+ 		/* for station mode, assign the mac_id from itself */
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -551,6 +551,12 @@ struct rtw89_rx_phy_ppdu {
+ 	u8 chan_idx;
+ 	u8 ie;
+ 	u16 rate;
++	struct {
++		bool has;
++		u8 avg_snr;
++		u8 evm_max;
++		u8 evm_min;
++	} ofdm;
+ 	bool to_self;
+ 	bool valid;
+ };
+@@ -2533,6 +2539,8 @@ struct rtw89_ra_report {
+ };
+ 
+ DECLARE_EWMA(rssi, 10, 16);
++DECLARE_EWMA(evm, 10, 16);
++DECLARE_EWMA(snr, 10, 16);
+ 
+ struct rtw89_ba_cam_entry {
+ 	struct list_head list;
+@@ -2595,6 +2603,9 @@ struct rtw89_sta {
+ 	u8 prev_rssi;
+ 	struct ewma_rssi avg_rssi;
+ 	struct ewma_rssi rssi[RF_PATH_MAX];
++	struct ewma_snr avg_snr;
++	struct ewma_evm evm_min[RF_PATH_MAX];
++	struct ewma_evm evm_max[RF_PATH_MAX];
+ 	struct rtw89_ampdu_params ampdu_params[IEEE80211_NUM_TIDS];
+ 	struct ieee80211_rx_status rx_status;
+ 	u16 rx_hw_rate;
+--- a/drivers/net/wireless/realtek/rtw89/debug.c
++++ b/drivers/net/wireless/realtek/rtw89/debug.c
+@@ -3208,7 +3208,9 @@ static void rtw89_sta_info_get_iter(void
+ 	struct rtw89_hal *hal = &rtwdev->hal;
+ 	u8 ant_num = hal->ant_diversity ? 2 : rtwdev->chip->rf_path_num;
+ 	bool ant_asterisk = hal->tx_path_diversity || hal->ant_diversity;
++	u8 evm_min, evm_max;
+ 	u8 rssi;
++	u8 snr;
+ 	int i;
+ 
+ 	seq_printf(m, "TX rate [%d]: ", rtwsta->mac_id);
+@@ -3265,6 +3267,20 @@ static void rtw89_sta_info_get_iter(void
+ 			   i + 1 == ant_num ? "" : ", ");
+ 	}
+ 	seq_puts(m, "]\n");
++
++	seq_puts(m, "EVM: [");
++	for (i = 0; i < (hal->ant_diversity ? 2 : 1); i++) {
++		evm_min = ewma_evm_read(&rtwsta->evm_min[i]);
++		evm_max = ewma_evm_read(&rtwsta->evm_max[i]);
++
++		seq_printf(m, "%s(%2u.%02u, %2u.%02u)", i == 0 ? "" : " ",
++			   evm_min >> 2, (evm_min & 0x3) * 25,
++			   evm_max >> 2, (evm_max & 0x3) * 25);
++	}
++	seq_puts(m, "]\t");
++
++	snr = ewma_snr_read(&rtwsta->avg_snr);
++	seq_printf(m, "SNR: %u\n", snr);
+ }
+ 
+ static void
+--- a/drivers/net/wireless/realtek/rtw89/txrx.h
++++ b/drivers/net/wireless/realtek/rtw89/txrx.h
+@@ -308,6 +308,9 @@ struct rtw89_phy_sts_ie0 {
+ #define RTW89_PHY_STS_IE01_W0_CH_IDX GENMASK(23, 16)
+ #define RTW89_PHY_STS_IE01_W1_FD_CFO GENMASK(19, 8)
+ #define RTW89_PHY_STS_IE01_W1_PREMB_CFO GENMASK(31, 20)
++#define RTW89_PHY_STS_IE01_W2_AVG_SNR GENMASK(5, 0)
++#define RTW89_PHY_STS_IE01_W2_EVM_MAX GENMASK(15, 8)
++#define RTW89_PHY_STS_IE01_W2_EVM_MIN GENMASK(23, 16)
+ 
+ enum rtw89_tx_channel {
+ 	RTW89_TXCH_ACH0	= 0,

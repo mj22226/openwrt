@@ -1,0 +1,151 @@
+From de9f93385d0f318b3eba0c1026fd2ec8fba2e982 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Mon, 22 May 2023 20:25:09 +0800
+Subject: [PATCH 113/136] wifi: rtw89: add chip_ops::query_rxdesc() and rxd_len
+ as helpers to support newer chips
+
+The next generation chips use different RX descriptor format, so add
+a chip_ops to hook suitable handlers. Also, the length of RX descriptor is
+different, so add a variable to store the length according to chip and
+descriptor content dynamically. Then, the code can be more general.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230522122513.13559-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c     |  4 ++++
+ drivers/net/wireless/realtek/rtw89/core.h     | 14 ++++++++++++++
+ drivers/net/wireless/realtek/rtw89/pci.c      | 12 ++++--------
+ drivers/net/wireless/realtek/rtw89/rtw8851b.c |  1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852a.c |  1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c |  1 +
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c |  1 +
+ 7 files changed, 26 insertions(+), 8 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -1819,6 +1819,10 @@ void rtw89_core_query_rxdesc(struct rtw8
+ 	shift_len = desc_info->shift << 1; /* 2-byte unit */
+ 	drv_info_len = desc_info->drv_info_size << 3; /* 8-byte unit */
+ 	desc_info->offset = data_offset + shift_len + drv_info_len;
++	if (desc_info->long_rxdesc)
++		desc_info->rxd_len = sizeof(struct rtw89_rxdesc_long);
++	else
++		desc_info->rxd_len = sizeof(struct rtw89_rxdesc_short);
+ 	desc_info->ready = true;
+ 
+ 	if (!desc_info->long_rxdesc)
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -776,6 +776,7 @@ struct rtw89_rx_desc_info {
+ 	u8 sec_cam_id;
+ 	u8 mac_id;
+ 	u16 offset;
++	u16 rxd_len;
+ 	bool ready;
+ };
+ 
+@@ -2824,6 +2825,9 @@ struct rtw89_chip_ops {
+ 				       s8 pw_ofst, enum rtw89_mac_idx mac_idx);
+ 	int (*pwr_on_func)(struct rtw89_dev *rtwdev);
+ 	int (*pwr_off_func)(struct rtw89_dev *rtwdev);
++	void (*query_rxdesc)(struct rtw89_dev *rtwdev,
++			     struct rtw89_rx_desc_info *desc_info,
++			     u8 *data, u32 data_offset);
+ 	void (*fill_txdesc)(struct rtw89_dev *rtwdev,
+ 			    struct rtw89_tx_desc_info *desc_info,
+ 			    void *txdesc);
+@@ -4856,6 +4860,16 @@ static inline void rtw89_ctrl_btg(struct
+ }
+ 
+ static inline
++void rtw89_chip_query_rxdesc(struct rtw89_dev *rtwdev,
++			     struct rtw89_rx_desc_info *desc_info,
++			     u8 *data, u32 data_offset)
++{
++	const struct rtw89_chip_info *chip = rtwdev->chip;
++
++	chip->ops->query_rxdesc(rtwdev, desc_info, data, data_offset);
++}
++
++static inline
+ void rtw89_chip_fill_txdesc(struct rtw89_dev *rtwdev,
+ 			    struct rtw89_tx_desc_info *desc_info,
+ 			    void *txdesc)
+--- a/drivers/net/wireless/realtek/rtw89/pci.c
++++ b/drivers/net/wireless/realtek/rtw89/pci.c
+@@ -265,7 +265,7 @@ static u32 rtw89_pci_rxbd_deliver_skbs(s
+ 			goto err_sync_device;
+ 		}
+ 
+-		rtw89_core_query_rxdesc(rtwdev, desc_info, skb->data, rxinfo_size);
++		rtw89_chip_query_rxdesc(rtwdev, desc_info, skb->data, rxinfo_size);
+ 
+ 		new = rtw89_alloc_skb_for_rx(rtwdev, desc_info->pkt_size);
+ 		if (!new)
+@@ -274,9 +274,7 @@ static u32 rtw89_pci_rxbd_deliver_skbs(s
+ 		rx_ring->diliver_skb = new;
+ 
+ 		/* first segment has RX desc */
+-		offset = desc_info->offset;
+-		offset += desc_info->long_rxdesc ? sizeof(struct rtw89_rxdesc_long) :
+-			  sizeof(struct rtw89_rxdesc_short);
++		offset = desc_info->offset + desc_info->rxd_len;
+ 	} else {
+ 		offset = sizeof(struct rtw89_pci_rxbd_info);
+ 		if (!new) {
+@@ -546,12 +544,10 @@ static u32 rtw89_pci_release_tx_skbs(str
+ 		return cnt;
+ 	}
+ 
+-	rtw89_core_query_rxdesc(rtwdev, &desc_info, skb->data, rxinfo_size);
++	rtw89_chip_query_rxdesc(rtwdev, &desc_info, skb->data, rxinfo_size);
+ 
+ 	/* first segment has RX desc */
+-	offset = desc_info.offset;
+-	offset += desc_info.long_rxdesc ? sizeof(struct rtw89_rxdesc_long) :
+-					  sizeof(struct rtw89_rxdesc_short);
++	offset = desc_info.offset + desc_info.rxd_len;
+ 	for (; offset + rpp_size <= rx_info->len; offset += rpp_size) {
+ 		rpp = (struct rtw89_pci_rpp_fmt *)(skb->data + offset);
+ 		rtw89_pci_release_rpp(rtwdev, rpp);
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b.c
+@@ -2298,6 +2298,7 @@ static const struct rtw89_chip_ops rtw88
+ 	.set_txpwr_ul_tb_offset	= rtw8851b_set_txpwr_ul_tb_offset,
+ 	.pwr_on_func		= rtw8851b_pwr_on_func,
+ 	.pwr_off_func		= rtw8851b_pwr_off_func,
++	.query_rxdesc		= rtw89_core_query_rxdesc,
+ 	.fill_txdesc		= rtw89_core_fill_txdesc,
+ 	.fill_txdesc_fwcmd	= rtw89_core_fill_txdesc,
+ 	.cfg_ctrl_path		= rtw89_mac_cfg_ctrl_path,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852a.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852a.c
+@@ -2050,6 +2050,7 @@ static const struct rtw89_chip_ops rtw88
+ 	.set_txpwr_ul_tb_offset	= rtw8852a_set_txpwr_ul_tb_offset,
+ 	.pwr_on_func		= NULL,
+ 	.pwr_off_func		= NULL,
++	.query_rxdesc		= rtw89_core_query_rxdesc,
+ 	.fill_txdesc		= rtw89_core_fill_txdesc,
+ 	.fill_txdesc_fwcmd	= rtw89_core_fill_txdesc,
+ 	.cfg_ctrl_path		= rtw89_mac_cfg_ctrl_path,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -2472,6 +2472,7 @@ static const struct rtw89_chip_ops rtw88
+ 	.set_txpwr_ul_tb_offset	= rtw8852b_set_txpwr_ul_tb_offset,
+ 	.pwr_on_func		= rtw8852b_pwr_on_func,
+ 	.pwr_off_func		= rtw8852b_pwr_off_func,
++	.query_rxdesc		= rtw89_core_query_rxdesc,
+ 	.fill_txdesc		= rtw89_core_fill_txdesc,
+ 	.fill_txdesc_fwcmd	= rtw89_core_fill_txdesc,
+ 	.cfg_ctrl_path		= rtw89_mac_cfg_ctrl_path,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2780,6 +2780,7 @@ static const struct rtw89_chip_ops rtw88
+ 	.set_txpwr_ul_tb_offset	= rtw8852c_set_txpwr_ul_tb_offset,
+ 	.pwr_on_func		= rtw8852c_pwr_on_func,
+ 	.pwr_off_func		= rtw8852c_pwr_off_func,
++	.query_rxdesc		= rtw89_core_query_rxdesc,
+ 	.fill_txdesc		= rtw89_core_fill_txdesc_v1,
+ 	.fill_txdesc_fwcmd	= rtw89_core_fill_txdesc_fwcmd_v1,
+ 	.cfg_ctrl_path		= rtw89_mac_cfg_ctrl_path_v1,

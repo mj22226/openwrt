@@ -1,0 +1,30 @@
+From 982a91642708bb55246a7b169cb573866260124c Mon Sep 17 00:00:00 2001
+From: Po-Hao Huang <phhuang@realtek.com>
+Date: Sat, 15 Apr 2023 11:50:15 +0800
+Subject: [PATCH 058/136] wifi: rtw89: Disallow power save with multiple
+ stations
+
+Power saving for more than one station is not supported currently.
+Disallow entering PS mode when we have more than one associated
+stations.
+
+Signed-off-by: Po-Hao Huang <phhuang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230415035016.15788-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -2509,6 +2509,9 @@ static void rtw89_vif_enter_lps(struct r
+ 	    rtwvif->tdls_peer)
+ 		return;
+ 
++	if (rtwdev->total_sta_assoc > 1)
++		return;
++
+ 	if (rtwvif->offchan)
+ 		return;
+ 

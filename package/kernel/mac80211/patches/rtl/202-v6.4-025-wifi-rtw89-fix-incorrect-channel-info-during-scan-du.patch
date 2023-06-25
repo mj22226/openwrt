@@ -1,0 +1,42 @@
+From 40711486c7ba91a35ba495564e45be0f2a1b3729 Mon Sep 17 00:00:00 2001
+From: Chih-Kang Chang <gary.chang@realtek.com>
+Date: Mon, 20 Mar 2023 17:31:12 +0800
+Subject: [PATCH 025/136] wifi: rtw89: fix incorrect channel info during scan
+ due to ppdu_sts filtering
+
+We use ppdu_sts to obtain channel information from hardware, to ensure
+that the scan results have correct channel information. However, some of
+ppdu_sts that is filtered by the to_self check is also needed for the scan
+results. Therefore, we modify the filter part in front of CFO count.
+
+Signed-off-by: Chih-Kang Chang <gary.chang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230320093112.30466-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -1220,6 +1220,10 @@ static void rtw89_core_parse_phy_status_
+ 	phy_ppdu->chan_idx = RTW89_GET_PHY_STS_IE01_CH_IDX(addr);
+ 	if (phy_ppdu->rate < RTW89_HW_RATE_OFDM6)
+ 		return;
++
++	if (!phy_ppdu->to_self)
++		return;
++
+ 	/* sign conversion for S(12,2) */
+ 	if (rtwdev->chip->cfo_src_fd)
+ 		cfo = sign_extend32(RTW89_GET_PHY_STS_IE01_FD_CFO(addr), 11);
+@@ -1284,9 +1288,6 @@ static int rtw89_core_rx_parse_phy_sts(s
+ 	if (phy_ppdu->ie < RTW89_CCK_PKT)
+ 		return -EINVAL;
+ 
+-	if (!phy_ppdu->to_self)
+-		return 0;
+-
+ 	pos = (u8 *)phy_ppdu->buf + PHY_STS_HDR_LEN;
+ 	end = (u8 *)phy_ppdu->buf + phy_ppdu->len;
+ 	while (pos < end) {

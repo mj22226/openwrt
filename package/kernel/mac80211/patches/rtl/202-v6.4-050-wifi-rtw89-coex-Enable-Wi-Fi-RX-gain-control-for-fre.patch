@@ -1,0 +1,59 @@
+From 36ef71db559f6a0dc2d7a9af8edb16c387d18ce2 Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Wed, 12 Apr 2023 09:28:28 +0800
+Subject: [PATCH 050/136] wifi: rtw89: coex: Enable Wi-Fi RX gain control for
+ free run solution
+
+When Wi-Fi & Bluetooth are both busy at the same time, Wi-Fi need to
+enable RX gain to protect Wi-Fi RX RF ability. Without this configure
+the interference from Bluetooth will bring a big impact to Wi-Fi RX.
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230412012831.10519-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/rtw8852b.c | 4 ++--
+ drivers/net/wireless/realtek/rtw89/rtw8852c.c | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852b.c
+@@ -332,7 +332,7 @@ static const struct rtw89_btc_rf_trx_par
+ 	{255, 0, 0, 7}, /* 2 ->reserved for shared-antenna */
+ 	{255, 0, 0, 7}, /* 3- >reserved for shared-antenna */
+ 	{255, 0, 0, 7}, /* 4 ->reserved for shared-antenna */
+-	{255, 0, 0, 7}, /* the below id is for non-shared-antenna free-run */
++	{255, 1, 0, 7}, /* the below id is for non-shared-antenna free-run */
+ 	{6, 1, 0, 7},
+ 	{13, 1, 0, 7},
+ 	{13, 1, 0, 7}
+@@ -344,7 +344,7 @@ static const struct rtw89_btc_rf_trx_par
+ 	{255, 0, 0, 7}, /* 2 ->reserved for shared-antenna */
+ 	{255, 0, 0, 7}, /* 3- >reserved for shared-antenna */
+ 	{255, 0, 0, 7}, /* 4 ->reserved for shared-antenna */
+-	{255, 0, 0, 7}, /* the below id is for non-shared-antenna free-run */
++	{255, 1, 0, 7}, /* the below id is for non-shared-antenna free-run */
+ 	{255, 1, 0, 7},
+ 	{255, 1, 0, 7},
+ 	{255, 1, 0, 7}
+--- a/drivers/net/wireless/realtek/rtw89/rtw8852c.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8852c.c
+@@ -2542,7 +2542,7 @@ static const struct rtw89_btc_rf_trx_par
+ 	{255, 0, 0, 7}, /* 2 ->reserved for shared-antenna */
+ 	{255, 0, 0, 7}, /* 3- >reserved for shared-antenna */
+ 	{255, 0, 0, 7}, /* 4 ->reserved for shared-antenna */
+-	{255, 0, 0, 7}, /* the below id is for non-shared-antenna free-run */
++	{255, 1, 0, 7}, /* the below id is for non-shared-antenna free-run */
+ 	{6, 1, 0, 7},
+ 	{13, 1, 0, 7},
+ 	{13, 1, 0, 7}
+@@ -2554,7 +2554,7 @@ static const struct rtw89_btc_rf_trx_par
+ 	{255, 0, 0, 7}, /* 2 ->reserved for shared-antenna */
+ 	{255, 0, 0, 7}, /* 3- >reserved for shared-antenna */
+ 	{255, 0, 0, 7}, /* 4 ->reserved for shared-antenna */
+-	{255, 0, 0, 7}, /* the below id is for non-shared-antenna free-run */
++	{255, 1, 0, 7}, /* the below id is for non-shared-antenna free-run */
+ 	{255, 1, 0, 7},
+ 	{255, 1, 0, 7},
+ 	{255, 1, 0, 7}

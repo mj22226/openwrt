@@ -1,0 +1,140 @@
+From 639ec6d63588b7e7c2dfae1df447daf243fb8342 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Mon, 20 Mar 2023 21:06:04 +0800
+Subject: [PATCH 034/136] wifi: rtw89: fw: use generic flow to set/check
+ features
+
+In early feature bitmap obtained from rtw89_early_fw_feature_recognize(),
+the bits needed to check get increased. It's more friendly to work with
+RTW89_CHK_FW_FEATURE(). So, we concentrate the flow of iterating FW feature
+configures and calling RTW89_SET_FW_FEATURE() for various uses. And then,
+we adjust rtw89_early_fw_feature_recognize() for RTW89_CHK_FW_FEATURE().
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230320130606.20777-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c |  8 ++---
+ drivers/net/wireless/realtek/rtw89/fw.c   | 41 +++++++++++------------
+ drivers/net/wireless/realtek/rtw89/fw.h   |  2 +-
+ 3 files changed, 25 insertions(+), 26 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -3754,23 +3754,23 @@ struct rtw89_dev *rtw89_alloc_ieee80211_
+ 					   u32 bus_data_size,
+ 					   const struct rtw89_chip_info *chip)
+ {
++	struct rtw89_fw_info early_fw = {};
+ 	const struct firmware *firmware;
+ 	struct ieee80211_hw *hw;
+ 	struct rtw89_dev *rtwdev;
+ 	struct ieee80211_ops *ops;
+ 	u32 driver_data_size;
+-	u32 early_feat_map = 0;
+ 	bool no_chanctx;
+ 
+-	firmware = rtw89_early_fw_feature_recognize(device, chip, &early_feat_map);
++	firmware = rtw89_early_fw_feature_recognize(device, chip, &early_fw);
+ 
+ 	ops = kmemdup(&rtw89_ops, sizeof(rtw89_ops), GFP_KERNEL);
+ 	if (!ops)
+ 		goto err;
+ 
+ 	no_chanctx = chip->support_chanctx_num == 0 ||
+-		     !(early_feat_map & BIT(RTW89_FW_FEATURE_SCAN_OFFLOAD)) ||
+-		     !(early_feat_map & BIT(RTW89_FW_FEATURE_BEACON_FILTER));
++		     !RTW89_CHK_FW_FEATURE(SCAN_OFFLOAD, &early_fw) ||
++		     !RTW89_CHK_FW_FEATURE(BEACON_FILTER, &early_fw);
+ 
+ 	if (no_chanctx) {
+ 		ops->add_chanctx = NULL;
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -269,38 +269,45 @@ static const struct __fw_feat_cfg fw_fea
+ 	__CFG_FW_FEAT(RTL8852C, ge, 0, 27, 56, 10, BEACON_FILTER),
+ };
+ 
++static void rtw89_fw_iterate_feature_cfg(struct rtw89_fw_info *fw,
++					 const struct rtw89_chip_info *chip,
++					 u32 ver_code)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(fw_feat_tbl); i++) {
++		const struct __fw_feat_cfg *ent = &fw_feat_tbl[i];
++
++		if (chip->chip_id != ent->chip_id)
++			continue;
++
++		if (ent->cond(ver_code, ent->ver_code))
++			RTW89_SET_FW_FEATURE(ent->feature, fw);
++	}
++}
++
+ static void rtw89_fw_recognize_features(struct rtw89_dev *rtwdev)
+ {
+ 	const struct rtw89_chip_info *chip = rtwdev->chip;
+-	const struct __fw_feat_cfg *ent;
+ 	const struct rtw89_fw_suit *fw_suit;
+ 	u32 suit_ver_code;
+-	int i;
+ 
+ 	fw_suit = rtw89_fw_suit_get(rtwdev, RTW89_FW_NORMAL);
+ 	suit_ver_code = RTW89_FW_SUIT_VER_CODE(fw_suit);
+ 
+-	for (i = 0; i < ARRAY_SIZE(fw_feat_tbl); i++) {
+-		ent = &fw_feat_tbl[i];
+-		if (chip->chip_id != ent->chip_id)
+-			continue;
+-
+-		if (ent->cond(suit_ver_code, ent->ver_code))
+-			RTW89_SET_FW_FEATURE(ent->feature, &rtwdev->fw);
+-	}
++	rtw89_fw_iterate_feature_cfg(&rtwdev->fw, chip, suit_ver_code);
+ }
+ 
+ const struct firmware *
+ rtw89_early_fw_feature_recognize(struct device *device,
+ 				 const struct rtw89_chip_info *chip,
+-				 u32 *early_feat_map)
++				 struct rtw89_fw_info *early_fw)
+ {
+ 	union rtw89_compat_fw_hdr buf = {};
+ 	const struct firmware *firmware;
+ 	bool full_req = false;
+ 	u32 ver_code;
+ 	int ret;
+-	int i;
+ 
+ 	/* If SECURITY_LOADPIN_ENFORCE is enabled, reading partial files will
+ 	 * be denied (-EPERM). Then, we don't get right firmware things as
+@@ -329,15 +336,7 @@ rtw89_early_fw_feature_recognize(struct
+ 	if (!ver_code)
+ 		goto out;
+ 
+-	for (i = 0; i < ARRAY_SIZE(fw_feat_tbl); i++) {
+-		const struct __fw_feat_cfg *ent = &fw_feat_tbl[i];
+-
+-		if (chip->chip_id != ent->chip_id)
+-			continue;
+-
+-		if (ent->cond(ver_code, ent->ver_code))
+-			*early_feat_map |= BIT(ent->feature);
+-	}
++	rtw89_fw_iterate_feature_cfg(early_fw, chip, ver_code);
+ 
+ out:
+ 	if (full_req)
+--- a/drivers/net/wireless/realtek/rtw89/fw.h
++++ b/drivers/net/wireless/realtek/rtw89/fw.h
+@@ -3658,7 +3658,7 @@ int rtw89_fw_recognize(struct rtw89_dev
+ const struct firmware *
+ rtw89_early_fw_feature_recognize(struct device *device,
+ 				 const struct rtw89_chip_info *chip,
+-				 u32 *early_feat_map);
++				 struct rtw89_fw_info *early_fw);
+ int rtw89_fw_download(struct rtw89_dev *rtwdev, enum rtw89_fw_type type);
+ int rtw89_load_firmware(struct rtw89_dev *rtwdev);
+ void rtw89_unload_firmware(struct rtw89_dev *rtwdev);

@@ -1,0 +1,77 @@
+From deb1b2aed763828b54a5be9be76c3a43c295f9f0 Mon Sep 17 00:00:00 2001
+From: Chih-Kang Chang <gary.chang@realtek.com>
+Date: Mon, 10 Apr 2023 13:34:38 +0800
+Subject: [PATCH 049/136] wifi: rtw89: fix power save function in WoWLAN mode
+
+In WoWLAN Mode, it's expected that WiFi chip could enter power save mode
+only after all setting is finished, but current wow_enter_lps function
+break the rule and may lead to WoWLAN function fail in low probability,
+so fix it.
+
+Signed-off-by: Chih-Kang Chang <gary.chang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230410053438.10682-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 2 +-
+ drivers/net/wireless/realtek/rtw89/ps.c   | 6 ++++--
+ drivers/net/wireless/realtek/rtw89/ps.h   | 3 ++-
+ drivers/net/wireless/realtek/rtw89/wow.c  | 2 +-
+ 4 files changed, 8 insertions(+), 5 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -2503,7 +2503,7 @@ static void rtw89_vif_enter_lps(struct r
+ 
+ 	if (rtwvif->stats.tx_tfc_lv == RTW89_TFC_IDLE &&
+ 	    rtwvif->stats.rx_tfc_lv == RTW89_TFC_IDLE)
+-		rtw89_enter_lps(rtwdev, rtwvif);
++		rtw89_enter_lps(rtwdev, rtwvif, true);
+ }
+ 
+ static void rtw89_enter_lps_track(struct rtw89_dev *rtwdev)
+--- a/drivers/net/wireless/realtek/rtw89/ps.c
++++ b/drivers/net/wireless/realtek/rtw89/ps.c
+@@ -114,7 +114,8 @@ void rtw89_leave_ps_mode(struct rtw89_de
+ 	__rtw89_leave_ps_mode(rtwdev);
+ }
+ 
+-void rtw89_enter_lps(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif)
++void rtw89_enter_lps(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif,
++		     bool ps_mode)
+ {
+ 	lockdep_assert_held(&rtwdev->mutex);
+ 
+@@ -122,7 +123,8 @@ void rtw89_enter_lps(struct rtw89_dev *r
+ 		return;
+ 
+ 	__rtw89_enter_lps(rtwdev, rtwvif->mac_id);
+-	__rtw89_enter_ps_mode(rtwdev, rtwvif);
++	if (ps_mode)
++		__rtw89_enter_ps_mode(rtwdev, rtwvif);
+ }
+ 
+ static void rtw89_leave_lps_vif(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif)
+--- a/drivers/net/wireless/realtek/rtw89/ps.h
++++ b/drivers/net/wireless/realtek/rtw89/ps.h
+@@ -5,7 +5,8 @@
+ #ifndef __RTW89_PS_H_
+ #define __RTW89_PS_H_
+ 
+-void rtw89_enter_lps(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif);
++void rtw89_enter_lps(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif,
++		     bool ps_mode);
+ void rtw89_leave_lps(struct rtw89_dev *rtwdev);
+ void __rtw89_leave_ps_mode(struct rtw89_dev *rtwdev);
+ void __rtw89_enter_ps_mode(struct rtw89_dev *rtwdev, struct rtw89_vif *rtwvif);
+--- a/drivers/net/wireless/realtek/rtw89/wow.c
++++ b/drivers/net/wireless/realtek/rtw89/wow.c
+@@ -30,7 +30,7 @@ static void rtw89_wow_enter_lps(struct r
+ 	struct ieee80211_vif *wow_vif = rtwdev->wow.wow_vif;
+ 	struct rtw89_vif *rtwvif = (struct rtw89_vif *)wow_vif->drv_priv;
+ 
+-	rtw89_enter_lps(rtwdev, rtwvif);
++	rtw89_enter_lps(rtwdev, rtwvif, false);
+ }
+ 
+ static void rtw89_wow_leave_lps(struct rtw89_dev *rtwdev)

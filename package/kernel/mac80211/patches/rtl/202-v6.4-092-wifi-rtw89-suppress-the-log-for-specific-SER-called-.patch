@@ -1,0 +1,82 @@
+From 8130e94e888bf90e495f88d1a1e63c43e1cfbc18 Mon Sep 17 00:00:00 2001
+From: Chin-Yen Lee <timlee@realtek.com>
+Date: Mon, 8 May 2023 16:43:35 +0800
+Subject: [PATCH 092/136] wifi: rtw89: suppress the log for specific SER called
+ CMDPSR_FRZTO
+
+For 8852CE, there is abnormal state called CMDPSR_FRZTO,
+which occasionally happens in some platforms, and could be
+found by firmware and fixed in current SER flow, so we add
+suppress function to avoid verbose message for this resolved case.
+
+Signed-off-by: Chin-Yen Lee <timlee@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230508084335.42953-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h |  1 +
+ drivers/net/wireless/realtek/rtw89/mac.c  | 36 +++++++++++++++++++++++
+ 2 files changed, 37 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3940,6 +3940,7 @@ enum rtw89_ser_rcvy_step {
+ 	RTW89_SER_DRV_STOP_RX,
+ 	RTW89_SER_DRV_STOP_RUN,
+ 	RTW89_SER_HAL_STOP_DMA,
++	RTW89_SER_SUPPRESS_LOG,
+ 	RTW89_NUM_OF_SER_FLAGS
+ };
+ 
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -644,6 +644,39 @@ static void rtw89_mac_dump_err_status(st
+ 	rtw89_info(rtwdev, "<---\n");
+ }
+ 
++static bool rtw89_mac_suppress_log(struct rtw89_dev *rtwdev, u32 err)
++{
++	struct rtw89_ser *ser = &rtwdev->ser;
++	u32 dmac_err, imr, isr;
++	int ret;
++
++	if (rtwdev->chip->chip_id == RTL8852C) {
++		ret = rtw89_mac_check_mac_en(rtwdev, 0, RTW89_DMAC_SEL);
++		if (ret)
++			return true;
++
++		if (err == MAC_AX_ERR_L1_ERR_DMAC) {
++			dmac_err = rtw89_read32(rtwdev, R_AX_DMAC_ERR_ISR);
++			imr = rtw89_read32(rtwdev, R_AX_TXPKTCTL_B0_ERRFLAG_IMR);
++			isr = rtw89_read32(rtwdev, R_AX_TXPKTCTL_B0_ERRFLAG_ISR);
++
++			if ((dmac_err & B_AX_TXPKTCTRL_ERR_FLAG) &&
++			    ((isr & imr) & B_AX_B0_ISR_ERR_CMDPSR_FRZTO)) {
++				set_bit(RTW89_SER_SUPPRESS_LOG, ser->flags);
++				return true;
++			}
++		} else if (err == MAC_AX_ERR_L1_RESET_DISABLE_DMAC_DONE) {
++			if (test_bit(RTW89_SER_SUPPRESS_LOG, ser->flags))
++				return true;
++		} else if (err == MAC_AX_ERR_L1_RESET_RECOVERY_DONE) {
++			if (test_and_clear_bit(RTW89_SER_SUPPRESS_LOG, ser->flags))
++				return true;
++		}
++	}
++
++	return false;
++}
++
+ u32 rtw89_mac_get_err_status(struct rtw89_dev *rtwdev)
+ {
+ 	u32 err, err_scnr;
+@@ -667,6 +700,9 @@ u32 rtw89_mac_get_err_status(struct rtw8
+ 	else if (err_scnr == RTW89_RXI300_ERROR)
+ 		err = MAC_AX_ERR_RXI300;
+ 
++	if (rtw89_mac_suppress_log(rtwdev, err))
++		return err;
++
+ 	rtw89_fw_st_dbg_dump(rtwdev);
+ 	rtw89_mac_dump_err_status(rtwdev, err);
+ 

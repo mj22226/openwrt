@@ -1,0 +1,154 @@
+From b686bc67e0437eb5791bca6ec89479470ef40513 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Thu, 15 Jun 2023 21:04:40 +0800
+Subject: [PATCH 3/7] wifi: rtw89: 8851b: rfk: add LCK track
+
+LCK is short for LC Tank calibration. To keep RF performance, do this
+calibration if difference of thermal value is over a threshold.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230615130442.18116-4-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/reg.h      |  1 +
+ drivers/net/wireless/realtek/rtw89/rtw8851b.c |  2 +
+ .../net/wireless/realtek/rtw89/rtw8851b_rfk.c | 65 ++++++++++++++++++-
+ .../net/wireless/realtek/rtw89/rtw8851b_rfk.h |  2 +
+ 4 files changed, 69 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/reg.h
++++ b/drivers/net/wireless/realtek/rtw89/reg.h
+@@ -3834,6 +3834,7 @@
+ #define RR_LCKST_BIN BIT(0)
+ #define RR_LCK_TRG 0xd3
+ #define RR_LCK_TRGSEL BIT(8)
++#define RR_LCK_ST BIT(4)
+ #define RR_MMD 0xd5
+ #define RR_MMD_RST_EN BIT(8)
+ #define RR_MMD_RST_SYN BIT(6)
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b.c
+@@ -1546,6 +1546,7 @@ static void rtw8851b_rfk_init(struct rtw
+ {
+ 	rtwdev->is_tssi_mode[RF_PATH_A] = false;
+ 	rtwdev->is_tssi_mode[RF_PATH_B] = false;
++	rtw8851b_lck_init(rtwdev);
+ 
+ 	rtw8851b_dpk_init(rtwdev);
+ 	rtw8851b_aack(rtwdev);
+@@ -1578,6 +1579,7 @@ static void rtw8851b_rfk_scan(struct rtw
+ static void rtw8851b_rfk_track(struct rtw89_dev *rtwdev)
+ {
+ 	rtw8851b_dpk_track(rtwdev);
++	rtw8851b_lck_track(rtwdev);
+ }
+ 
+ static u32 rtw8851b_bb_cal_txpwr_ref(struct rtw89_dev *rtwdev,
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.c
+@@ -118,6 +118,8 @@ static const u32 dpk_kip_reg[DPK_KIP_REG
+ 	0x813c, 0x8124, 0xc0ec, 0xc0e8, 0xc0c4, 0xc0d4, 0xc0d8};
+ static const u32 dpk_rf_reg[DPK_RF_REG_NUM_8851B] = {0xde, 0x8f, 0x5, 0x10005};
+ 
++static void _set_ch(struct rtw89_dev *rtwdev, u32 val);
++
+ static u8 _kpath(struct rtw89_dev *rtwdev, enum rtw89_phy_idx phy_idx)
+ {
+ 	return RF_A;
+@@ -3133,7 +3135,7 @@ void rtw8851b_dpk_init(struct rtw89_dev
+ 
+ void rtw8851b_aack(struct rtw89_dev *rtwdev)
+ {
+-	u32 tmp05, ib[4];
++	u32 tmp05, tmpd3, ib[4];
+ 	u32 tmp;
+ 	int ret;
+ 	int rek;
+@@ -3142,8 +3144,10 @@ void rtw8851b_aack(struct rtw89_dev *rtw
+ 	rtw89_debug(rtwdev, RTW89_DBG_RFK, "[LCK]DO AACK\n");
+ 
+ 	tmp05 = rtw89_read_rf(rtwdev, RF_PATH_A, RR_RSV1, RFREG_MASK);
++	tmpd3 = rtw89_read_rf(rtwdev, RF_PATH_A, RR_LCK_TRG, RFREG_MASK);
+ 	rtw89_write_rf(rtwdev, RF_PATH_A, RR_MOD, RR_MOD_MASK, 0x3);
+ 	rtw89_write_rf(rtwdev, RF_PATH_A, RR_RSV1, RFREG_MASK, 0x0);
++	rtw89_write_rf(rtwdev, RF_PATH_A, RR_LCK_TRG, RR_LCK_ST, 0x0);
+ 
+ 	for (rek = 0; rek < 4; rek++) {
+ 		rtw89_write_rf(rtwdev, RF_PATH_A, RR_AACK, RFREG_MASK, 0x8201e);
+@@ -3171,6 +3175,65 @@ void rtw8851b_aack(struct rtw89_dev *rtw
+ 		rtw89_debug(rtwdev, RTW89_DBG_RFK, "[LCK]AACK rek = %d\n", rek);
+ 
+ 	rtw89_write_rf(rtwdev, RF_PATH_A, RR_RSV1, RFREG_MASK, tmp05);
++	rtw89_write_rf(rtwdev, RF_PATH_A, RR_LCK_TRG, RFREG_MASK, tmpd3);
++}
++
++static void _lck_keep_thermal(struct rtw89_dev *rtwdev)
++{
++	struct rtw89_lck_info *lck = &rtwdev->lck;
++
++	lck->thermal[RF_PATH_A] =
++		ewma_thermal_read(&rtwdev->phystat.avg_thermal[RF_PATH_A]);
++	rtw89_debug(rtwdev, RTW89_DBG_RFK_TRACK,
++		    "[LCK] path=%d thermal=0x%x", RF_PATH_A, lck->thermal[RF_PATH_A]);
++}
++
++static void rtw8851b_lck(struct rtw89_dev *rtwdev)
++{
++	u32 tmp05, tmp18, tmpd3;
++
++	rtw89_debug(rtwdev, RTW89_DBG_RFK, "[LCK]DO LCK\n");
++
++	tmp05 = rtw89_read_rf(rtwdev, RF_PATH_A, RR_RSV1, RFREG_MASK);
++	tmp18 = rtw89_read_rf(rtwdev, RF_PATH_A, RR_CFGCH, RFREG_MASK);
++	tmpd3 = rtw89_read_rf(rtwdev, RF_PATH_A, RR_LCK_TRG, RFREG_MASK);
++
++	rtw89_write_rf(rtwdev, RF_PATH_A, RR_MOD, RR_MOD_MASK, 0x3);
++	rtw89_write_rf(rtwdev, RF_PATH_A, RR_RSV1, RFREG_MASK, 0x0);
++	rtw89_write_rf(rtwdev, RF_PATH_A, RR_LCK_TRG, RR_LCK_TRGSEL, 0x1);
++
++	_set_ch(rtwdev, tmp18);
++	rtw89_write_rf(rtwdev, RF_PATH_A, RR_LCK_TRG, RFREG_MASK, tmpd3);
++	rtw89_write_rf(rtwdev, RF_PATH_A, RR_RSV1, RFREG_MASK, tmp05);
++
++	_lck_keep_thermal(rtwdev);
++}
++
++#define RTW8851B_LCK_TH 8
++
++void rtw8851b_lck_track(struct rtw89_dev *rtwdev)
++{
++	struct rtw89_lck_info *lck = &rtwdev->lck;
++	u8 cur_thermal;
++	int delta;
++
++	cur_thermal =
++		ewma_thermal_read(&rtwdev->phystat.avg_thermal[RF_PATH_A]);
++	delta = abs((int)cur_thermal - lck->thermal[RF_PATH_A]);
++
++	rtw89_debug(rtwdev, RTW89_DBG_RFK_TRACK,
++		    "[LCK] path=%d current thermal=0x%x delta=0x%x\n",
++		    RF_PATH_A, cur_thermal, delta);
++
++	if (delta >= RTW8851B_LCK_TH) {
++		rtw8851b_aack(rtwdev);
++		rtw8851b_lck(rtwdev);
++	}
++}
++
++void rtw8851b_lck_init(struct rtw89_dev *rtwdev)
++{
++	_lck_keep_thermal(rtwdev);
+ }
+ 
+ void rtw8851b_rck(struct rtw89_dev *rtwdev)
+--- a/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.h
++++ b/drivers/net/wireless/realtek/rtw89/rtw8851b_rfk.h
+@@ -8,6 +8,8 @@
+ #include "core.h"
+ 
+ void rtw8851b_aack(struct rtw89_dev *rtwdev);
++void rtw8851b_lck_init(struct rtw89_dev *rtwdev);
++void rtw8851b_lck_track(struct rtw89_dev *rtwdev);
+ void rtw8851b_rck(struct rtw89_dev *rtwdev);
+ void rtw8851b_dack(struct rtw89_dev *rtwdev);
+ void rtw8851b_iqk(struct rtw89_dev *rtwdev, enum rtw89_phy_idx phy_idx);

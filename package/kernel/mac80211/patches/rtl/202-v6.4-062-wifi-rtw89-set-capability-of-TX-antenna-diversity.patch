@@ -1,0 +1,113 @@
+From f48453e058d763e895bde7b072f25b7b519a3500 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Tue, 18 Apr 2023 09:28:15 +0800
+Subject: [PATCH 062/136] wifi: rtw89: set capability of TX antenna diversity
+
+TX antenna diversity is a mechanism to select a proper antenna from two
+antenna for single one hardware PHY chip. It chooses antenna with better
+EVM or RSSI, and use GPIO to control SPDT to switch selected antenna.
+
+RFE type from efuse is used to define if a module can support TX antenna
+diversity when (type % 3) is 2.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230418012820.5139-3-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c     | 10 ++++++++--
+ drivers/net/wireless/realtek/rtw89/core.h     |  2 ++
+ drivers/net/wireless/realtek/rtw89/mac.c      |  9 +++++++++
+ drivers/net/wireless/realtek/rtw89/mac80211.c |  7 ++++++-
+ 4 files changed, 25 insertions(+), 3 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -3701,6 +3701,7 @@ static int rtw89_core_register_hw(struct
+ {
+ 	struct ieee80211_hw *hw = rtwdev->hw;
+ 	struct rtw89_efuse *efuse = &rtwdev->efuse;
++	struct rtw89_hal *hal = &rtwdev->hal;
+ 	int ret;
+ 	int tx_headroom = IEEE80211_HT_CTL_LEN;
+ 
+@@ -3739,8 +3740,13 @@ static int rtw89_core_register_hw(struct
+ 				     BIT(NL80211_IFTYPE_P2P_CLIENT) |
+ 				     BIT(NL80211_IFTYPE_P2P_GO);
+ 
+-	hw->wiphy->available_antennas_tx = BIT(rtwdev->chip->rf_path_num) - 1;
+-	hw->wiphy->available_antennas_rx = BIT(rtwdev->chip->rf_path_num) - 1;
++	if (hal->ant_diversity) {
++		hw->wiphy->available_antennas_tx = 0x3;
++		hw->wiphy->available_antennas_rx = 0x3;
++	} else {
++		hw->wiphy->available_antennas_tx = BIT(rtwdev->chip->rf_path_num) - 1;
++		hw->wiphy->available_antennas_rx = BIT(rtwdev->chip->rf_path_num) - 1;
++	}
+ 
+ 	hw->wiphy->flags |= WIPHY_FLAG_SUPPORTS_TDLS |
+ 			    WIPHY_FLAG_TDLS_EXTERNAL_SETUP |
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3423,6 +3423,8 @@ struct rtw89_hal {
+ 	u8 tx_nss;
+ 	u8 rx_nss;
+ 	bool tx_path_diversity;
++	bool ant_diversity;
++	bool ant_diversity_fixed;
+ 	bool support_cckpd;
+ 	bool support_igi;
+ 	atomic_t roc_entity_idx;
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -2598,6 +2598,7 @@ static int rtw89_mac_read_phycap(struct
+ 
+ int rtw89_mac_setup_phycap(struct rtw89_dev *rtwdev)
+ {
++	struct rtw89_efuse *efuse = &rtwdev->efuse;
+ 	struct rtw89_hal *hal = &rtwdev->hal;
+ 	const struct rtw89_chip_info *chip = rtwdev->chip;
+ 	struct rtw89_mac_c2h_info c2h_info = {0};
+@@ -2629,6 +2630,13 @@ int rtw89_mac_setup_phycap(struct rtw89_
+ 		hal->tx_path_diversity = true;
+ 	}
+ 
++	if (chip->rf_path_num == 1) {
++		hal->antenna_tx = RF_A;
++		hal->antenna_rx = RF_A;
++		if ((efuse->rfe_type % 3) == 2)
++			hal->ant_diversity = true;
++	}
++
+ 	rtw89_debug(rtwdev, RTW89_DBG_FW,
+ 		    "phycap hal/phy/chip: tx_nss=0x%x/0x%x/0x%x rx_nss=0x%x/0x%x/0x%x\n",
+ 		    hal->tx_nss, tx_nss, chip->tx_nss,
+@@ -2637,6 +2645,7 @@ int rtw89_mac_setup_phycap(struct rtw89_
+ 		    "ant num/bitmap: tx=%d/0x%x rx=%d/0x%x\n",
+ 		    tx_ant, hal->antenna_tx, rx_ant, hal->antenna_rx);
+ 	rtw89_debug(rtwdev, RTW89_DBG_FW, "TX path diversity=%d\n", hal->tx_path_diversity);
++	rtw89_debug(rtwdev, RTW89_DBG_FW, "Antenna diversity=%d\n", hal->ant_diversity);
+ 
+ 	return 0;
+ }
+--- a/drivers/net/wireless/realtek/rtw89/mac80211.c
++++ b/drivers/net/wireless/realtek/rtw89/mac80211.c
+@@ -762,13 +762,18 @@ int rtw89_ops_set_antenna(struct ieee802
+ 	struct rtw89_dev *rtwdev = hw->priv;
+ 	struct rtw89_hal *hal = &rtwdev->hal;
+ 
+-	if (rx_ant != hw->wiphy->available_antennas_rx && rx_ant != hal->antenna_rx)
++	if (hal->ant_diversity) {
++		if (tx_ant != rx_ant || hweight32(tx_ant) != 1)
++			return -EINVAL;
++	} else if (rx_ant != hw->wiphy->available_antennas_rx && rx_ant != hal->antenna_rx) {
+ 		return -EINVAL;
++	}
+ 
+ 	mutex_lock(&rtwdev->mutex);
+ 	hal->antenna_tx = tx_ant;
+ 	hal->antenna_rx = rx_ant;
+ 	hal->tx_path_diversity = false;
++	hal->ant_diversity_fixed = true;
+ 	mutex_unlock(&rtwdev->mutex);
+ 
+ 	return 0;

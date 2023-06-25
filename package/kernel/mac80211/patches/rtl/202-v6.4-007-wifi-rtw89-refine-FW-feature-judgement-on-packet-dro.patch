@@ -1,0 +1,90 @@
+From 0d1f7ff19d4f8a6da5a6b60d2afd1d34b5d5ebfc Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Mon, 20 Feb 2023 15:02:02 +0800
+Subject: [PATCH 007/136] wifi: rtw89: refine FW feature judgement on packet
+ drop
+
+The newer chips use the newer firmware branches, e.g. v027, v029.
+And, those firmware branches are supposed to support packet drop
+when they are just branched out.
+
+The initial firmware branch used by each chip is as below.
+* 8852A: v009
+* 8852C: v027
+* 8852B: v027
+
+So, only 8852A may use firmware which doesn't support packet drop at
+runtime. To save trivial positive listing in firmware feature table,
+we change to reverse judgment.
+
+Besides, rtw89_mac_ptk_drop_by_band_and_wait() missed to check firmware
+feature before calling rtw89_fw_h2c_pkt_drop(). We also fix it.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230220070202.29868-7-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.h     | 2 +-
+ drivers/net/wireless/realtek/rtw89/fw.c       | 4 ++--
+ drivers/net/wireless/realtek/rtw89/mac.c      | 2 +-
+ drivers/net/wireless/realtek/rtw89/mac80211.c | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.h
++++ b/drivers/net/wireless/realtek/rtw89/core.h
+@@ -3023,7 +3023,7 @@ enum rtw89_fw_feature {
+ 	RTW89_FW_FEATURE_SCAN_OFFLOAD,
+ 	RTW89_FW_FEATURE_TX_WAKE,
+ 	RTW89_FW_FEATURE_CRASH_TRIGGER,
+-	RTW89_FW_FEATURE_PACKET_DROP,
++	RTW89_FW_FEATURE_NO_PACKET_DROP,
+ 	RTW89_FW_FEATURE_NO_DEEP_PS,
+ 	RTW89_FW_FEATURE_NO_LPS_PG,
+ };
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -235,6 +235,7 @@ static bool __fw_feat_cond_ ## __cond(u3
+ 
+ __DEF_FW_FEAT_COND(ge, >=); /* greater or equal */
+ __DEF_FW_FEAT_COND(le, <=); /* less or equal */
++__DEF_FW_FEAT_COND(lt, <); /* less than */
+ 
+ struct __fw_feat_cfg {
+ 	enum rtw89_core_chip_id chip_id;
+@@ -256,12 +257,11 @@ static const struct __fw_feat_cfg fw_fea
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 35, 0, SCAN_OFFLOAD),
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 35, 0, TX_WAKE),
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 36, 0, CRASH_TRIGGER),
+-	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 38, 0, PACKET_DROP),
++	__CFG_FW_FEAT(RTL8852A, lt, 0, 13, 38, 0, NO_PACKET_DROP),
+ 	__CFG_FW_FEAT(RTL8852B, ge, 0, 29, 26, 0, NO_LPS_PG),
+ 	__CFG_FW_FEAT(RTL8852B, ge, 0, 29, 26, 0, TX_WAKE),
+ 	__CFG_FW_FEAT(RTL8852B, ge, 0, 29, 29, 0, CRASH_TRIGGER),
+ 	__CFG_FW_FEAT(RTL8852B, ge, 0, 29, 29, 0, SCAN_OFFLOAD),
+-	__CFG_FW_FEAT(RTL8852C, ge, 0, 27, 20, 0, PACKET_DROP),
+ 	__CFG_FW_FEAT(RTL8852C, le, 0, 27, 33, 0, NO_DEEP_PS),
+ 	__CFG_FW_FEAT(RTL8852C, ge, 0, 27, 34, 0, TX_WAKE),
+ 	__CFG_FW_FEAT(RTL8852C, ge, 0, 27, 36, 0, SCAN_OFFLOAD),
+--- a/drivers/net/wireless/realtek/rtw89/mac.c
++++ b/drivers/net/wireless/realtek/rtw89/mac.c
+@@ -5426,7 +5426,7 @@ int rtw89_mac_ptk_drop_by_band_and_wait(
+ 	for (i = 0; i < try_cnt; i++) {
+ 		ret = read_poll_timeout(mac_is_txq_empty, empty, empty, 50,
+ 					50000, false, rtwdev);
+-		if (ret)
++		if (ret && !RTW89_CHK_FW_FEATURE(NO_PACKET_DROP, &rtwdev->fw))
+ 			rtw89_fw_h2c_pkt_drop(rtwdev, &params);
+ 		else
+ 			return 0;
+--- a/drivers/net/wireless/realtek/rtw89/mac80211.c
++++ b/drivers/net/wireless/realtek/rtw89/mac80211.c
+@@ -676,7 +676,7 @@ static void rtw89_ops_flush(struct ieee8
+ 	rtw89_leave_lps(rtwdev);
+ 	rtw89_hci_flush_queues(rtwdev, queues, drop);
+ 
+-	if (drop && RTW89_CHK_FW_FEATURE(PACKET_DROP, &rtwdev->fw))
++	if (drop && !RTW89_CHK_FW_FEATURE(NO_PACKET_DROP, &rtwdev->fw))
+ 		__rtw89_drop_packets(rtwdev, vif);
+ 	else
+ 		rtw89_mac_flush_txq(rtwdev, queues, drop);

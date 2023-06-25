@@ -1,0 +1,61 @@
+From 40bb2ab49c369b78d1cb37ed63b8a85f3102b239 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Fri, 12 May 2023 14:12:15 +0800
+Subject: [PATCH 094/136] wifi: rtw89: 8851b: add to read efuse version to
+ recognize hardware version B
+
+8851B hardware version A and B use different firmware, but register version
+code of these two are the same, so add this helper to read efuse version to
+determine which version is installed.
+
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230512061220.16544-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/efuse.c | 21 +++++++++++++++++++++
+ drivers/net/wireless/realtek/rtw89/efuse.h |  1 +
+ 2 files changed, 22 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/efuse.c
++++ b/drivers/net/wireless/realtek/rtw89/efuse.c
+@@ -7,6 +7,10 @@
+ #include "mac.h"
+ #include "reg.h"
+ 
++#define EF_FV_OFSET 0x5ea
++#define EF_CV_MASK GENMASK(7, 4)
++#define EF_CV_INV 15
++
+ enum rtw89_efuse_bank {
+ 	RTW89_EFUSE_BANK_WIFI,
+ 	RTW89_EFUSE_BANK_BT,
+@@ -328,3 +332,20 @@ out_free:
+ 
+ 	return ret;
+ }
++
++int rtw89_read_efuse_ver(struct rtw89_dev *rtwdev, u8 *ecv)
++{
++	int ret;
++	u8 val;
++
++	ret = rtw89_dump_physical_efuse_map(rtwdev, &val, EF_FV_OFSET, 1, false);
++	if (ret)
++		return ret;
++
++	*ecv = u8_get_bits(val, EF_CV_MASK);
++	if (*ecv == EF_CV_INV)
++		return -ENOENT;
++
++	return 0;
++}
++EXPORT_SYMBOL(rtw89_read_efuse_ver);
+--- a/drivers/net/wireless/realtek/rtw89/efuse.h
++++ b/drivers/net/wireless/realtek/rtw89/efuse.h
+@@ -9,5 +9,6 @@
+ 
+ int rtw89_parse_efuse_map(struct rtw89_dev *rtwdev);
+ int rtw89_parse_phycap_map(struct rtw89_dev *rtwdev);
++int rtw89_read_efuse_ver(struct rtw89_dev *rtwdev, u8 *efv);
+ 
+ #endif

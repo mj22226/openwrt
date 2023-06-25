@@ -1,0 +1,27 @@
+From c4ff50149885723f24ef9bc3b0220ee20bca3e03 Mon Sep 17 00:00:00 2001
+From: Chin-Yen Lee <timlee@realtek.com>
+Date: Fri, 19 May 2023 11:14:59 +0800
+Subject: [PATCH 111/136] wifi: rtw89: add tx_wake notify for 8851B
+
+8851B has the same issue: management frames get stuck when WiFi
+chip enters low PS mode, so we also add notify wake function to
+trigger WiFi chip wake before forwarding management frames.
+
+Signed-off-by: Chin-Yen Lee <timlee@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230519031500.21087-7-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/fw.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/net/wireless/realtek/rtw89/fw.c
++++ b/drivers/net/wireless/realtek/rtw89/fw.c
+@@ -256,6 +256,7 @@ struct __fw_feat_cfg {
+ 	}
+ 
+ static const struct __fw_feat_cfg fw_feat_tbl[] = {
++	__CFG_FW_FEAT(RTL8851B, ge, 0, 29, 37, 1, TX_WAKE),
+ 	__CFG_FW_FEAT(RTL8852A, le, 0, 13, 29, 0, OLD_HT_RA_FORMAT),
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 35, 0, SCAN_OFFLOAD),
+ 	__CFG_FW_FEAT(RTL8852A, ge, 0, 13, 35, 0, TX_WAKE),

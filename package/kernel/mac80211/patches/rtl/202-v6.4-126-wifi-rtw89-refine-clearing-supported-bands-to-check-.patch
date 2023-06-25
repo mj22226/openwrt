@@ -1,0 +1,36 @@
+From b7d170d5a670de8d30d2db94179099f52f8df485 Mon Sep 17 00:00:00 2001
+From: Zong-Zhe Yang <kevin_yang@realtek.com>
+Date: Fri, 2 Jun 2023 23:05:49 +0800
+Subject: [PATCH 126/136] wifi: rtw89: refine clearing supported bands to check
+ 2/5 GHz first
+
+We refine to check if supported bands of NL80211_BAND_2GHZ and
+NL80211_BAND_5GHZ exist before freeing their iftype_data. For
+now, it does not really encounter problems because all current
+chips support both 2 GHz and 5 GHz. But, driver actually allows
+chips to declare whether 2/5 GHz are supported or not. In case
+some future chips really don't support them, we refine this code.
+
+Signed-off-by: Zong-Zhe Yang <kevin_yang@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230602150556.36777-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw89/core.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw89/core.c
++++ b/drivers/net/wireless/realtek/rtw89/core.c
+@@ -3386,8 +3386,10 @@ static void rtw89_core_clr_supported_ban
+ {
+ 	struct ieee80211_hw *hw = rtwdev->hw;
+ 
+-	kfree(hw->wiphy->bands[NL80211_BAND_2GHZ]->iftype_data);
+-	kfree(hw->wiphy->bands[NL80211_BAND_5GHZ]->iftype_data);
++	if (hw->wiphy->bands[NL80211_BAND_2GHZ])
++		kfree(hw->wiphy->bands[NL80211_BAND_2GHZ]->iftype_data);
++	if (hw->wiphy->bands[NL80211_BAND_5GHZ])
++		kfree(hw->wiphy->bands[NL80211_BAND_5GHZ]->iftype_data);
+ 	if (hw->wiphy->bands[NL80211_BAND_6GHZ])
+ 		kfree(hw->wiphy->bands[NL80211_BAND_6GHZ]->iftype_data);
+ 	kfree(hw->wiphy->bands[NL80211_BAND_2GHZ]);
