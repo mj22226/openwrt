@@ -15,7 +15,7 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
 
 --- a/arch/arm64/boot/dts/rockchip/rk356x.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk356x.dtsi
-@@ -1092,6 +1092,28 @@
+@@ -1093,6 +1093,28 @@
  		status = "disabled";
  	};
  

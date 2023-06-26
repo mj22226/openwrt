@@ -18,7 +18,7 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
 
 --- a/arch/arm64/boot/dts/rockchip/rk3566-soquartz-cm4.dts
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-soquartz-cm4.dts
-@@ -30,6 +30,12 @@
+@@ -40,6 +40,12 @@
  	};
  };
  
@@ -31,7 +31,7 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
  &gmac1 {
  	status = "okay";
  };
-@@ -105,6 +111,11 @@
+@@ -115,6 +121,11 @@
  	status = "okay";
  };
  
@@ -45,7 +45,7 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
  };
 --- a/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
-@@ -487,6 +487,12 @@
+@@ -490,6 +490,12 @@
  	};
  };
  
@@ -58,7 +58,7 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
  &pinctrl {
  	bt {
  		bt_enable_h: bt-enable-h {
-@@ -512,6 +518,15 @@
+@@ -515,6 +521,15 @@
  		};
  	};
  

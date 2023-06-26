@@ -16,7 +16,7 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
 
 --- a/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3566-soquartz.dtsi
-@@ -178,6 +178,10 @@
+@@ -181,6 +181,10 @@
  	};
  };
  
@@ -27,7 +27,7 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
  &i2c0 {
  	status = "okay";
  
-@@ -446,6 +450,10 @@
+@@ -449,6 +453,10 @@
  	status = "disabled";
  };
  

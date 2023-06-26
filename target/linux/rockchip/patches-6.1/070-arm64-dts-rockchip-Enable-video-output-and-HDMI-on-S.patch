@@ -43,7 +43,7 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
  	leds {
  		compatible = "gpio-leds";
  
-@@ -148,6 +160,24 @@
+@@ -151,6 +163,24 @@
  	status = "okay";
  };
  
@@ -68,7 +68,7 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
  &i2c0 {
  	status = "okay";
  
-@@ -619,3 +649,20 @@
+@@ -616,3 +646,20 @@
  &usb_host0_xhci {
  	status = "disabled";
  };
