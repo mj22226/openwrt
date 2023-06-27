@@ -21,7 +21,7 @@ rockchip_setup_interfaces()
 		ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
 		;;
 	friendlyelec,nanopi-r6s)
-		ucidef_set_interfaces_lan_wan 'eth1 eth0' 'eth2'
+		ucidef_set_interfaces_lan_wan 'eth2 eth0' 'eth1'
 		;;
 	friendlyelec,nanopi-r6c-plus)
 		ucidef_set_interfaces_lan_wan 'eth0 eth1 eth3' 'eth2'
