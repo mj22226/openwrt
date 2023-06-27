@@ -35,9 +35,9 @@ friendlyelec,nanopi-r6c)
 	ucidef_set_led_netdev "led1" "LED1" "green:led1" "eth2"
 	;;
 friendlyelec,nanopi-r6s)
-	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth2"
-	ucidef_set_led_netdev "lan" "LAN" "green:lan" "eth0"
-	ucidef_set_led_netdev "lan2" "LAN2" "green:lan1" "eth1"
+	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1"
+	ucidef_set_led_netdev "lan" "LAN" "green:lan" "eth2"
+	ucidef_set_led_netdev "lan2" "LAN2" "green:lan1" "eth0"
 	;;
 friendlyelec,nanopi-r6c-plus)
 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth2"
