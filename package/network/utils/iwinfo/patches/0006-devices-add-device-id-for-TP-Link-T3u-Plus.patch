@@ -1,0 +1,21 @@
+From 0a51ed9d7cd60a20e981fa058271cba48c94ed66 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Tue, 25 Jul 2023 11:59:27 -0400
+Subject: [PATCH 4/4] devices: add device id for TP-Link T3u Plus
+
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ devices.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/devices.txt
++++ b/devices.txt
+@@ -302,6 +302,8 @@
+ 0x0000 0x0000 0x7392 0xA812    0      0  "Realtek" "RTL8821"
+ 0x0000 0x0000 0x7392 0xA813    0      0  "Realtek" "RTL8821"
+ 0x0000 0x0000 0x7392 0xB611    0      0  "Realtek" "RTL8821"
++# RTW88 USB
++0x0000 0x0000 0x2357 0x0138    0      0  "Realtek" "RTW88" /* TP-Link T3u Plus */
+ # FDT compatible strings
+ # "compatible" | txpower offset | frequency offset | ...
+ "qca,ar9130-wmac"       0      0  "Atheros"  "AR9130"
