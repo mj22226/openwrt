@@ -65,6 +65,16 @@ define Device/friendlyelec_nanopi-r5s
 endef
 TARGET_DEVICES += friendlyelec_nanopi-r5s
 
+define Device/friendlyelec_nanopi-r6c
+  DEVICE_VENDOR := Friendlyelec
+  DEVICE_MODEL := NanoPi R6C
+  SOC := rk3588s
+  UBOOT_DEVICE_NAME := nanopi-r6c-rk3588
+  IMAGE/sysupgrade.img.gz := boot-common | boot-script nanopi-r6c | pine64-img | gzip | append-metadata
+  DEVICE_PACKAGES := kmod-r8169
+endef
+TARGET_DEVICES += friendlyelec_nanopi-r6c
+
 define Device/pine64_rockpro64
   DEVICE_VENDOR := Pine64
   DEVICE_MODEL := RockPro64
