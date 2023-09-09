@@ -1,0 +1,17 @@
+From 3e8be25a2ae2141c94bf20c75200e8282605d825 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Tue, 30 May 2023 02:03:35 -0400
+Subject: [PATCH 95/95] rockchip: add FriendlyElec NanoPi R6C/R6S
+
+---
+ arch/arm64/boot/dts/rockchip/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/Makefile
++++ b/arch/arm64/boot/dts/rockchip/Makefile
+@@ -106,3 +106,5 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588-ro
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-indiedroid-nova.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-khadas-edge2.dtb
+ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-rock-5a.dtb
++dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-nanopi-r6c.dtb
++dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-nanopi-r6s.dtb

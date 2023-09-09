@@ -1,0 +1,61 @@
+From ab9b8789c6e472196230793b207e6ed69aacb156 Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Thu, 20 Jul 2023 18:05:56 +0200
+Subject: [PATCH 12/41] dt-bindings: usb: add rk3588 compatible to
+ rockchip,dwc3
+
+RK3588 has three DWC3 controllers. Two of them are fully functional in
+host, device and OTG mode including USB2 support. They are connected to
+dedicated PHYs, that also support USB-C's DisplayPort alternate mode.
+
+The third controller is connected to one of the combphy's shared
+with PCIe and SATA. It can only be used in host mode and does not
+support USB2. Compared to the other controllers this one needs
+some extra clocks.
+
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+---
+ .../devicetree/bindings/usb/rockchip,dwc3.yaml        | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+--- a/Documentation/devicetree/bindings/usb/rockchip,dwc3.yaml
++++ b/Documentation/devicetree/bindings/usb/rockchip,dwc3.yaml
+@@ -30,6 +30,7 @@ select:
+         enum:
+           - rockchip,rk3328-dwc3
+           - rockchip,rk3568-dwc3
++          - rockchip,rk3588-dwc3
+   required:
+     - compatible
+ 
+@@ -39,6 +40,7 @@ properties:
+       - enum:
+           - rockchip,rk3328-dwc3
+           - rockchip,rk3568-dwc3
++          - rockchip,rk3588-dwc3
+       - const: snps,dwc3
+ 
+   reg:
+@@ -58,7 +60,9 @@ properties:
+           Master/Core clock, must to be >= 62.5 MHz for SS
+           operation and >= 30MHz for HS operation
+       - description:
+-          Controller grf clock
++          Controller grf clock OR UTMI clock
++      - description:
++          PIPE clock
+ 
+   clock-names:
+     minItems: 3
+@@ -66,7 +70,10 @@ properties:
+       - const: ref_clk
+       - const: suspend_clk
+       - const: bus_clk
+-      - const: grf_clk
++      - enum:
++          - grf_clk
++          - utmi
++      - const: pipe
+ 
+   power-domains:
+     maxItems: 1

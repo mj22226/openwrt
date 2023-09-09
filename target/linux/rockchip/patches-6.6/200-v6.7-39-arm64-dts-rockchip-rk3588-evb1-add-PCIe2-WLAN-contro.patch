@@ -1,0 +1,86 @@
+From 049b5480e1b96ecffcb2e0fac72abc658c148d0c Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Fri, 14 Jul 2023 17:38:24 +0200
+Subject: [PATCH 39/41] arm64: dts: rockchip: rk3588-evb1: add PCIe2 WLAN
+ controller
+
+Enable PCIe bus used by on-board PCIe Broadcom WLAN controller.
+
+TODO: The WLAN controller is not detected.
+
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+---
+ .../boot/dts/rockchip/rk3588-evb1-v10.dts     | 34 +++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-evb1-v10.dts
+@@ -63,6 +63,15 @@
+ 		pwms = <&pwm2 0 25000 0>;
+ 	};
+ 
++	wlan-rfkill {
++		compatible = "rfkill-gpio";
++		label = "rfkill-pcie-wlan";
++		radio-type = "wlan";
++		shutdown-gpios = <&gpio3 RK_PB1 GPIO_ACTIVE_LOW>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&wifi_pwren>, <&wifi_host_wake_irq>;
++	};
++
+ 	pcie20_avdd0v85: pcie20-avdd0v85-regulator {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "pcie20_avdd0v85";
+@@ -186,6 +195,10 @@
+ 	status = "okay";
+ };
+ 
++&combphy1_ps {
++	status = "okay";
++};
++
+ &combphy2_psu {
+ 	status = "okay";
+ };
+@@ -324,6 +337,13 @@
+ 	};
+ };
+ 
++&pcie2x1l0 {
++	reset-gpios = <&gpio4 RK_PA5 GPIO_ACTIVE_HIGH>;
++	status = "okay";
++	pinctrl-0 = <&pcie2_0_rst>;
++	status = "okay";
++};
++
+ &pcie2x1l1 {
+ 	reset-gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_HIGH>;
+ 	pinctrl-names = "default";
+@@ -364,6 +384,10 @@
+ 	};
+ 
+ 	pcie2 {
++		pcie2_0_rst: pcie2-0-rst {
++			rockchip,pins = <4 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++
+ 		pcie2_1_rst: pcie2-1-rst {
+ 			rockchip,pins = <4 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+@@ -394,6 +418,16 @@
+ 			rockchip,pins = <4 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 	};
++
++	wlan {
++		wifi_host_wake_irq: wifi-host-wake-irq {
++			rockchip,pins = <3 RK_PA7 RK_FUNC_GPIO &pcfg_pull_down>;
++		};
++
++		wifi_pwren: wifi-pwren {
++			rockchip,pins = <3 RK_PB1 RK_FUNC_GPIO &pcfg_pull_up>;
++		};
++	};
+ };
+ 
+ &pwm2 {
