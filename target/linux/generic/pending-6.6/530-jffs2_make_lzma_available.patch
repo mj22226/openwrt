@@ -1102,7 +1102,7 @@ Signed-off-by: Alexandros C. Couloumbis <alex@ozo.com>
  # ZLIB_INFLATE; DECOMPRESS_GZIP is just a wrapper.)
 --- a/lib/Makefile
 +++ b/lib/Makefile
-@@ -144,6 +144,16 @@ CFLAGS_kobject.o += -DDEBUG
+@@ -145,6 +145,16 @@ CFLAGS_kobject.o += -DDEBUG
  CFLAGS_kobject_uevent.o += -DDEBUG
  endif
  
@@ -1119,7 +1119,7 @@ Signed-off-by: Alexandros C. Couloumbis <alex@ozo.com>
  obj-$(CONFIG_DEBUG_INFO_REDUCED) += debug_info.o
  CFLAGS_debug_info.o += $(call cc-option, -femit-struct-debug-detailed=any)
  
-@@ -204,6 +214,8 @@ obj-$(CONFIG_ZSTD_COMPRESS) += zstd/
+@@ -205,6 +215,8 @@ obj-$(CONFIG_ZSTD_COMPRESS) += zstd/
  obj-$(CONFIG_ZSTD_DECOMPRESS) += zstd/
  obj-$(CONFIG_XZ_DEC) += xz/
  obj-$(CONFIG_RAID6_PQ) += raid6/

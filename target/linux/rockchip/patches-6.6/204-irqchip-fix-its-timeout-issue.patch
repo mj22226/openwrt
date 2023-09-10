@@ -18,28 +18,28 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
  	u32			nr_ites;
  	u32			device_id;
  	bool			shared;
-@@ -2204,6 +2205,9 @@ static void gic_reset_prop_table(void *v
- static struct page *its_allocate_prop_table(gfp_t gfp_flags)
+@@ -2205,6 +2206,9 @@ static struct page *its_allocate_prop_ta
  {
  	struct page *prop_page;
-+
+ 
 +	if (of_machine_is_compatible("rockchip,rk3568") || of_machine_is_compatible("rockchip,rk3566") || of_machine_is_compatible("rockchip,rk3588"))
 +		gfp_flags |= GFP_DMA32;
-
++
  	prop_page = alloc_pages(gfp_flags, get_order(LPI_PROPBASE_SZ));
  	if (!prop_page)
+ 		return NULL;
 @@ -2328,6 +2332,7 @@ static int its_setup_baser(struct its_no
  	u32 alloc_pages, psz;
  	struct page *page;
  	void *base;
 +	gfp_t gfp_flags;
-
+ 
  	psz = baser->psz;
  	alloc_pages = (PAGE_ORDER_TO_SIZE(order) / psz);
 @@ -2339,7 +2344,11 @@ static int its_setup_baser(struct its_no
  		order = get_order(GITS_BASER_PAGES_MAX * psz);
  	}
-
+ 
 -	page = alloc_pages_node(its->numa_node, GFP_KERNEL | __GFP_ZERO, order);
 +	gfp_flags = GFP_KERNEL | __GFP_ZERO;
 +	if (of_machine_is_compatible("rockchip,rk3568") || of_machine_is_compatible("rockchip,rk3566") || of_machine_is_compatible("rockchip,rk3588"))
@@ -48,11 +48,11 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
 +	page = alloc_pages_node(its->numa_node, gfp_flags, order);
  	if (!page)
  		return -ENOMEM;
-
+ 
 @@ -2389,6 +2398,15 @@ retry_baser:
  	if (its->flags & ITS_FLAGS_FORCE_NON_SHAREABLE)
  		tmp &= ~GITS_BASER_SHAREABILITY_MASK;
-
+ 
 +	if (of_machine_is_compatible("rockchip,rk3568") ||
 +	     of_machine_is_compatible("rockchip,rk3566") ||
 +	     of_machine_is_compatible("rockchip,rk3588")) {
@@ -65,12 +65,10 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
  	if ((val ^ tmp) & GITS_BASER_SHAREABILITY_MASK) {
  		/*
  		 * Shareability didn't stick. Just use
-@@ -2970,7 +2988,9 @@ static int its_alloc_collections(struct
- static struct page *its_allocate_pending_table(gfp_t gfp_flags)
+@@ -2971,6 +2989,8 @@ static struct page *its_allocate_pending
  {
  	struct page *pend_page;
--
-+
+ 
 +	if (of_machine_is_compatible("rockchip,rk3568") || of_machine_is_compatible("rockchip,rk3566") || of_machine_is_compatible("rockchip,rk3588"))
 +		gfp_flags |= GFP_DMA32;
  	pend_page = alloc_pages(gfp_flags | __GFP_ZERO,
@@ -79,7 +77,7 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
 @@ -3129,6 +3149,11 @@ static void its_cpu_init_lpis(void)
  	if (gic_rdists->flags & RDIST_FLAGS_FORCE_NON_SHAREABLE)
  		tmp &= ~GICR_PROPBASER_SHAREABILITY_MASK;
-
+ 
 +	if (of_machine_is_compatible("rockchip,rk3568") ||
 +	     of_machine_is_compatible("rockchip,rk3566") ||
 +	     of_machine_is_compatible("rockchip,rk3588"))
@@ -91,7 +89,7 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
 @@ -3156,6 +3181,11 @@ static void its_cpu_init_lpis(void)
  	if (gic_rdists->flags & RDIST_FLAGS_FORCE_NON_SHAREABLE)
  		tmp &= ~GICR_PENDBASER_SHAREABILITY_MASK;
-
+ 
 +	if (of_machine_is_compatible("rockchip,rk3568") ||
 +	     of_machine_is_compatible("rockchip,rk3566") ||
 +	     of_machine_is_compatible("rockchip,rk3588"))
@@ -101,7 +99,7 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
  		/*
  		 * The HW reports non-shareable, we must remove the
 @@ -3319,7 +3349,11 @@ static bool its_alloc_table_entry(struct
-
+ 
  	/* Allocate memory for 2nd level table */
  	if (!table[idx]) {
 -		page = alloc_pages_node(its->numa_node, GFP_KERNEL | __GFP_ZERO,
@@ -118,7 +116,7 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
  	int nr_ites;
  	int sz;
 +	gfp_t gfp_flags;
-
+ 
  	if (!its_alloc_device_table(its, dev_id))
  		return NULL;
 @@ -3423,7 +3458,15 @@ static struct its_device *its_create_dev
@@ -139,7 +137,7 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
  		lpi_map = its_lpi_alloc(nvecs, &lpi_base, &nr_lpis);
  		if (lpi_map)
 @@ -3437,7 +3480,13 @@ static struct its_device *its_create_dev
-
+ 
  	if (!dev || !itt ||  !col_map || (!lpi_map && alloc_lpis)) {
  		kfree(dev);
 -		kfree(itt);
@@ -154,7 +152,7 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
  		kfree(col_map);
  		return NULL;
 @@ -3447,6 +3496,7 @@ static struct its_device *its_create_dev
-
+ 
  	dev->its = its;
  	dev->itt = itt;
 +	dev->itt_sz = sz;
@@ -175,19 +173,19 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
 +
  	kfree(its_dev);
  }
-
+ 
 @@ -5064,6 +5120,7 @@ static int __init its_probe_one(struct r
  	struct page *page;
  	u32 ctlr;
  	int err;
 +	gfp_t gfp_flags;
-
+ 
  	its_base = its_map_one(res, &err);
  	if (!its_base)
 @@ -5117,7 +5174,10 @@ static int __init its_probe_one(struct r
-
+ 
  	its->numa_node = numa_node;
-
+ 
 -	page = alloc_pages_node(its->numa_node, GFP_KERNEL | __GFP_ZERO,
 +	gfp_flags = GFP_KERNEL | __GFP_ZERO;
 +	if (of_machine_is_compatible("rockchip,rk3568") || of_machine_is_compatible("rockchip,rk3566") || of_machine_is_compatible("rockchip,rk3588"))
@@ -199,7 +197,7 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
 @@ -5151,6 +5211,11 @@ static int __init its_probe_one(struct r
  	if (its->flags & ITS_FLAGS_FORCE_NON_SHAREABLE)
  		tmp &= ~GITS_CBASER_SHAREABILITY_MASK;
-
+ 
 +	if (of_machine_is_compatible("rockchip,rk3568") ||
 +	     of_machine_is_compatible("rockchip,rk3566") ||
 +	     of_machine_is_compatible("rockchip,rk3588"))
