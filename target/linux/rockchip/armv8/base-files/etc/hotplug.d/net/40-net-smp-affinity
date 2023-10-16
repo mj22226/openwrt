@@ -65,5 +65,9 @@ rockchip,rk3568-bpi-r2pro)
 	set_interface_core 1 "eth0"
 	set_interface_core 3 "eth1"
 	;;
+rockchip,rk3588-orangepi-5-plus)
+	set_interface_core 20 "eth0"
+	set_interface_core 40 "eth1"
+	;;
 esac
 
