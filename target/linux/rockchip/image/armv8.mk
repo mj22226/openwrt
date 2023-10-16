@@ -148,3 +148,14 @@ define Device/rockchip_bpi-r2-pro
   IMAGE/sysupgrade.img.gz := boot-common | boot-script quartz64-a | pine64-img | gzip | append-metadata
 endef
 TARGET_DEVICES += rockchip_bpi-r2-pro
+
+define Device/xunlong_orangepi-5-plus
+  DEVICE_VENDOR := XunLong
+  DEVICE_MODEL := RK3588 OPi 5 Plus
+  SOC := rk3588
+  UBOOT_DEVICE_NAME := orangepi-5-plus-rk3588
+  SUPPORTED_DEVICES := rockchip,rk3588-orangepi-5-plus
+  IMAGE/sysupgrade.img.gz := boot-common | boot-script nanopi-r6c | pine64-img | gzip | append-metadata
+ DEVICE_PACKAGES := kmod-r8169
+endef
+TARGET_DEVICES += xunlong_orangepi-5-plus
