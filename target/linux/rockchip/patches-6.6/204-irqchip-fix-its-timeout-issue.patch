@@ -194,7 +194,7 @@ Subject: [PATCH 1/1] irqchip/irq-gic-v3-its: fix its timeout issue for rk35xx
  				get_order(ITS_CMD_QUEUE_SZ));
  	if (!page) {
  		err = -ENOMEM;
-@@ -5135,6 +5195,11 @@ static int __init its_probe_one(struct i
+@@ -5133,6 +5193,11 @@ static int __init its_probe_one(struct i
  	if (its->flags & ITS_FLAGS_FORCE_NON_SHAREABLE)
  		tmp &= ~GITS_CBASER_SHAREABILITY_MASK;
  
