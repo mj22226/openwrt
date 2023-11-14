@@ -3,7 +3,7 @@ PKG_DRIVERS += \
 	rtl8192ce rtl8192se rtl8192de rtl8192cu rtl8723bs rtl8821ae \
 	rtl8xxxu rtw88 rtw88-pci rtw88-usb rtw88-8821c rtw88-8822b rtw88-8822c \
 	rtw88-8723d rtw88-8821ce rtw88-8821cu rtw88-8822be rtw88-8822bu \
-	rtw88-8822ce rtw88-8822cu rtw88-8723de
+	rtw88-8822ce rtw88-8822cu rtw88-8723de rtw89
 
 config-$(call config_package,rtlwifi) += RTL_CARDS RTLWIFI
 config-$(call config_package,rtlwifi-pci) += RTLWIFI_PCI
@@ -39,6 +39,12 @@ config-$(call config_package,rtw88-8723d) += RTW88_8723D
 config-$(call config_package,rtw88-8723de) += RTW88_8723DE
 config-$(CONFIG_PACKAGE_RTW88_DEBUG) += RTW88_DEBUG
 config-$(CONFIG_PACKAGE_RTW88_DEBUGFS) += RTW88_DEBUGFS
+
+config-$(call config_package,rtw89) += RTW89 RTW89_CORE RTW89_PCI
+config-y += RTW89_8852AE RTW89_8852BE RTW89_8852CE
+config-$(CONFIG_PACKAGE_RTW89_DEBUG) += RTW89_DEBUG
+config-$(CONFIG_PACKAGE_RTW89_DEBUGFS) += RTW89_DEBUGFS
+config-$(CONFIG_PACKAGE_RTW89_DEBUGMSG) += RTW89_DEBUGMSG
 
 define KernelPackage/rtlwifi/config
 	config PACKAGE_RTLWIFI_DEBUG
@@ -311,4 +317,41 @@ define KernelPackage/rtl8723bs/description
  This option enables support for RTL8723BS SDIO drivers, such as the wifi found
  on the 1st gen Intel Compute Stick, the CHIP and many other Intel Atom and ARM
  based devices.
+endef
+
+define KernelPackage/rtw89/config
+	config PACKAGE_RTW89_DEBUG
+		bool "Realtek wireless debugging (rtw89)"
+		depends on PACKAGE_kmod-rtw89
+		help
+		  Enable debugging output for rtw89 devices
+
+	config PACKAGE_RTW89_DEBUGFS
+		bool "Enable rtw89 debugfs support"
+		select KERNEL_DEBUG_FS
+		depends on PACKAGE_kmod-rtw89
+		help
+		  Select this to see extensive information about
+		  the internal state of rtw89 in debugfs.
+	config PACKAGE_RTW89_DEBUGMSG
+		bool "Realtek rtw89 debug message support"
+		depends on PACKAGE_kmod-rtw89
+		help
+		  Enable debug message support
+endef
+
+define KernelPackage/rtw89
+  $(call KernelPackage/mac80211/Default)
+  TITLE:=Realtek RTL8852AE/BE/CE
+  DEPENDS+= @(PCI_SUPPORT) +kmod-mac80211 +@DRIVER_11AX_SUPPORT +rtl8851be-firmware +rtl8852ae-firmware +rtl8852be-firmware +rtl8852ce-firmware
+  FILES:=\
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852a.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852ae.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852b.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852be.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852c.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_8852ce.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_core.ko \
+	$(PKG_BUILD_DIR)/drivers/net/wireless/realtek/rtw89/rtw89_pci.ko
+  AUTOLOAD:=$(call AutoProbe,rtw89_8852ae rtw89_8852be rtw89_8852ce)
 endef
