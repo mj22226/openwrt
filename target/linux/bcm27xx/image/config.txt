@@ -12,3 +12,8 @@ include distroconfig.txt
 
 [all]
 # Place your custom settings here.
+# usb_max_current_enable=1
+# Enable the PCIe external connector
+# dtparam=pciex1
+# Force Gen 3.0 speeds
+# dtparam=pciex1_gen=3
