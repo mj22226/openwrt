@@ -45,7 +45,7 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
  	clk_disable_unprepare(dwc->susp_clk);
  	clk_disable_unprepare(dwc->ref_clk);
  	clk_disable_unprepare(dwc->bus_clk);
-@@ -1785,6 +1799,18 @@ static int dwc3_get_clocks(struct dwc3 *
+@@ -1873,6 +1887,18 @@ static int dwc3_get_clocks(struct dwc3 *
  		}
  	}
  
@@ -66,7 +66,7 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
  
 --- a/drivers/usb/dwc3/core.h
 +++ b/drivers/usb/dwc3/core.h
-@@ -991,6 +991,8 @@ struct dwc3_scratchpad_array {
+@@ -996,6 +996,8 @@ struct dwc3_scratchpad_array {
   * @bus_clk: clock for accessing the registers
   * @ref_clk: reference clock
   * @susp_clk: clock used when the SS phy is in low power (S3) state
@@ -75,7 +75,7 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
   * @reset: reset control
   * @regs: base address for our registers
   * @regs_size: address space size
-@@ -1156,6 +1158,8 @@ struct dwc3 {
+@@ -1165,6 +1167,8 @@ struct dwc3 {
  	struct clk		*bus_clk;
  	struct clk		*ref_clk;
  	struct clk		*susp_clk;
