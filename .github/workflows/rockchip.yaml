@@ -1,6 +1,6 @@
 name: Build Orange Pi 5/5-plus Rockchip BSP kernel
-on: [push]
-
+on: 
+  workflow_dispatch:
 jobs:
     build:
         name: Prepare and Build Orange Pi 5/5-plus Images
