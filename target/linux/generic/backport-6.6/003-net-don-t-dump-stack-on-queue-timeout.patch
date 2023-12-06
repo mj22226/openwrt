@@ -1,0 +1,58 @@
+From e316dd1cf1358ff9c44b37c7be273a7dc4349986 Mon Sep 17 00:00:00 2001
+From: Jakub Kicinski <kuba@kernel.org>
+Date: Tue, 14 Nov 2023 00:11:42 -0500
+Subject: [PATCH] net: don't dump stack on queue timeout
+
+The top syzbot report for networking (#14 for the entire kernel)
+is the queue timeout splat. We kept it around for a long time,
+because in real life it provides pretty strong signal that
+something is wrong with the driver or the device.
+
+Removing it is also likely to break monitoring for those who
+track it as a kernel warning.
+
+Nevertheless, WARN()ings are best suited for catching kernel
+programming bugs. If a Tx queue gets starved due to a pause
+storm, priority configuration, or other weirdness - that's
+obviously a problem, but not a problem we can fix at
+the kernel level.
+
+Bite the bullet and convert the WARN() to a print.
+
+Before:
+
+  NETDEV WATCHDOG: eni1np1 (netdevsim): transmit queue 0 timed out 1975 ms
+  WARNING: CPU: 0 PID: 0 at net/sched/sch_generic.c:525 dev_watchdog+0x39e/0x3b0
+  [... completely pointless stack trace of a timer follows ...]
+
+Now:
+
+  netdevsim netdevsim1 eni1np1: NETDEV WATCHDOG: CPU: 0: transmit queue 0 timed out 1769 ms
+
+Alternatively we could mark the drivers which syzbot has
+learned to abuse as "print-instead-of-WARN" selectively.
+
+Reported-by: syzbot+d55372214aff0faa1f1f@syzkaller.appspotmail.com
+Reviewed-by: Jiri Pirko <jiri@nvidia.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Jamal Hadi Salim <jhs@mojatatu.com>
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ net/sched/sch_generic.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+--- a/net/sched/sch_generic.c
++++ b/net/sched/sch_generic.c
+@@ -522,8 +522,9 @@ static void dev_watchdog(struct timer_li
+ 
+ 			if (unlikely(timedout_ms)) {
+ 				trace_net_dev_xmit_timeout(dev, i);
+-				WARN_ONCE(1, "NETDEV WATCHDOG: %s (%s): transmit queue %u timed out %u ms\n",
+-					  dev->name, netdev_drivername(dev), i, timedout_ms);
++				netdev_crit(dev, "NETDEV WATCHDOG: CPU: %d: transmit queue %u timed out %u ms\n",
++					    raw_smp_processor_id(),
++					    i, timedout_ms);
+ 				netif_freeze_queues(dev);
+ 				dev->netdev_ops->ndo_tx_timeout(dev, i);
+ 				netif_unfreeze_queues(dev);

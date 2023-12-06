@@ -1,0 +1,70 @@
+From aa4f2b3e418e8673e55145de8b8016a7a9920306 Mon Sep 17 00:00:00 2001
+From: Douglas Anderson <dianders@chromium.org>
+Date: Fri, 1 Dec 2023 10:29:52 -0800
+Subject: [PATCH] r8152: Choose our USB config with choose_configuration()
+ rather than probe()
+
+If you deauthorize the r8152 device (by writing 0 to the "authorized"
+field in sysfs) and then reauthorize it (by writing a 1) then it no
+longer works. This is because when you do the above we lose the
+special configuration that we set in rtl8152_cfgselector_probe().
+Deauthorizing causes the config to be set to -1 and then reauthorizing
+runs the default logic for choosing the best config.
+
+I made an attempt to fix it so that the config is kept across
+deauthorizing / reauthorizing [1] but it was a bit ugly.
+
+Let's instead use the new USB core feature to override
+choose_configuration().
+
+This patch relies upon the patches ("usb: core: Don't force USB
+generic_subclass drivers to define probe()") and ("usb: core: Allow
+subclassed USB drivers to override usb_choose_configuration()")
+
+[1] https://lore.kernel.org/r/20231130154337.1.Ie00e07f07f87149c9ce0b27ae4e26991d307e14b@changeid
+
+Fixes: ec51fbd1b8a2 ("r8152: add USB device driver for config selection")
+Suggested-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Grant Grundler <grundler@chromium.org>
+Link: https://lore.kernel.org/r/20231201102946.v2.3.Ie00e07f07f87149c9ce0b27ae4e26991d307e14b@changeid
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/net/usb/r8152.c | 16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
+
+--- a/drivers/net/usb/r8152.c
++++ b/drivers/net/usb/r8152.c
+@@ -10069,7 +10069,7 @@ static struct usb_driver rtl8152_driver
+ 	.disable_hub_initiated_lpm = 1,
+ };
+ 
+-static int rtl8152_cfgselector_probe(struct usb_device *udev)
++static int rtl8152_cfgselector_choose_configuration(struct usb_device *udev)
+ {
+ 	struct usb_host_config *c;
+ 	int i, num_configs;
+@@ -10096,19 +10096,13 @@ static int rtl8152_cfgselector_probe(str
+ 	if (i == num_configs)
+ 		return -ENODEV;
+ 
+-	if (usb_set_configuration(udev, c->desc.bConfigurationValue)) {
+-		dev_err(&udev->dev, "Failed to set configuration %d\n",
+-			c->desc.bConfigurationValue);
+-		return -ENODEV;
+-	}
+-
+-	return 0;
++	return c->desc.bConfigurationValue;
+ }
+ 
+ static struct usb_device_driver rtl8152_cfgselector_driver = {
+-	.name =		MODULENAME "-cfgselector",
+-	.probe =	rtl8152_cfgselector_probe,
+-	.id_table =	rtl8152_table,
++	.name =	MODULENAME "-cfgselector",
++	.choose_configuration = rtl8152_cfgselector_choose_configuration,
++	.id_table = rtl8152_table,
+ 	.generic_subclass = 1,
+ 	.supports_autosuspend = 1,
+ };

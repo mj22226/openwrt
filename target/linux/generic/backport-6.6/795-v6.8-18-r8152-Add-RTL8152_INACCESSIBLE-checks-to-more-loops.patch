@@ -1,0 +1,62 @@
+From 32a574c7e2685aa8138754d4d755f9246cc6bd48 Mon Sep 17 00:00:00 2001
+From: Douglas Anderson <dianders@chromium.org>
+Date: Wed, 29 Nov 2023 13:25:21 -0800
+Subject: [PATCH] r8152: Add RTL8152_INACCESSIBLE checks to more loops
+
+Previous commits added checks for RTL8152_INACCESSIBLE in the loops in
+the driver. There are still a few more that keep tripping the driver
+up in error cases and make things take longer than they should. Add
+those in.
+
+All the loops that are part of this commit existed in some form or
+another since the r8152 driver was first introduced, though
+RTL8152_INACCESSIBLE was known as RTL8152_UNPLUG before commit
+715f67f33af4 ("r8152: Rename RTL8152_UNPLUG to RTL8152_INACCESSIBLE")
+
+Fixes: ac718b69301c ("net/usb: new driver for RTL8152")
+Reviewed-by: Grant Grundler <grundler@chromium.org>
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Acked-by: Hayes Wang <hayeswang@realtek.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/usb/r8152.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+--- a/drivers/net/usb/r8152.c
++++ b/drivers/net/usb/r8152.c
+@@ -3000,6 +3000,8 @@ static void rtl8152_nic_reset(struct r81
+ 		ocp_write_byte(tp, MCU_TYPE_PLA, PLA_CR, CR_RST);
+ 
+ 		for (i = 0; i < 1000; i++) {
++			if (test_bit(RTL8152_INACCESSIBLE, &tp->flags))
++				break;
+ 			if (!(ocp_read_byte(tp, MCU_TYPE_PLA, PLA_CR) & CR_RST))
+ 				break;
+ 			usleep_range(100, 400);
+@@ -3329,6 +3331,8 @@ static void rtl_disable(struct r8152 *tp
+ 	rxdy_gated_en(tp, true);
+ 
+ 	for (i = 0; i < 1000; i++) {
++		if (test_bit(RTL8152_INACCESSIBLE, &tp->flags))
++			break;
+ 		ocp_data = ocp_read_byte(tp, MCU_TYPE_PLA, PLA_OOB_CTRL);
+ 		if ((ocp_data & FIFO_EMPTY) == FIFO_EMPTY)
+ 			break;
+@@ -3336,6 +3340,8 @@ static void rtl_disable(struct r8152 *tp
+ 	}
+ 
+ 	for (i = 0; i < 1000; i++) {
++		if (test_bit(RTL8152_INACCESSIBLE, &tp->flags))
++			break;
+ 		if (ocp_read_word(tp, MCU_TYPE_PLA, PLA_TCR0) & TCR0_TX_EMPTY)
+ 			break;
+ 		usleep_range(1000, 2000);
+@@ -5499,6 +5505,8 @@ static void wait_oob_link_list_ready(str
+ 	int i;
+ 
+ 	for (i = 0; i < 1000; i++) {
++		if (test_bit(RTL8152_INACCESSIBLE, &tp->flags))
++			break;
+ 		ocp_data = ocp_read_byte(tp, MCU_TYPE_PLA, PLA_OOB_CTRL);
+ 		if (ocp_data & LINK_LIST_READY)
+ 			break;
