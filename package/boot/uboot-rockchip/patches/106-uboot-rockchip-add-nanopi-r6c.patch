@@ -26,8 +26,8 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
 --- a/arch/arm/dts/Makefile
 +++ b/arch/arm/dts/Makefile
 @@ -196,6 +196,7 @@ dtb-$(CONFIG_ROCKCHIP_RK3588) += \
- 	rk3588s-orangepi-5.dtb \
  	rk3588-orangepi-5-plus.dtb \
+ 	rk3588-quartzpro64.dtb \
  	rk3588s-rock-5a.dtb \
 +	rk3588-nanopi-r6c.dtb \
  	rk3588-rock-5b.dtb
@@ -277,9 +277,9 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
  config TARGET_ROCK5B_RK3588
  	bool "Radxa ROCK5B RK3588 board"
  	select BOARD_LATE_INIT
-@@ -140,6 +146,7 @@ config SYS_MALLOC_F_LEN
- source board/edgeble/neural-compute-module-6/Kconfig
+@@ -148,6 +154,7 @@ source board/edgeble/neural-compute-modu
  source board/friendlyelec/nanopc-t6-rk3588/Kconfig
+ source board/pine64/quartzpro64-rk3588/Kconfig
  source board/rockchip/evb_rk3588/Kconfig
 +source board/friendlyelec/nanopi-r6c-rk3588/Kconfig
  source board/radxa/rock5a-rk3588s/Kconfig
