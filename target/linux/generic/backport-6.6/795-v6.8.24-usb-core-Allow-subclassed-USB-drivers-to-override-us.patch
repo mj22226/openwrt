@@ -1,0 +1,76 @@
+From a87b8e3be926af0fc3b9b1af42b1127bd1ff077c Mon Sep 17 00:00:00 2001
+From: Douglas Anderson <dianders@chromium.org>
+Date: Fri, 1 Dec 2023 10:29:51 -0800
+Subject: [PATCH] usb: core: Allow subclassed USB drivers to override
+ usb_choose_configuration()
+
+For some USB devices we might want to do something different for
+usb_choose_configuration(). One example here is the r8152 driver where
+we want to end up using the vendor driver with the preferred
+interface.
+
+The r8152 driver tried to make things work by implementing a USB
+generic_subclass driver and then overriding the normal config
+selection after it happened. This is less than ideal and also caused
+breakage if someone deauthorized and re-authorized the USB device
+because the USB core ended up going back to it's default logic for
+choosing the best config. I made an attempt to fix this [1] but it was
+a bit ugly.
+
+Let's do this better and allow USB generic_subclass drivers to
+override usb_choose_configuration().
+
+[1] https://lore.kernel.org/r/20231130154337.1.Ie00e07f07f87149c9ce0b27ae4e26991d307e14b@changeid
+
+Suggested-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Alan Stern <stern@rowland.harvard.edu>
+Link: https://lore.kernel.org/r/20231201102946.v2.2.Iade5fa31997f1a0ca3e1dec0591633b02471df12@changeid
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/usb/core/generic.c | 7 +++++++
+ include/linux/usb.h        | 6 ++++++
+ 2 files changed, 13 insertions(+)
+
+--- a/drivers/usb/core/generic.c
++++ b/drivers/usb/core/generic.c
+@@ -59,10 +59,17 @@ int usb_choose_configuration(struct usb_
+ 	int num_configs;
+ 	int insufficient_power = 0;
+ 	struct usb_host_config *c, *best;
++	struct usb_device_driver *udriver = to_usb_device_driver(udev->dev.driver);
+ 
+ 	if (usb_device_is_owned(udev))
+ 		return 0;
+ 
++	if (udriver->choose_configuration) {
++		i = udriver->choose_configuration(udev);
++		if (i >= 0)
++			return i;
++	}
++
+ 	best = NULL;
+ 	c = udev->config;
+ 	num_configs = udev->descriptor.bNumConfigurations;
+--- a/include/linux/usb.h
++++ b/include/linux/usb.h
+@@ -1264,6 +1264,9 @@ struct usb_driver {
+  *	module is being unloaded.
+  * @suspend: Called when the device is going to be suspended by the system.
+  * @resume: Called when the device is being resumed by the system.
++ * @choose_configuration: If non-NULL, called instead of the default
++ *	usb_choose_configuration(). If this returns an error then we'll go
++ *	on to call the normal usb_choose_configuration().
+  * @dev_groups: Attributes attached to the device that will be created once it
+  *	is bound to the driver.
+  * @drvwrap: Driver-model core structure wrapper.
+@@ -1287,6 +1290,9 @@ struct usb_device_driver {
+ 
+ 	int (*suspend) (struct usb_device *udev, pm_message_t message);
+ 	int (*resume) (struct usb_device *udev, pm_message_t message);
++
++	int (*choose_configuration) (struct usb_device *udev);
++
+ 	const struct attribute_group **dev_groups;
+ 	struct usbdrv_wrap drvwrap;
+ 	const struct usb_device_id *id_table;

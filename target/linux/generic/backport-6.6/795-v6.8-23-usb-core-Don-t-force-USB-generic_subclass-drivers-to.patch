@@ -1,0 +1,33 @@
+From c2d95fcff0f01fa00d9683dddeeea6732b74c779 Mon Sep 17 00:00:00 2001
+From: Douglas Anderson <dianders@chromium.org>
+Date: Fri, 1 Dec 2023 10:29:50 -0800
+Subject: [PATCH] usb: core: Don't force USB generic_subclass drivers to define
+ probe()
+
+There's no real reason that subclassed USB drivers _need_ to define
+probe() since they might want to subclass for some other reason. Make
+it optional to define probe() if we're a generic_subclass.
+
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Grant Grundler <grundler@chromium.org>
+Reviewed-by: Alan Stern <stern@rowland.harvard.edu>
+Link: https://lore.kernel.org/r/20231201102946.v2.1.I7ea0dd55ee2acdb48b0e6d28c1a704ab2c29206f@changeid
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/usb/core/driver.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/drivers/usb/core/driver.c
++++ b/drivers/usb/core/driver.c
+@@ -290,7 +290,10 @@ static int usb_probe_device(struct devic
+ 	 * specialised device drivers prior to setting the
+ 	 * use_generic_driver bit.
+ 	 */
+-	error = udriver->probe(udev);
++	if (udriver->probe)
++		error = udriver->probe(udev);
++	else if (!udriver->generic_subclass)
++		error = -EINVAL;
+ 	if (error == -ENODEV && udriver != &usb_generic_driver &&
+ 	    (udriver->id_table || udriver->match)) {
+ 		udev->use_generic_driver = 1;
