@@ -1,0 +1,84 @@
+From bd7418182b6c5a782730b80f40b25a0ae9a6d096 Mon Sep 17 00:00:00 2001
+From: Joan Bruguera <joanbrugueram@gmail.com>
+Date: Sat, 18 Feb 2023 23:36:56 +0000
+Subject: [PATCH] Fix build for Linux 6.3-rc1
+
+The 1st parameter of `crypto_completion_t` is now the user data passed to the
+callback instead of the `crypto_async_request`.
+Migrate to the new API and add a shim to keep compatibility with old kernels.
+
+See also: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=255e48eb17684157336bd6dd98d22c1b2d9e3f43
+
+Signed-off-by: Joan Bruguera <joanbrugueram@gmail.com>
+---
+ cryptlib.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+--- a/cryptlib.c
++++ b/cryptlib.c
+@@ -42,9 +42,9 @@
+ extern const struct crypto_type crypto_givcipher_type;
+ #endif
+ 
+-static void cryptodev_complete(struct crypto_async_request *req, int err)
++static void cryptodev_complete(void *data, int err)
+ {
+-	struct cryptodev_result *res = req->data;
++	struct cryptodev_result *res = data;
+ 
+ 	if (err == -EINPROGRESS)
+ 		return;
+@@ -53,6 +53,14 @@ static void cryptodev_complete(struct cr
+ 	complete(&res->completion);
+ }
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 3, 0))
++static void cryptodev_complete_shim(struct crypto_async_request *req, int err)
++{
++	cryptodev_complete(req->data, err);
++}
++#define cryptodev_complete cryptodev_complete_shim
++#endif
++
+ int cryptodev_get_cipher_keylen(unsigned int *keylen, struct session_op *sop,
+ 		int aead)
+ {
+--- a/ioctl.c
++++ b/ioctl.c
+@@ -1184,7 +1184,6 @@ static struct ctl_table verbosity_ctl_ro
+ 	{
+ 		.procname       = "ioctl",
+ 		.mode           = 0555,
+-		.child          = verbosity_ctl_dir,
+ 	},
+ 	{},
+ };
+@@ -1205,7 +1204,6 @@ static int __init init_cryptodev(void)
+ 		return rc;
+ 	}
+ 
+-	verbosity_sysctl_header = register_sysctl_table(verbosity_ctl_root);
+ 
+ 	pr_info(PFX "driver %s loaded.\n", VERSION);
+ 
+@@ -1217,9 +1215,6 @@ static void __exit exit_cryptodev(void)
+ 	flush_workqueue(cryptodev_wq);
+ 	destroy_workqueue(cryptodev_wq);
+ 
+-	if (verbosity_sysctl_header)
+-		unregister_sysctl_table(verbosity_sysctl_header);
+-
+ 	cryptodev_deregister();
+ 	pr_info(PFX "driver unloaded.\n");
+ }
+--- a/zc.c
++++ b/zc.c
+@@ -83,7 +83,7 @@ int __get_userbuf(uint8_t __user *addr,
+ #else
+ 	ret = get_user_pages_remote(mm,
+ 			(unsigned long)addr, pgcount, write ? FOLL_WRITE : 0,
+-			pg, NULL, NULL);
++			pg, NULL);
+ #endif
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
+ 	up_read(&mm->mmap_sem);

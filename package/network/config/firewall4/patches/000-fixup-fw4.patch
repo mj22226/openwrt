@@ -1,0 +1,11 @@
+--- a/root/usr/share/ucode/fw4.uc
++++ b/root/usr/share/ucode/fw4.uc
+@@ -435,7 +435,7 @@ return {
+ 		    v = 0;
+
+ 		if (fd) {
+-		    let m = match(fd.read("line"), /^Linux version ([0-9]+)\.([0-9]+)\.([0-9]+)/);
++		    let m = match(fd.read("line"), /^Linux version ([0-9]+)\.([0-9]+)/);
+
+ 		    v = m ? (+m[1] << 24) | (+m[2] << 16) | (+m[3] << 8) : 0;
+ 		    fd.close();
