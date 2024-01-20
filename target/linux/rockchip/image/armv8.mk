@@ -114,6 +114,17 @@ define Device/pine64_quartz64-a
 endef
 TARGET_DEVICES += pine64_quartz64-a
 
+define Device/radxa_cm3-io
+  DEVICE_VENDOR := Radxa
+  DEVICE_MODEL := CM3 IO
+  SOC := rk3566
+  SUPPORTED_DEVICES := radxa,cm3-io
+  UBOOT_DEVICE_NAME := radxa-cm3-io-rk3566
+  DEVICE_DTS := rockchip/rk3566-radxa-cm3-io
+  IMAGE/sysupgrade.img.gz := boot-common | boot-script rock-3a | pine64-img | gzip | append-metadata
+endef
+TARGET_DEVICES += radxa_cm3-io
+
 define Device/radxa_rock-3a
   DEVICE_VENDOR := Radxa
   DEVICE_MODEL := ROCK3 Model A

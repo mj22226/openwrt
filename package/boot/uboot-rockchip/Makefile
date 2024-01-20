@@ -92,6 +92,17 @@ define U-Boot/quartz64-a-rk3566
   DDR_3568:=$(1)
 endef
 
+define U-Boot/radxa-cm3-io-rk3566
+  BUILD_SUBTARGET:=armv8
+  NAME:=CM3-IO
+  BUILD_DEVICES:= \
+    radxa_cm3-io
+  DEPENDS:=+PACKAGE_u-boot-cm3-io-rk3566:arm-trusted-firmware-rockchip
+  PKG_BUILD_DEPENDS:=arm-trusted-firmware-rockchip
+  ATF:=rk3568_bl31.elf
+  DDR_3568:=$(1)
+endef
+
 define U-Boot/nanopi-r5c-rk3568
   BUILD_SUBTARGET:=armv8
   NAME:=NANOPI-R5C
@@ -178,6 +189,7 @@ define U-Boot/rock-5b-rk3588
 endef
 
 UBOOT_TARGETS := \
+  radxa-cm3-io-rk3566 \
   nanopi-r6c-rk3588 \
   nanopi-r6s-rk3588 \
   orangepi-5-plus-rk3588 \
