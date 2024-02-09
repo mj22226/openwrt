@@ -206,3 +206,42 @@ define Package/bnx2x-firmware/install
 		$(1)/lib/firmware/bnx2x/
 endef
 $(eval $(call BuildPackage,bnx2x-firmware))
+
+BRCMFMAC_43456_URL:=https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/bookworm/debian/config/brcm80211/brcm/
+
+define Download/brcmfmac43456-sdio.bin
+  FILE:=brcmfmac43456-sdio.bin
+  URL:=$(BRCMFMAC_43456_URL)
+  HASH:=ddf83f2100885b166be52d21c8966db164fdd4e1d816aca2acc67ee9cc28d726
+endef
+
+define Download/brcmfmac43456-sdio.clm_blob
+  FILE:=brcmfmac43456-sdio.clm_blob
+  URL:=$(BRCMFMAC_43456_URL)
+  HASH:=2dbd7d22fc9af0eb560ceab45b19646d211bc7b34a1dd00c6bfac5dd6ba25e8a
+endef
+
+define Download/brcmfmac43456-sdio.txt
+  FILE:=brcmfmac43456-sdio.txt
+  URL:=$(BRCMFMAC_43456_URL)
+  HASH:=44e0bb322dc1f39a4b0a89f30ffdd28bc93f7d7aaf534d06d229fe56f6198194
+endef
+
+$(eval $(call Download,brcmfmac43456-sdio.bin))
+$(eval $(call Download,brcmfmac43456-sdio.clm_blob))
+$(eval $(call Download,brcmfmac43456-sdio.txt))
+
+Package/brcmfmac-firmware-43456-rockpi-4 = $(call Package/firmware-default,Broadcom Rock Pi 4 firmware)
+define Package/brcmfmac-firmware-43456-rockpi-4/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(DL_DIR)/brcmfmac43456-sdio.bin \
+		$(1)/lib/firmware/brcm/brcmfmac43456-sdio.radxa,rockpi4a.bin
+	$(INSTALL_DATA) \
+		$(DL_DIR)/brcmfmac43456-sdio.clm_blob \
+		$(1)/lib/firmware/brcm/brcmfmac43456-sdio.radxa,rockpi4a.clm_blob
+	$(INSTALL_DATA) \
+		$(DL_DIR)/brcmfmac43456-sdio.txt \
+		$(1)/lib/firmware/brcm/brcmfmac43456-sdio.radxa,rockpi4a.txt
+endef
+$(eval $(call BuildPackage,brcmfmac-firmware-43456-rockpi-4))
