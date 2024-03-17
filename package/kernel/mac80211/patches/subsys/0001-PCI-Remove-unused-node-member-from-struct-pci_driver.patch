@@ -1,0 +1,28 @@
+From 0942155a48e4cfc2c83e514c86a3de8f78f6af02 Mon Sep 17 00:00:00 2001
+From: Mathias Krause <minipli@grsecurity.net>
+Date: Wed, 20 Dec 2023 14:35:05 +0100
+Subject: [PATCH] PCI: Remove unused 'node' member from struct pci_driver
+
+Remove the unused 'node' member. It got replaced by device_driver chaining
+more than 20 years ago in commit 4b4a837f2b57 ("PCI: start to use common
+fields of struct device_driver more...") of the history.git tree.
+
+Link: https://lore.kernel.org/r/20231220133505.8798-1-minipli@grsecurity.net
+Signed-off-by: Mathias Krause <minipli@grsecurity.net>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Acked-by: Kalle Valo <kvalo@kernel.org>
+---
+ drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c | 1 -
+ include/linux/pci.h                                     | 2 --
+ 2 files changed, 3 deletions(-)
+
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c
+@@ -2707,7 +2707,6 @@ MODULE_DEVICE_TABLE(pci, brcmf_pcie_devi
+ 
+ 
+ static struct pci_driver brcmf_pciedrvr = {
+-	.node = {},
+ 	.name = KBUILD_MODNAME,
+ 	.id_table = brcmf_pcie_devid_table,
+ 	.probe = brcmf_pcie_probe,

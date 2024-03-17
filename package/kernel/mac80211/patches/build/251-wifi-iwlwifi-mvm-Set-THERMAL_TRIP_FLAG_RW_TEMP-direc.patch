@@ -1,0 +1,48 @@
+From 96c5330bf75839a31d6fdf953fade6e9fbf30bde Mon Sep 17 00:00:00 2001
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Date: Mon, 12 Feb 2024 19:38:07 +0100
+Subject: [PATCH] wifi: iwlwifi: mvm: Set THERMAL_TRIP_FLAG_RW_TEMP directly
+
+It is now possible to flag trip points with THERMAL_TRIP_FLAG_RW_TEMP
+to allow their temperature to be set from user space via sysfs instead
+of using a nonzero writable trips mask during thermal zone registration,
+so make the iwlwifi code do that.
+
+No intentional functional impact.
+
+Note that this change is requisite for dropping the mask argument from
+thermal_zone_device_register_with_trips() going forward.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+---
+ drivers/net/wireless/intel/iwlwifi/mvm/tt.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+--- a/drivers/net/wireless/intel/iwlwifi/mvm/tt.c
++++ b/drivers/net/wireless/intel/iwlwifi/mvm/tt.c
+@@ -754,8 +754,6 @@ static  struct thermal_zone_device_ops t
+ 	.set_trip_temp = iwl_mvm_tzone_set_trip_temp,
+ };
+ 
+-/* make all trips writable */
+-#define IWL_WRITABLE_TRIPS_MSK (BIT(IWL_MAX_DTS_TRIPS) - 1)
+ 
+ static void iwl_mvm_thermal_zone_register(struct iwl_mvm *mvm)
+ {
+@@ -779,7 +777,6 @@ static void iwl_mvm_thermal_zone_registe
+ 							mvm->tz_device.trips,
+ #endif
+ 							IWL_MAX_DTS_TRIPS,
+-							IWL_WRITABLE_TRIPS_MSK,
+ 							mvm, &tzone_ops,
+ 							NULL, 0, 0);
+ 	if (IS_ERR(mvm->tz_device.tzone)) {
+@@ -807,6 +804,7 @@ static void iwl_mvm_thermal_zone_registe
+ 	for (i = 0 ; i < IWL_MAX_DTS_TRIPS; i++) {
+ 		mvm->tz_device.trips[i].temperature = INT_MIN;
+ 		mvm->tz_device.trips[i].type = THERMAL_TRIP_PASSIVE;
++		mvm->tz_device.trips[i].flags = THERMAL_TRIP_FLAG_RW_TEMP;
+ 	}
+ #endif
+ }

@@ -1,0 +1,55 @@
+From 73382e919f3d938554dadd01d95760f90d1c25c1 Mon Sep 17 00:00:00 2001
+From: Christian Marangi <ansuelsmth@gmail.com>
+Date: Mon, 9 Oct 2023 15:37:52 +0200
+Subject: [PATCH] netdev: replace napi_reschedule with napi_schedule
+
+Now that napi_schedule return a bool, we can drop napi_reschedule that
+does the same exact function. The function comes from a very old commit
+bfe13f54f502 ("ibm_emac: Convert to use napi_struct independent of struct
+net_device") and the purpose is actually deprecated in favour of
+different logic.
+
+Convert every user of napi_reschedule to napi_schedule.
+
+Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
+Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com> # ath10k
+Acked-by: Nick Child <nnac123@linux.ibm.com> # ibm
+Acked-by: Marc Kleine-Budde <mkl@pengutronix.de> # for can/dev/rx-offload.c
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Acked-by: Tariq Toukan <tariqt@nvidia.com>
+Link: https://lore.kernel.org/r/20231009133754.9834-3-ansuelsmth@gmail.com
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c                |  4 ++--
+ drivers/net/can/dev/rx-offload.c                       |  2 +-
+ drivers/net/ethernet/chelsio/cxgb4/sge.c               |  2 +-
+ drivers/net/ethernet/chelsio/cxgb4vf/sge.c             |  2 +-
+ drivers/net/ethernet/ezchip/nps_enet.c                 |  2 +-
+ drivers/net/ethernet/google/gve/gve_main.c             |  2 +-
+ drivers/net/ethernet/ibm/ehea/ehea_main.c              |  2 +-
+ drivers/net/ethernet/ibm/emac/mal.c                    |  2 +-
+ drivers/net/ethernet/ibm/ibmveth.c                     |  2 +-
+ drivers/net/ethernet/ibm/ibmvnic.c                     |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c             |  2 +-
+ drivers/net/ethernet/ni/nixge.c                        |  2 +-
+ drivers/net/ethernet/stmicro/stmmac/stmmac_selftests.c |  2 +-
+ drivers/net/ethernet/xscale/ixp4xx_eth.c               |  4 ++--
+ drivers/net/fjes/fjes_main.c                           |  2 +-
+ drivers/net/wan/ixp4xx_hss.c                           |  4 ++--
+ drivers/net/wireless/ath/ath10k/pci.c                  |  2 +-
+ drivers/net/wwan/t7xx/t7xx_hif_dpmaif_rx.c             |  2 +-
+ include/linux/netdevice.h                              | 10 ----------
+ 19 files changed, 21 insertions(+), 31 deletions(-)
+
+
+--- a/drivers/net/wireless/ath/ath10k/pci.c
++++ b/drivers/net/wireless/ath/ath10k/pci.c
+@@ -3147,7 +3147,7 @@ static int ath10k_pci_napi_poll(struct n
+ 		 * immediate servicing.
+ 		 */
+ 		if (ath10k_ce_interrupt_summary(ar)) {
+-			napi_reschedule(ctx);
++			napi_schedule(ctx);
+ 			goto out;
+ 		}
+ 		ath10k_pci_enable_legacy_irq(ar);

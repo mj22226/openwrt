@@ -1,0 +1,61 @@
+From 49a78b05d5ca1e23fd737747a8757b8bdc319b30 Mon Sep 17 00:00:00 2001
+From: Yajun Deng <yajun.deng@linux.dev>
+Date: Thu, 4 Jan 2024 11:28:22 +0800
+Subject: [PATCH] USB: core: Use device_driver directly in struct usb_driver
+ and usb_device_driver
+
+There is usbdrv_wrap in struct usb_driver and usb_device_driver, it
+contains device_driver and for_devices. for_devices is used to
+distinguish between device drivers and interface drivers.
+
+Like the is_usb_device(), it tests the type of the device. We can test
+that if the probe of device_driver is equal to usb_probe_device in
+is_usb_device_driver(), and then the struct usbdrv_wrap is no longer
+needed.
+
+Clean up struct usbdrv_wrap, use device_driver directly in struct
+usb_driver and usb_device_driver. This makes the code cleaner.
+
+Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Link: https://lore.kernel.org/r/20240104032822.1896596-1-yajun.deng@linux.dev
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/bluetooth/btusb.c                     |  6 +-
+ drivers/net/can/usb/peak_usb/pcan_usb_core.c  |  2 +-
+ .../broadcom/brcm80211/brcmfmac/usb.c         |  2 +-
+ drivers/net/wireless/marvell/mwifiex/usb.c    |  2 +-
+ drivers/usb/core/driver.c                     | 59 ++++++++++---------
+ drivers/usb/core/usb.c                        |  2 +-
+ drivers/usb/core/usb.h                        |  8 +--
+ drivers/usb/misc/onboard_usb_hub.c            |  2 +-
+ drivers/usb/serial/bus.c                      |  2 +-
+ drivers/usb/serial/usb-serial.c               |  2 +-
+ drivers/usb/storage/uas.c                     |  2 +-
+ drivers/usb/usbip/stub_main.c                 |  8 +--
+ include/linux/usb.h                           | 24 +++-----
+ 13 files changed, 53 insertions(+), 68 deletions(-)
+
+
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/usb.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/usb.c
+@@ -1581,7 +1581,7 @@ static int brcmf_usb_reset_device(struct
+ 
+ void brcmf_usb_exit(void)
+ {
+-	struct device_driver *drv = &brcmf_usbdrvr.drvwrap.driver;
++	struct device_driver *drv = &brcmf_usbdrvr.driver;
+ 	int ret;
+ 
+ 	brcmf_dbg(USB, "Enter\n");
+--- a/drivers/net/wireless/marvell/mwifiex/usb.c
++++ b/drivers/net/wireless/marvell/mwifiex/usb.c
+@@ -687,7 +687,7 @@ static struct usb_driver mwifiex_usb_dri
+ 	.suspend = mwifiex_usb_suspend,
+ 	.resume = mwifiex_usb_resume,
+ 	.soft_unbind = 1,
+-	.drvwrap.driver = {
++	.driver = {
+ 		.coredump = mwifiex_usb_coredump,
+ 	},
+ };
