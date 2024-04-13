@@ -182,8 +182,7 @@ define Device/rpi-4
 	raspberrypi,4-model-b
   DEVICE_PACKAGES := \
 	brcmfmac-sdio-firmware-4345-bt \
-	cypress-firmware-43455-sdio \
-	brcmfmac-nvram-43455-sdio \
+	cypress-firmware-43455-4b-sdio \
 	kmod-brcmfmac wpad-basic-mbedtls \
 	kmod-usb-net-lan78xx \
 	kmod-r8169
@@ -200,8 +199,8 @@ define Device/rpi-5
   DEVICE_DTS := broadcom/bcm2712-rpi-5-b
   SUPPORTED_DEVICES := raspberrypi,5-model-b
   DEVICE_PACKAGES := \
-	cypress-firmware-43455-sdio \
-	brcmfmac-nvram-43455-sdio \
+	cypress-firmware-43455-5b-sdio \
+	brcmfmac-sdio-firmware-4345-bt \
 	kmod-brcmfmac wpad-basic-mbedtls \
 	kmod-hwmon-pwmfan kmod-thermal
   IMAGE/sysupgrade.img.gz := boot-common | sdcard-img | gzip | append-metadata
