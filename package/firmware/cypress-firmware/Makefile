@@ -191,6 +191,52 @@ endef
 
 $(eval $(call BuildPackage,cypress-firmware-43455-sdio))
 
+# Cypress 43455 4b SDIO Firmware
+define Package/cypress-firmware-43455-4b-sdio
+  $(Package/cypress-firmware-default)
+  TITLE:=CYW43455 4b FullMac SDIO firmware
+  PROVIDES:=brcmfmac-firmware-43455-4b-sdio
+  CONFLICTS:=brcmfmac-firmware-43455-sdio
+endef
+
+define Package/cypress-firmware-43455-4b-sdio/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/firmware/cyfmac43455-sdio.bin \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.raspberrypi,4-model-b.bin
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/firmware/cyfmac43455-sdio.clm_blob \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.raspberrypi,4-model-b.clm_blob
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/brcmfmac43455-sdio.raspberrypi,5-model-b.txt \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.raspberrypi,4-model-b.txt
+endef
+
+$(eval $(call BuildPackage,cypress-firmware-43455-4b-sdio))
+
+# Cypress 43455 5b SDIO Firmware
+define Package/cypress-firmware-43455-5b-sdio
+  $(Package/cypress-firmware-default)
+  TITLE:=CYW43455 5b FullMac SDIO firmware
+  PROVIDES:=brcmfmac-firmware-43455-5b-sdio
+  CONFLICTS:=brcmfmac-firmware-43455-sdio
+endef
+
+define Package/cypress-firmware-43455-5b-sdio/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/firmware/cyfmac43455-sdio.bin \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.raspberrypi,5-model-b.bin
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/firmware/cyfmac43455-sdio.clm_blob \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.raspberrypi,5-model-b.clm_blob
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/brcmfmac43455-sdio.raspberrypi,5-model-b.txt \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.raspberrypi,5-model-b.txt
+endef
+
+$(eval $(call BuildPackage,cypress-firmware-43455-5b-sdio))
+
 # Cypress 4354 SDIO Firmware
 define Package/cypress-firmware-4354-sdio
   $(Package/cypress-firmware-default)
