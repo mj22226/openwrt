@@ -1,0 +1,92 @@
+name: Build bcm2712 RPi 5B
+on: [push]
+
+jobs:
+    build:
+        name: Build Raspberry Pi 5 images
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 512
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                overprovision-lvm: 'true'
+                remove-android: 'true'
+                remove-haskell: 'true'
+                remove-codeql: 'true'
+                remove-docker-images: 'true'
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Build
+              run: |
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a
+                cd feeds/luci
+                wget https://gist.githubusercontent.com/mj22226/363cefecd314e45b49d8eafff8473fcf/raw/69b47c9a972e15056f94870d76d93a5146893f99/01-diskman.patch
+
+                git apply 01-diskman.patch
+
+                cd -
+                cd  feeds/packages
+                wget https://gist.githubusercontent.com/mj22226/351f11e66f08f06e37a985719a31ddb4/raw/b35ba7a3aac1949bd6bbeaad065a0a93dc3c34f0/01-cpu.patch
+                wget https://gist.githubusercontent.com/mj22226/b66f5c1bd5fc7e1cb3cf2c690b5dbd5a/raw/b955e726cbb0948d932c8d6143229ad604320149/20-lxc.patch
+                wget https://github.com/mj22226/packages/commit/37264a2e636b790df9cb037db695505341030e98.patch
+
+
+
+
+                git apply 01-cpu.patch
+                git apply 20-lxc.patch
+
+
+
+
+
+                cd -
+                sed -i "71s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "84s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "195s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "212s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "13s/'1'/'0'/" feeds/packages/utils/dockerd/files/etc/config/dockerd
+                sed -i 's/default n/default y/g' feeds/packages/utils/dockerd/Config.in
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a -f
+                wget https://downloads.openwrt.org/snapshots/targets/bcm27xx/bcm2712/llvm-bpf-18.1.7.Linux-x86_64.tar.zst
+                tar -xvf llvm-bpf-18.1.7.Linux-x86_64.tar.zst
+                wget https://gist.githubusercontent.com/mj22226/23edc25efeb65ef69d8eb6598f4f8179/raw/29c862e3e2558852523f4e8edd5f3d0cc145067e/01-key.patch
+
+                git apply 01-key.patch
+
+                rm 01-key.patch
+                cp .github/workflows/config.buildinfo .config
+                make defconfig
+                make download -j32
+
+
+                mkdir -p files/www/repo
+                wget https://gist.githubusercontent.com/mj22226/242ed658f24ee582678ab50b553641ac/raw/ba143f1f72fe9be44c61288ac80267299ea9701e/03.patch
+                git apply 03.patch
+                make -j$(nproc) 'IGNORE_ERRORS=n m'
+                cp -R bin/targets/bcm27xx/bcm2712/packages/ files/www/repo/
+                make -j$(nproc) 'IGNORE_ERRORS=n m'
+                rm -rf bin/targets/bcm27xx/bcm2712/packages
+                echo "DATE=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+                echo "HASH=$(git log -1 --format="%H")" >> $GITHUB_ENV
+            - name: Delete tag
+              run: gh release delete bcm2712-6.6 --cleanup-tag || true
+              env:
+                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Create release
+              uses: ncipollo/release-action@v1.14.0
+              with:
+                allowUpdates: true
+                commit: ${{ env.HASH }}
+                name: Raspberry Pi 5 v6.6 Firmware Images ${{ env.DATE }}
+                tag: bcm2712-6.6
+                replacesArtifacts: true
+                prerelease: true
+                token: "${{ secrets.GITHUB_TOKEN }}"
+                artifacts: bin/targets/bcm27xx/bcm2712/*
