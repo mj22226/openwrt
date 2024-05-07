@@ -1,0 +1,233 @@
+From 4ec87387e211ac6ffb0315c470d52d73cfb2a639 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Sun, 4 Jun 2023 02:29:36 -0400
+Subject: [PATCH] fix r5s r5c
+
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ .../boot/dts/rockchip/rk3568-nanopi-r5c.dts   | 70 ++++++++++---------
+ .../boot/dts/rockchip/rk3568-nanopi-r5s.dts   | 61 ++++++++--------
+ 2 files changed, 67 insertions(+), 64 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5c.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5c.dts
+@@ -11,14 +11,14 @@
+ 
+ / {
+ 	model = "FriendlyElec NanoPi R5C";
+-	compatible = "friendlyarm,nanopi-r5c", "rockchip,rk3568";
++	compatible = "friendlyelec,nanopi-r5c", "rockchip,rk3568";
+ 
+-	gpio-keys {
++	gpio_keys: gpio-keys {
+ 		compatible = "gpio-keys";
+ 		pinctrl-names = "default";
+-		pinctrl-0 = <&reset_button_pin>;
++		pinctrl-0 = <&key1_pin>;
+ 
+-		button-reset {
++		key-reset {
+ 			debounce-interval = <50>;
+ 			gpios = <&gpio0 RK_PB7 GPIO_ACTIVE_LOW>;
+ 			label = "reset";
+@@ -28,39 +28,41 @@
+ 
+ 	gpio-leds {
+ 		compatible = "gpio-leds";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&lan_led_pin>, <&power_led_pin>, <&wan_led_pin>, <&wlan_led_pin>;
+-
+-		led-lan {
+-			color = <LED_COLOR_ID_GREEN>;
+-			function = LED_FUNCTION_LAN;
+-			gpios = <&gpio3 RK_PA3 GPIO_ACTIVE_HIGH>;
+-		};
+ 
+-		power_led: led-power {
+-			color = <LED_COLOR_ID_RED>;
+-			function = LED_FUNCTION_POWER;
++		sys_led: led-sys {
++			label = "red:sys";
+ 			linux,default-trigger = "heartbeat";
++			pinctrl-names = "default";
+ 			gpios = <&gpio3 RK_PA2 GPIO_ACTIVE_HIGH>;
++			pinctrl-0 = <&sys_led_pin>;
+ 		};
+ 
+-		led-wan {
+-			color = <LED_COLOR_ID_GREEN>;
+-			function = LED_FUNCTION_WAN;
++		lan-led {
++			label = "green:lan";
++			gpios = <&gpio3 RK_PA3 GPIO_ACTIVE_HIGH>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&lan_led_pin>;
++		};
++
++		wan-led {
++			label = "green:wan";
+ 			gpios = <&gpio3 RK_PA4 GPIO_ACTIVE_HIGH>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&wan_led_pin>;
+ 		};
+ 
+-		led-wlan {
+-			color = <LED_COLOR_ID_GREEN>;
+-			function = LED_FUNCTION_WLAN;
++		wlan-led {
++			label = "green:wlan";
+ 			gpios = <&gpio3 RK_PA5 GPIO_ACTIVE_HIGH>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&wlan_led_pin>;
+ 		};
+ 	};
+ };
+ 
+ &pcie2x1 {
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&pcie20_reset_pin>;
++	pinctrl-0 = <&m2_w_disable_pin>;
+ 	reset-gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_HIGH>;
+ 	status = "okay";
+ };
+@@ -80,15 +82,21 @@
+ };
+ 
+ &pinctrl {
+-	gpio-leds {
+-		lan_led_pin: lan-led-pin {
+-			rockchip,pins = <3 RK_PA3 RK_FUNC_GPIO &pcfg_pull_none>;
++	gpio-key {
++		key1_pin: key1-pin {
++			rockchip,pins = <0 RK_PB7 RK_FUNC_GPIO &pcfg_pull_up>;
+ 		};
++	};
+ 
+-		power_led_pin: power-led-pin {
++	gpio-leds {
++		sys_led_pin: power-led-pin {
+ 			rockchip,pins = <3 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 
++		lan_led_pin: lan-led-pin {
++			rockchip,pins = <3 RK_PA3 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++
+ 		wan_led_pin: wan-led-pin {
+ 			rockchip,pins = <3 RK_PA4 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+@@ -98,15 +106,9 @@
+ 		};
+ 	};
+ 
+-	pcie {
+-		pcie20_reset_pin: pcie20-reset-pin {
++	m2-pins {
++		m2_w_disable_pin: m2-w-disable-pin {
+ 			rockchip,pins = <2 RK_PD2 RK_FUNC_GPIO &pcfg_pull_up>;
+ 		};
+ 	};
+-
+-	rockchip-key {
+-		reset_button_pin: reset-button-pin {
+-			rockchip,pins = <0 RK_PB7 RK_FUNC_GPIO &pcfg_pull_up>;
+-		};
+-	};
+ };
+--- a/arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5s.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5s.dts
+@@ -11,7 +11,7 @@
+ 
+ / {
+ 	model = "FriendlyElec NanoPi R5S";
+-	compatible = "friendlyarm,nanopi-r5s", "rockchip,rk3568";
++	compatible = "friendlyelec,nanopi-r5s", "rockchip,rk3568";
+ 
+ 	aliases {
+ 		ethernet0 = &gmac0;
+@@ -19,34 +19,34 @@
+ 
+ 	gpio-leds {
+ 		compatible = "gpio-leds";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&lan1_led_pin>, <&lan2_led_pin>, <&power_led_pin>, <&wan_led_pin>;
+ 
+-		led-lan1 {
+-			color = <LED_COLOR_ID_GREEN>;
+-			function = LED_FUNCTION_LAN;
+-			function-enumerator = <1>;
+-			gpios = <&gpio3 RK_PD6 GPIO_ACTIVE_HIGH>;
++		sys_led: led-sys {
++			gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
++			label = "red:power";
++			linux,default-trigger = "heartbeat";
++			pinctrl-names = "default";
++			pinctrl-0 = <&sys_led_pin>;
+ 		};
+ 
+-		led-lan2 {
+-			color = <LED_COLOR_ID_GREEN>;
+-			function = LED_FUNCTION_LAN;
+-			function-enumerator = <2>;
+-			gpios = <&gpio3 RK_PD7 GPIO_ACTIVE_HIGH>;
++		wan_led: led-wan {
++			gpios = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>;
++			label = "green:wan";
++			pinctrl-names = "default";
++			pinctrl-0 = <&wan_led_pin>;
+ 		};
+ 
+-		power_led: led-power {
+-			color = <LED_COLOR_ID_RED>;
+-			function = LED_FUNCTION_POWER;
+-			linux,default-trigger = "heartbeat";
+-			gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
++		lan1_led: led-lan1 {
++			gpios = <&gpio3 RK_PD6 GPIO_ACTIVE_HIGH>;
++			label = "green:lan1";
++			pinctrl-names = "default";
++			pinctrl-0 = <&lan1_led_pin>;
+ 		};
+ 
+-		led-wan {
+-			color = <LED_COLOR_ID_GREEN>;
+-			function = LED_FUNCTION_WAN;
+-			gpios = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>;
++		lan2_led: led-lan2 {
++			gpios = <&gpio3 RK_PD7 GPIO_ACTIVE_HIGH>;
++			label = "green:lan2";
++			pinctrl-names = "default";
++			pinctrl-0 = <&lan2_led_pin>;
+ 		};
+ 	};
+ };
+@@ -117,20 +117,21 @@
+ 	};
+ 
+ 	gpio-leds {
+-		lan1_led_pin: lan1-led-pin {
+-			rockchip,pins = <3 RK_PD6 RK_FUNC_GPIO &pcfg_pull_none>;
+-		};
+ 
+-		lan2_led_pin: lan2-led-pin {
+-			rockchip,pins = <3 RK_PD7 RK_FUNC_GPIO &pcfg_pull_none>;
+-		};
+-
+-		power_led_pin: power-led-pin {
++		sys_led_pin: sys-led-pin {
+ 			rockchip,pins = <4 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 
+ 		wan_led_pin: wan-led-pin {
+ 			rockchip,pins = <2 RK_PC1 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
++
++		lan1_led_pin: lan1-led-pin {
++			rockchip,pins = <3 RK_PD6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++
++		lan2_led_pin: lan2-led-pin {
++			rockchip,pins = <3 RK_PD7 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
+ 	};
+ };
