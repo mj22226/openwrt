@@ -1,0 +1,326 @@
+From 379715d7c42f5103a6b8de741b090d2e51344826 Mon Sep 17 00:00:00 2001
+From: Sebastian Reichel <sebastian.reichel@collabora.com>
+Date: Mon, 24 Jul 2023 15:07:49 +0200
+Subject: [PATCH 32/41] arm64: dts: rockchip: rock5b: add cpu mem regulator
+ info
+
+Add the second supply regulator for the CPU cores, which is used
+for supplying the memory interface.
+
+Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+---
+ arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-rock-5b.dts
+@@ -150,34 +150,42 @@
+ 
+ &cpu_b0 {
+ 	cpu-supply = <&vdd_cpu_big0_s0>;
++	mem-supply = <&vdd_cpu_big0_s0>;
+ };
+ 
+ &cpu_b1 {
+ 	cpu-supply = <&vdd_cpu_big0_s0>;
++	mem-supply = <&vdd_cpu_big0_s0>;
+ };
+ 
+ &cpu_b2 {
+ 	cpu-supply = <&vdd_cpu_big1_s0>;
++	mem-supply = <&vdd_cpu_big1_s0>;
+ };
+ 
+ &cpu_b3 {
+ 	cpu-supply = <&vdd_cpu_big1_s0>;
++	mem-supply = <&vdd_cpu_big1_s0>;
+ };
+ 
+ &cpu_l0 {
+ 	cpu-supply = <&vdd_cpu_lit_s0>;
++	mem-supply = <&vdd_cpu_lit_mem_s0>;
+ };
+ 
+ &cpu_l1 {
+ 	cpu-supply = <&vdd_cpu_lit_s0>;
++	mem-supply = <&vdd_cpu_lit_mem_s0>;
+ };
+ 
+ &cpu_l2 {
+ 	cpu-supply = <&vdd_cpu_lit_s0>;
++	mem-supply = <&vdd_cpu_lit_mem_s0>;
+ };
+ 
+ &cpu_l3 {
+ 	cpu-supply = <&vdd_cpu_lit_s0>;
++	mem-supply = <&vdd_cpu_lit_mem_s0>;
+ };
+ 
+ &gpu {
+--- a/arch/arm64/boot/dts/rockchip/rk3588-orangepi-5-plus.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588-orangepi-5-plus.dts
+@@ -10,15 +10,17 @@
+ #include <dt-bindings/input/input.h>
+ #include <dt-bindings/pinctrl/rockchip.h>
+ #include <dt-bindings/usb/pd.h>
++#include <dt-bindings/soc/rockchip,vop2.h>
+ #include "rk3588.dtsi"
+ 
+ / {
+-	model = "Xunlong Orange Pi 5 Plus";
+-	compatible = "xunlong,orangepi-5-plus", "rockchip,rk3588";
++	model = "RK3588 OPi 5 Plus";
++	compatible = "rockchip,rk3588-orangepi-5-plus", "rockchip,rk3588";
+ 
+ 	aliases {
+ 		mmc0 = &sdhci;
+ 		mmc1 = &sdmmc;
++		serial2 = &uart2;
+ 	};
+ 
+ 	chosen {
+@@ -199,6 +201,18 @@
+ 		regulator-max-microvolt = <5000000>;
+ 	};
+ 
++	vbus5v0_typec: vbus5v0-typec-regulator {
++		compatible = "regulator-fixed";
++		enable-active-high;
++		gpio = <&gpio4 RK_PB0 GPIO_ACTIVE_HIGH>;
++		regulator-name = "vbus5v0_typec";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&typec5v_pwren>;
++		vin-supply = <&vcc5v0_sys>;
++	};
++
+ 	vcc5v0_usb20: vcc5v0-usb20-regulator {
+ 		compatible = "regulator-fixed";
+ 		enable-active-high;
+@@ -226,34 +240,42 @@
+ 
+ &cpu_b0 {
+ 	cpu-supply = <&vdd_cpu_big0_s0>;
++	mem-supply = <&vdd_cpu_big0_s0>;
+ };
+ 
+ &cpu_b1 {
+ 	cpu-supply = <&vdd_cpu_big0_s0>;
++	mem-supply = <&vdd_cpu_big0_s0>;
+ };
+ 
+ &cpu_b2 {
+ 	cpu-supply = <&vdd_cpu_big1_s0>;
++	mem-supply = <&vdd_cpu_big1_s0>;
+ };
+ 
+ &cpu_b3 {
+ 	cpu-supply = <&vdd_cpu_big1_s0>;
++	mem-supply = <&vdd_cpu_big1_s0>;
+ };
+ 
+ &cpu_l0 {
+ 	cpu-supply = <&vdd_cpu_lit_s0>;
++	mem-supply = <&vdd_cpu_lit_mem_s0>;
+ };
+ 
+ &cpu_l1 {
+ 	cpu-supply = <&vdd_cpu_lit_s0>;
++	mem-supply = <&vdd_cpu_lit_mem_s0>;
+ };
+ 
+ &cpu_l2 {
+ 	cpu-supply = <&vdd_cpu_lit_s0>;
++	mem-supply = <&vdd_cpu_lit_mem_s0>;
+ };
+ 
+ &cpu_l3 {
+ 	cpu-supply = <&vdd_cpu_lit_s0>;
++	mem-supply = <&vdd_cpu_lit_mem_s0>;
+ };
+ 
+ &i2c0 {
+@@ -311,6 +333,53 @@
+ 		pinctrl-0 = <&hym8563_int>;
+ 		wakeup-source;
+ 	};
++
++	usbc0: usb-typec@22 {
++		compatible = "fcs,fusb302";
++		reg = <0x22>;
++		interrupt-parent = <&gpio0>;
++		interrupts = <RK_PD3 IRQ_TYPE_LEVEL_LOW>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&usbc0_int>;
++		vbus-supply = <&vbus5v0_typec>;
++
++		usb_con: connector {
++			compatible = "usb-c-connector";
++			label = "USB-C";
++			data-role = "dual";
++			power-role = "dual";
++			try-power-role = "source";
++			op-sink-microwatt = <1000000>;
++			sink-pdos = <PDO_FIXED(5000, 2000, PDO_FIXED_USB_COMM)>;
++			source-pdos = <PDO_FIXED(5000, 1500, PDO_FIXED_USB_COMM)>;
++
++			ports {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				port@0 {
++					reg = <0>;
++					usbc0_hs: endpoint {
++						remote-endpoint = <&usb_host0_xhci_drd_sw>;
++					};
++				};
++
++				port@1 {
++					reg = <1>;
++					usbc0_ss: endpoint {
++						remote-endpoint = <&usbdp_phy0_typec_ss>;
++					};
++				};
++
++				port@2 {
++					reg = <2>;
++					usbc0_sbu: endpoint {
++						remote-endpoint = <&usbdp_phy0_typec_sbu>;
++					};
++				};
++			};
++		};
++	};
+ };
+ 
+ &i2c7 {
+@@ -362,6 +431,7 @@
+ &pcie2x1l1 {
+ 	reset-gpios = <&gpio3 RK_PB3 GPIO_ACTIVE_HIGH>;
+ 	vpcie3v3-supply = <&vcc3v3_pcie_eth>;
++	rockchip,init-delay-ms = <100>;
+ 	status = "okay";
+ };
+ 
+@@ -408,6 +478,14 @@
+ 	};
+ 
+ 	usb {
++		typec5v_pwren: typec5v-pwren {
++			rockchip,pins = <4 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++
++		usbc0_int: usbc0-int {
++			rockchip,pins = <0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_up>;
++		};
++
+ 		vcc5v0_usb20_en: vcc5v0-usb20-en {
+ 			rockchip,pins = <3 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+@@ -535,7 +613,7 @@
+ 				};
+ 			};
+ 
+-			vdd_cpu_lit_s0: dcdc-reg2 {
++			vdd_cpu_lit_s0: vdd_cpu_lit_mem_s0: dcdc-reg2 {
+ 				regulator-name = "vdd_cpu_lit_s0";
+ 				regulator-always-on;
+ 				regulator-boot-on;
+@@ -802,6 +880,22 @@
+ 	status = "okay";
+ };
+ 
++&u2phy0 {
++	status = "okay";
++};
++
++&u2phy0_otg {
++	status = "okay";
++};
++
++&u2phy1 {
++	status = "okay";
++};
++
++&u2phy1_otg {
++	status = "okay";
++};
++
+ &u2phy2 {
+ 	status = "okay";
+ };
+@@ -830,6 +924,35 @@
+ 	status = "okay";
+ };
+ 
++&usbdp_phy0 {
++	orientation-switch;
++	mode-switch;
++	sbu1-dc-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>;
++	sbu2-dc-gpios = <&gpio4 RK_PA7 GPIO_ACTIVE_HIGH>;
++	status = "okay";
++	svid = <0xff01>;
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		usbdp_phy0_typec_ss: endpoint@0 {
++			reg = <0>;
++			remote-endpoint = <&usbc0_ss>;
++		};
++
++		usbdp_phy0_typec_sbu: endpoint@1 {
++			reg = <1>;
++			remote-endpoint = <&usbc0_sbu>;
++		};
++	};
++};
++
++&usbdp_phy1 {
++	rockchip,dp-lane-mux = <2 3>;
++	status = "okay";
++};
++
+ &usb_host0_ehci {
+ 	status = "okay";
+ };
+@@ -838,6 +961,20 @@
+ 	status = "okay";
+ };
+ 
++&usb_host0_xhci {
++	dr_mode = "otg";
++	usb-role-switch;
++	status = "okay";
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		usb_host0_xhci_drd_sw: endpoint {
++			remote-endpoint = <&usbc0_hs>;
++		};
++	};
++};
++
+ &usb_host1_ehci {
+ 	status = "okay";
+ };
+@@ -845,3 +982,16 @@
+ &usb_host1_ohci {
+ 	status = "okay";
+ };
++
++&usb_host1_xhci {
++	dr_mode = "host";
++	status = "okay";
++};
++
++&hdptxphy_hdmi0 {
++	status = "okay";
++};
++
++&vop_mmu {
++	status = "okay";
++};

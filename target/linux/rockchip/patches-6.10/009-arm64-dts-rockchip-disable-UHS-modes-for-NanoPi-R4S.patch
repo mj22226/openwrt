@@ -1,0 +1,31 @@
+From eeb15d6eeed0dc35d10b482b2a857abfb0c8417c Mon Sep 17 00:00:00 2001
+From: David Bauer <mail@david-bauer.net>
+Date: Thu, 1 Sep 2022 00:28:11 -0400
+Subject: [PATCH 09/95] arm64: dts: rockchip: disable UHS modes for NanoPi R4S
+
+The NanoPi R4S leaves the SD card in 1.8V signalling when rebooting
+while U-Boot requires the card to be in 3.3V mode.
+
+Remove UHS support from the SD controller so the card remains in 3.3V
+mode. This reduces transfer speeds but ensures a reboot whether from
+userspace or following a kernel panic is always working.
+
+Signed-off-by: David Bauer <mail@david-bauer.net>
+---
+ arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts
+@@ -121,6 +121,11 @@
+ 	status = "disabled";
+ };
+ 
++&sdmmc {
++	/delete-property/ sd-uhs-sdr104;
++	cap-sd-highspeed;
++};
++
+ &u2phy0_host {
+ 	phy-supply = <&vdd_5v>;
+ };
