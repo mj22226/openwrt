@@ -381,6 +381,7 @@ define KernelPackage/fs-ksmbd
 	CONFIG_SMB_SERVER_KERBEROS5=n
   FILES:= \
 	 $(LINUX_DIR)/fs/ksmbd/ksmbd.ko@lt6.1 \
+	 $(LINUX_DIR)/fs/nls/nls_ucs2_utils.ko \
 	 $(LINUX_DIR)/fs/smb/server/ksmbd.ko@ge6.1
   AUTOLOAD:=$(call AutoLoad,41,ksmbd)
 endef
