@@ -12,7 +12,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
 ---
 --- a/arch/arm/Kconfig
 +++ b/arch/arm/Kconfig
-@@ -133,6 +133,7 @@ config ARM
+@@ -132,6 +132,7 @@ config ARM
  	select HAVE_VIRT_CPU_ACCOUNTING_GEN
  	select HOTPLUG_CORE_SYNC_DEAD if HOTPLUG_CPU
  	select IRQ_FORCED_THREADING
@@ -22,7 +22,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
  	select NEED_DMA_MAP_STATE
 --- a/arch/arm/boot/compressed/Makefile
 +++ b/arch/arm/boot/compressed/Makefile
-@@ -92,6 +92,7 @@ endif
+@@ -85,6 +85,7 @@ endif
  ifeq ($(CONFIG_USE_OF),y)
  OBJS	+= $(libfdt_objs) fdt_check_mem_start.o
  endif
