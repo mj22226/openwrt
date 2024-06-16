@@ -28,7 +28,7 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
 
 --- a/drivers/usb/typec/tcpm/tcpm.c
 +++ b/drivers/usb/typec/tcpm/tcpm.c
-@@ -7599,9 +7599,9 @@ struct tcpm_port *tcpm_register_port(str
+@@ -7602,9 +7602,9 @@ struct tcpm_port *tcpm_register_port(str
  
  	port->partner_desc.identity = &port->partner_ident;
  
