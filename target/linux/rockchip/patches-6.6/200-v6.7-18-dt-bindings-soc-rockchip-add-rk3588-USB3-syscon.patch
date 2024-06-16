@@ -32,7 +32,7 @@ Signed-off-by: Sebastian Reichel <sebastian.reichel@collabora.com>
    "#address-cells":
      const: 1
  
-@@ -245,6 +251,22 @@ allOf:
+@@ -246,6 +252,22 @@ allOf:
  
            unevaluatedProperties: false
  
