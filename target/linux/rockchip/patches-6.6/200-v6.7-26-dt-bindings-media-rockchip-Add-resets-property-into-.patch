@@ -1,0 +1,27 @@
+From 87e0a8bd8a089128bb8097939ccb15812b308f65 Mon Sep 17 00:00:00 2001
+From: Benjamin Gaignard <benjamin.gaignard@collabora.com>
+Date: Mon, 12 Jun 2023 14:57:58 +0200
+Subject: [PATCH 26/41] dt-bindings: media: rockchip: Add resets property into
+ decoder node
+
+RK3588 AV1 decoder hardware block have resets lines and driver code
+already suppport it.
+Update yaml file to be aligned with this feature.
+
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@collabora.com>
+---
+ Documentation/devicetree/bindings/media/rockchip-vpu.yaml | 3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/Documentation/devicetree/bindings/media/rockchip-vpu.yaml
++++ b/Documentation/devicetree/bindings/media/rockchip-vpu.yaml
+@@ -68,6 +68,9 @@ properties:
+   iommus:
+     maxItems: 1
+ 
++  resets:
++    maxItems: 4
++
+ required:
+   - compatible
+   - reg
