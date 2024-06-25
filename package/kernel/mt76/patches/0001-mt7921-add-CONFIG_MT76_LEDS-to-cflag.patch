@@ -1,0 +1,19 @@
+From 01e4bf398aa1fe10eba68f9eae8d0f683f491007 Mon Sep 17 00:00:00 2001
+From: 76 <126417504+76@users.noreply.github.com>
+Date: Sat, 25 May 2024 00:36:10 +0000
+Subject: [PATCH] mt7921: add CONFIG_MT76_LEDS to cflag
+
+Signed-off-by: 76 <126417504+76@users.noreply.github.com>
+---
+ mt7921/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/mt7921/Makefile
++++ b/mt7921/Makefile
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: ISC
+
++EXTRA_CFLAGS += -DCONFIG_MT76_LEDS
+ obj-$(CONFIG_MT7921_COMMON) += mt7921-common.o
+ obj-$(CONFIG_MT7921E) += mt7921e.o
+ obj-$(CONFIG_MT7921S) += mt7921s.o
