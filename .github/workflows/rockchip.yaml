@@ -1,0 +1,95 @@
+name: Build rockchip openwrt firmware v6.6
+on: [push]
+
+jobs:
+    build:
+        name: Build rockchip linux v6.6 images
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Setup Ubuntu
+              run: |
+                sudo apt update
+                sudo apt install -y python3 python3-pip python3-ply python3-distutils python3-pyelftools libpython3-dev swig
+            - name: Maximize build space
+              uses: AdityaGarg8/remove-unwanted-software@master
+              with:
+                remove-dotnet: 'true'
+                remove-android: 'true'
+                remove-haskell: 'true'
+                remove-codeql: 'true'
+                remove-docker-images: 'true'
+                remove-large-packages: 'true'
+                remove-cached-tools: 'true'
+                remove-swapfile: 'true'
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Build
+              run: |
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a
+                cd feeds/luci
+
+                wget https://gist.githubusercontent.com/mj22226/363cefecd314e45b49d8eafff8473fcf/raw/69b47c9a972e15056f94870d76d93a5146893f99/01-diskman.patch
+
+                git apply 01-diskman.patch
+                cd -
+                cd  feeds/packages
+                wget https://gist.githubusercontent.com/mj22226/351f11e66f08f06e37a985719a31ddb4/raw/b35ba7a3aac1949bd6bbeaad065a0a93dc3c34f0/01-cpu.patch
+                wget https://gist.githubusercontent.com/mj22226/b66f5c1bd5fc7e1cb3cf2c690b5dbd5a/raw/b955e726cbb0948d932c8d6143229ad604320149/20-lxc.patch
+                wget https://github.com/mj22226/packages/commit/37264a2e636b790df9cb037db695505341030e98.patch
+
+
+
+                git apply 01-cpu.patch
+                git apply 20-lxc.patch
+
+
+
+
+                cd -
+                sed -i "71s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "84s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "195s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "212s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "13s/'1'/'0'/" feeds/packages/utils/dockerd/files/etc/config/dockerd
+
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a -f
+                wget https://downloads.openwrt.org/snapshots/targets/rockchip/armv8/llvm-bpf-18.1.7.Linux-x86_64.tar.zst
+                tar -xvf llvm-bpf-18.1.7.Linux-x86_64.tar.zst
+                cp .github/workflows/rk-config .config
+                make defconfig
+                wget https://gist.githubusercontent.com/mj22226/23edc25efeb65ef69d8eb6598f4f8179/raw/29c862e3e2558852523f4e8edd5f3d0cc145067e/01-key.patch
+                git apply 01-key.patch
+                make download -j32
+                rm 01-key.patch
+
+
+                mkdir -p files/www/repo
+                wget https://gist.githubusercontent.com/mj22226/b55f1575d30418ca2988804c70d9cc60/raw/e3b213211d937587169def6b3d91a5e34ba26f67/04.patch
+                git apply 04.patch
+                make -j$(nproc) 'IGNORE_ERRORS=n m'
+                cp -R bin/targets/rockchip/armv8/packages/ files/www/repo/
+                rm -rf bin/targets/rockchip/armv8/*.gz
+                make -j$(nproc) 'IGNORE_ERRORS=n m'
+                rm -rf bin/targets/rockchip/armv8/packages
+                echo "DATE=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+                echo "HASH=$(git log -1 --format="%H")" >> $GITHUB_ENV
+            - name: Delete tag
+              run: gh release delete rockchip-6.6 --cleanup-tag || true
+              env:
+                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Create release
+              uses: ncipollo/release-action@v1.14.0
+              with:
+                allowUpdates: true
+                commit: ${{ env.HASH }}
+                name: Rockchip v6.6 Images ${{ env.DATE }}
+                tag: rockchip-6.6
+                replacesArtifacts: true
+                prerelease: false
+                token: "${{ secrets.GITHUB_TOKEN }}"
+                artifacts: bin/targets/rockchip/armv8/*
+
