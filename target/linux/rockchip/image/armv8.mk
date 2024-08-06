@@ -212,6 +212,7 @@ define Device/radxa_rock-pi-4a
   DEVICE_MODEL := ROCK Pi 4A
   SOC := rk3399
   SUPPORTED_DEVICES := radxa,rockpi4a radxa,rockpi4
+  DEVICE_PACKAGES := brcmfmac-firmware-43456-rockpi-4 kmod-brcmfmac wpad-basic-mbedtls
   UBOOT_DEVICE_NAME := rock-pi-4-rk3399
 endef
 TARGET_DEVICES += radxa_rock-pi-4a
