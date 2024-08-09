@@ -245,3 +245,44 @@ define Package/brcmfmac-firmware-43456-rockpi-4/install
 		$(1)/lib/firmware/brcm/brcmfmac43456-sdio.radxa,rockpi4a.txt
 endef
 $(eval $(call BuildPackage,brcmfmac-firmware-43456-rockpi-4))
+
+## Broadcom NanoPi M4 firmware
+
+BRCMFMAC_4356_URL:=https://raw.githubusercontent.com/armbian/firmware/master/brcm/
+
+define Download/brcmfmac4356-sdio.bin
+  FILE:=brcmfmac4356-sdio.bin
+  URL:=$(BRCMFMAC_4356_URL)
+  HASH:=cc689fc1b39bd3d1655eff9fcfac60a3bf73fb6a45e77fdbab1e762aeeecf34e
+endef
+
+define Download/brcmfmac4356-sdio.clm_blob
+  FILE:=brcmfmac4356-sdio.clm_blob
+  URL:=$(BRCMFMAC_4356_URL)
+  HASH:=e048470d674de8865c30521138af248e5f96a9878ac73b707d834698cbf9a08a
+endef
+
+define Download/brcmfmac4356-sdio.txt
+  FILE:=brcmfmac4356-sdio.txt
+  URL:=$(BRCMFMAC_4356_URL)
+  HASH:=81efd86f47fac54596d3c614872b2997ed0079303136e4c675a8eaa1a39db120
+endef
+
+$(eval $(call Download,brcmfmac4356-sdio.bin))
+$(eval $(call Download,brcmfmac4356-sdio.clm_blob))
+$(eval $(call Download,brcmfmac4356-sdio.txt))
+
+Package/brcmfmac-firmware-4356-nanopi-m4 = $(call Package/firmware-default,Broadcom NanoPi M4 firmware)
+define Package/brcmfmac-firmware-4356-nanopi-m4/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(DL_DIR)/brcmfmac4356-sdio.bin \
+		$(1)/lib/firmware/brcm/brcmfmac4356-sdio.friendlyarm,nanopi-m4.bin
+	$(INSTALL_DATA) \
+		$(DL_DIR)/brcmfmac4356-sdio.clm_blob \
+		$(1)/lib/firmware/brcm/brcmfmac4356-sdio.friendlyarm,nanopi-m4.clm_blob
+	$(INSTALL_DATA) \
+		$(DL_DIR)/brcmfmac4356-sdio.txt \
+		$(1)/lib/firmware/brcm/brcmfmac4356-sdio.friendlyarm,nanopi-m4.txt
+endef
+$(eval $(call BuildPackage,brcmfmac-firmware-4356-nanopi-m4))
