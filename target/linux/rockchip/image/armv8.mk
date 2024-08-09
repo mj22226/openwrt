@@ -41,6 +41,41 @@ define Device/friendlyarm_nanopc-t6
 endef
 TARGET_DEVICES += friendlyarm_nanopc-t6
 
+define Device/friendlyarm_nanopi-m4
+  DEVICE_VENDOR := FriendlyARM
+  DEVICE_MODEL := NanoPi M4
+  SOC := rk3399
+  DEVICE_PACKAGES := \
+		brcmfmac-firmware-4356-nanopi-m4 \
+		kmod-brcmfmac wpad-basic-mbedtls
+endef
+TARGET_DEVICES += friendlyarm_nanopi-m4
+
+define Device/friendlyarm_nanopi-m4-2gb
+  DEVICE_VENDOR := FriendlyARM
+  DEVICE_MODEL := NanoPi M4 2GB
+  DEVICE_VARIANT := DDR3
+  SUPPORTED_DEVICES := friendlyarm,nanopi-m4
+  DEVICE_DTS := rockchip/rk3399-nanopi-m4
+  SOC := rk3399
+  DEVICE_PACKAGES := \
+		brcmfmac-firmware-4356-nanopi-m4 \
+		kmod-brcmfmac wpad-basic-mbedtls
+endef
+TARGET_DEVICES += friendlyarm_nanopi-m4-2gb
+
+define Device/friendlyarm_nanopi-m4v2
+  DEVICE_VENDOR := FriendlyARM
+  DEVICE_MODEL := NanoPi M4v2
+  SUPPORTED_DEVICES := friendlyarm,nanopi-m4
+  DEVICE_DTS := rockchip/rk3399-nanopi-m4
+  SOC := rk3399
+  DEVICE_PACKAGES := \
+		brcmfmac-firmware-4356-nanopi-m4 \
+		kmod-brcmfmac wpad-basic-mbedtls
+endef
+TARGET_DEVICES += friendlyarm_nanopi-m4v2
+
 define Device/friendlyarm_nanopi-r2c
   DEVICE_VENDOR := FriendlyARM
   DEVICE_MODEL := NanoPi R2C
