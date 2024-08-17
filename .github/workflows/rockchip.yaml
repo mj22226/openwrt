@@ -1,0 +1,79 @@
+name: Build rockchip 6.12
+on: [push]
+
+jobs:
+    build:
+        name: Build rockchip linux 6.12 images
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Setup Ubuntu
+              run: |
+                sudo apt update
+                sudo apt install -y python3 python3-pip python3-ply python3-distutils python3-pyelftools libpython3-dev swig
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 512
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                overprovision-lvm: 'true'
+                remove-android: 'true'
+                remove-haskell: 'true'
+                remove-codeql: 'true'
+                remove-docker-images: 'true'
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Build
+              run: |
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a
+                cd feeds/luci
+
+                wget https://gist.githubusercontent.com/mj22226/363cefecd314e45b49d8eafff8473fcf/raw/f327d1fcae5513be3abbeea1c6696c1da845a635/01-diskman.patch
+
+                git apply 01-diskman.patch
+                cd -
+                cd  feeds/packages
+                wget https://gist.githubusercontent.com/mj22226/351f11e66f08f06e37a985719a31ddb4/raw/b35ba7a3aac1949bd6bbeaad065a0a93dc3c34f0/01-cpu.patch
+                wget https://gist.githubusercontent.com/mj22226/b66f5c1bd5fc7e1cb3cf2c690b5dbd5a/raw/b955e726cbb0948d932c8d6143229ad604320149/20-lxc.patch
+
+                git apply 01-cpu.patch
+                git apply 20-lxc.patch
+
+                cd -
+                sed -i "71s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "84s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "195s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "212s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "13s/'1'/'0'/" feeds/packages/utils/dockerd/files/etc/config/dockerd
+
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a -f
+                cp .github/workflows/rk-config .config
+                make defconfig
+                wget https://gist.githubusercontent.com/mj22226/9a69bb754a83e8a5cf03fcc60d62d473/raw/cc6f36831d6098de4a7fccf04a312d36a0dbc999/01-key.patch
+                git apply 01-key.patch
+                make download -j32
+                rm 01-key.patch
+                make -j$(nproc) 'IGNORE_ERRORS=n m'
+                rm -rf bin/targets/rockchip/armv8/packages
+                echo "DATE=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+                echo "HASH=$(git log -1 --format="%H")" >> $GITHUB_ENV
+            - name: Delete tag
+              run: gh release delete linux-6.12.y --cleanup-tag || true
+              env:
+                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Create release
+              uses: ncipollo/release-action@v1.14.0
+              with:
+                allowUpdates: true
+                commit: ${{ env.HASH }}
+                name: Rockchip v6.12 Images ${{ env.DATE }}
+                tag: linux-6.12.y
+                replacesArtifacts: true
+                prerelease: true
+                token: "${{ secrets.GITHUB_TOKEN }}"
+                artifacts: bin/targets/rockchip/armv8/*
+
