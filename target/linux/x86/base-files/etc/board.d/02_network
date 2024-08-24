@@ -115,6 +115,9 @@ silicom-80500-0214-*)
         ucidef_set_network_device_path "eth3" "pci0000:00/0000:00:10.0/0000:07:00.0"
         ucidef_set_interfaces_lan_wan "eth0 eth1 eth2 eth3" "wan0"
         ;;
+*)
+	ucidef_set_interfaces_lan_wan "eth0 eth2 eth3" "eth1"
+	;;
 esac
 board_config_flush
 
