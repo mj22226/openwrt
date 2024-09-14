@@ -292,3 +292,44 @@ define Package/brcmfmac-firmware-4356-nanopi-m4/install
 		$(1)/lib/firmware/brcm/brcmfmac4356-sdio.friendlyarm,nanopi-m4.txt
 endef
 $(eval $(call BuildPackage,brcmfmac-firmware-4356-nanopi-m4))
+
+## Broadcom AP6255 firmware
+
+AP_6255_URL:=https://raw.githubusercontent.com/Infineon/ifx-linux-firmware/refs/heads/master/firmware/
+
+##define Download/cyfmac43455-sdio-minimal.bin
+##  FILE:=cyfmac43455-sdio-minimal.bin
+##  URL:=$(AP_6255_URL)
+##  HASH:=3075cb0bdc4b28ed4f08e01b1a216d0ebc70f4022d9d3272a4a43b3c90456e60
+##endef
+
+define Download/cyfmac43455-sdio.bin
+  FILE:=cyfmac43455-sdio.bin
+  URL:=$(AP_6255_URL)
+  HASH:=eaff8d2b6d2501bb5c477ba343900c7487af915898eac13bc91b33b1285dadce
+endef
+
+define Download/cyfmac43455-sdio.clm_blob
+  FILE:=cyfmac43455-sdio.clm_blob
+  URL:=$(AP_6255_URL)
+  HASH:=8fbe9fc2952e2fbab062a142c1ea3e261cd74604761e12f304781b911df4a328
+endef
+
+##$(eval $(call Download,cyfmac43455-sdio-minimal.bin))
+$(eval $(call Download,cyfmac43455-sdio.bin))
+$(eval $(call Download,cyfmac43455-sdio.clm_blob))
+
+Package/brcmfmac-firmware-ap6255-hugsun-x99 = $(call Package/firmware-default,Broadcom hugsun x99 firmware)
+define Package/brcmfmac-firmware-ap6255-hugsun-x99/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(DL_DIR)/cyfmac43455-sdio.bin \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.hugsun,x99.bin
+	$(INSTALL_DATA) \
+		$(DL_DIR)/cyfmac43455-sdio.clm_blob \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.hugsun,x99.clm_blob
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/brcm/brcmfmac43455-sdio.acepc-t8.txt \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.hugsun,x99.txt
+endef
+$(eval $(call BuildPackage,brcmfmac-firmware-ap6255-hugsun-x99))
