@@ -121,6 +121,13 @@ define U-Boot/rk3399/Default
   ATF:=rk3399_bl31.elf
 endef
 
+define U-Boot/hugsun-x99-rk3399
+  $(U-Boot/rk3399/Default)
+  NAME:=Hugsun x99
+  BUILD_DEVICES:= \
+    hugsun_hugsun-x99
+endef
+
 define U-Boot/nanopc-t4-rk3399
   $(U-Boot/rk3399/Default)
   NAME:=NanoPC T4
@@ -321,6 +328,7 @@ define U-Boot/rock5a-rk3588s
 endef
 
 UBOOT_TARGETS := \
+  hugsun-x99-rk3399 \
   nanopc-t4-rk3399 \
   nanopi-m4-rk3399 \
   nanopi-m4-2gb-rk3399 \
