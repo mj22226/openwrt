@@ -59,5 +59,9 @@ friendlyarm,nanopi-r6s)
 	set_interface_core 4 "eth1"
 	set_interface_core 8 "eth2"
 	;;
+xunlong,orangepi-5-plus)
+	set_interface_core 20 "eth0"
+	set_interface_core 40 "eth1"
+	;;
 esac
 

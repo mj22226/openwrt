@@ -112,6 +112,9 @@ define Device/friendlyarm_nanopi-r6c
   DEVICE_VENDOR := FriendlyARM
   DEVICE_MODEL := NanoPi R6C
   SOC := rk3588s
+  SUPPORTED_DEVICES := \
+	friendlyarm,nanopi-r6c \
+	friendlyelec,nanopi-r6c
   DEVICE_PACKAGES := kmod-r8169
 endef
 TARGET_DEVICES += friendlyarm_nanopi-r6c
@@ -120,6 +123,9 @@ define Device/friendlyarm_nanopi-r6s
   DEVICE_VENDOR := FriendlyARM
   DEVICE_MODEL := NanoPi R6S
   SOC := rk3588s
+  SUPPORTED_DEVICES := \
+	friendlyarm,nanopi-r6s \
+	friendlyelec,nanopi-r6s
   DEVICE_PACKAGES := kmod-r8169
 endef
 TARGET_DEVICES += friendlyarm_nanopi-r6s
@@ -281,3 +287,14 @@ define Device/xunlong_orangepi-r1-plus-lts
   DEVICE_PACKAGES := kmod-usb-net-rtl8152
 endef
 TARGET_DEVICES += xunlong_orangepi-r1-plus-lts
+
+define Device/xunlong_orangepi-5-plus
+  DEVICE_VENDOR := XunLong
+  DEVICE_MODEL := Orange Pi 5 Plus
+  SOC := rk3588
+  SUPPORTED_DEVICES := \
+	xunlong,orangepi-5-plus \
+	rockchip,rk3588-orangepi-5-plus
+  DEVICE_PACKAGES := kmod-r8169
+endef
+TARGET_DEVICES += xunlong_orangepi-5-plus
