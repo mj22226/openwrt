@@ -47,6 +47,7 @@ define KernelPackage/bluetooth
 	CONFIG_BT_HCIUART_INTEL=n \
 	CONFIG_BT_HCIUART_H4 \
 	CONFIG_BT_HCIUART_NOKIA=n \
+	CONFIG_HID_SUPPORT=y \
 	CONFIG_BT_HIDP
   $(call AddDepends/rfkill)
   FILES:= \
@@ -807,6 +808,7 @@ define KernelPackage/zram
 	CONFIG_ZRAM \
 	CONFIG_ZRAM_DEBUG=n \
 	CONFIG_ZRAM_WRITEBACK=n \
+	CONFIG_ZRAM_TRACK_ENTRY_ACTIME=n \
 	CONFIG_ZSMALLOC_STAT=n
   FILES:= \
 	$(LINUX_DIR)/mm/zsmalloc.ko \
@@ -842,6 +844,10 @@ define KernelPackage/zram/config
 
     config ZRAM_DEF_COMP_ZSTD
             bool "zstd"
+            select PACKAGE_kmod-lib-zstd
+
+    config ZRAM_DEF_COMP_842
+            bool "842"
             select PACKAGE_kmod-lib-zstd
 
     endchoice
