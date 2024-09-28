@@ -690,7 +690,6 @@ static int gpio_keys_remove(struct platform_device *pdev)
 
 static struct platform_driver gpio_keys_driver = {
 	.probe	= gpio_keys_probe,
-	.remove	= gpio_keys_remove,
 	.driver	= {
 		.name	= "gpio-keys",
 		.of_match_table = of_match_ptr(gpio_keys_of_match),
@@ -699,7 +698,6 @@ static struct platform_driver gpio_keys_driver = {
 
 static struct platform_driver gpio_keys_polled_driver = {
 	.probe	= gpio_keys_polled_probe,
-	.remove	= gpio_keys_remove,
 	.driver	= {
 		.name	= "gpio-keys-polled",
 		.of_match_table = of_match_ptr(gpio_keys_polled_of_match),
