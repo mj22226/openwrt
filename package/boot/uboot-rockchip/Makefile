@@ -289,6 +289,13 @@ define U-Boot/sige7-rk3588
     armsom_sige7
 endef
 
+define U-Boot/orangepi-5-plus-rk3588
+  $(U-Boot/rk3588/Default)
+  NAME:=ORANGEPI-5-PLUS
+  BUILD_DEVICES:= \
+    xunlong_orangepi-5-plus
+endef
+
 
 # RK3588S boards
 
@@ -343,6 +350,7 @@ UBOOT_TARGETS := \
   nanopc-t6-rk3588 \
   rock5b-rk3588 \
   sige7-rk3588 \
+  orangepi-5-plus-rk3588 \
   nanopi-r6c-rk3588s \
   nanopi-r6s-rk3588s \
   rock5a-rk3588s
