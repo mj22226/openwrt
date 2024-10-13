@@ -194,11 +194,10 @@ Signed-off-by: Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
  
  	return connmark_tg_shift(skb, info);
  }
-@@ -167,6 +196,16 @@ static struct xt_target connmark_tg_reg[
- 		.targetsize     = sizeof(struct xt_connmark_tginfo2),
+@@ -168,6 +197,16 @@ static struct xt_target connmark_tg_reg[
  		.destroy        = connmark_tg_destroy,
  		.me             = THIS_MODULE,
-+	},
+ 	},
 +	{
 +		.name           = "CONNMARK",
 +		.revision       = 3,
@@ -208,6 +207,7 @@ Signed-off-by: Kevin Darbyshire-Bryant <ldir@darbyshire-bryant.me.uk>
 +		.targetsize     = sizeof(struct xt_connmark_tginfo3),
 +		.destroy        = connmark_tg_destroy,
 +		.me             = THIS_MODULE,
- 	}
- };
- 
++	},
+ #if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ 	{
+ 		.name           = "CONNMARK",
