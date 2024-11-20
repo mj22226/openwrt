@@ -21,7 +21,7 @@ raspberrypi,5-model-b |\
 raspberrypi,model-b |\
 raspberrypi,model-b-plus |\
 raspberrypi,model-b-rev2)
-	ucidef_set_interface_lan "eth0"
+	ucidef_set_interfaces_lan_wan "eth0 eth2" "eth1"
 	;;
 
 raspberrypi,model-zero-2 |\
