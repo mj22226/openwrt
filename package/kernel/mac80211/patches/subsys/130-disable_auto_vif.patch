@@ -1,8 +1,8 @@
 --- a/net/mac80211/main.c
 +++ b/net/mac80211/main.c
-@@ -1581,24 +1581,6 @@ int ieee80211_register_hw(struct ieee802
+@@ -1582,24 +1582,6 @@ int ieee80211_register_hw(struct ieee802
+ 	rate_control_add_debugfs(local);
  
- 	ieee80211_check_wbrf_support(local);
  
 -	rtnl_lock();
 -	wiphy_lock(hw->wiphy);

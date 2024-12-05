@@ -1,0 +1,170 @@
+--- a/net/mac80211/Makefile
++++ b/net/mac80211/Makefile
+@@ -67,6 +67,5 @@ mac80211-$(CPTCFG_MAC80211_RC_MINSTREL)
+ 
+ obj-y += tests/
+ 
+-mac80211-y += wbrf.o
+ 
+ ccflags-y += -DDEBUG
+--- a/net/mac80211/chan.c
++++ b/net/mac80211/chan.c
+@@ -540,7 +540,6 @@ static void _ieee80211_change_chanctx(st
+ 	WARN_ON(ieee80211_chanctx_refcount(local, ctx) > 1 &&
+ 		!cfg80211_chandef_compatible(&ctx->conf.def, &chanreq->oper));
+ 
+-	ieee80211_remove_wbrf(local, &ctx->conf.def);
+ 
+ 	if (!cfg80211_chandef_identical(&ctx->conf.def, &chanreq->oper)) {
+ 		if (ctx->conf.def.width != chanreq->oper.width)
+@@ -556,7 +555,6 @@ static void _ieee80211_change_chanctx(st
+ 	/* check if min chanctx also changed */
+ 	changed |= _ieee80211_recalc_chanctx_min_def(local, ctx, rsvd_for, false);
+ 
+-	ieee80211_add_wbrf(local, &ctx->conf.def);
+ 
+ 	drv_change_chanctx(local, ctx, changed);
+ 
+@@ -697,7 +695,6 @@ static int ieee80211_add_chanctx(struct
+ 
+ 	lockdep_assert_wiphy(local->hw.wiphy);
+ 
+-	ieee80211_add_wbrf(local, &ctx->conf.def);
+ 
+ 	/* turn idle off *before* setting channel -- some drivers need that */
+ 	changed = ieee80211_idle_off(local);
+@@ -752,7 +749,6 @@ static void ieee80211_del_chanctx(struct
+ 	if (!skip_idle_recalc)
+ 		ieee80211_recalc_idle(local);
+ 
+-	ieee80211_remove_wbrf(local, &ctx->conf.def);
+ }
+ 
+ static void ieee80211_free_chanctx(struct ieee80211_local *local,
+--- a/net/mac80211/ieee80211_i.h
++++ b/net/mac80211/ieee80211_i.h
+@@ -1612,7 +1612,6 @@ struct ieee80211_local {
+ 	/* extended capabilities provided by mac80211 */
+ 	u8 ext_capa[8];
+ 
+-	bool wbrf_supported;
+ };
+ 
+ static inline struct ieee80211_sub_if_data *
+@@ -2730,10 +2729,6 @@ void ieee80211_process_neg_ttlm_res(stru
+ int ieee80211_req_neg_ttlm(struct ieee80211_sub_if_data *sdata,
+ 			   struct cfg80211_ttlm_params *params);
+ 
+-void ieee80211_check_wbrf_support(struct ieee80211_local *local);
+-void ieee80211_add_wbrf(struct ieee80211_local *local, struct cfg80211_chan_def *chandef);
+-void ieee80211_remove_wbrf(struct ieee80211_local *local, struct cfg80211_chan_def *chandef);
+-
+ #if IS_ENABLED(CPTCFG_MAC80211_KUNIT_TEST)
+ #define EXPORT_SYMBOL_IF_MAC80211_KUNIT(sym) EXPORT_SYMBOL_IF_KUNIT(sym)
+ #define VISIBLE_IF_MAC80211_KUNIT
+--- a/net/mac80211/main.c
++++ b/net/mac80211/main.c
+@@ -1581,7 +1581,6 @@ int ieee80211_register_hw(struct ieee802
+ 	debugfs_hw_add(local);
+ 	rate_control_add_debugfs(local);
+ 
+-	ieee80211_check_wbrf_support(local);
+ 
+ 	rtnl_lock();
+ 	wiphy_lock(hw->wiphy);
+--- a/net/mac80211/wbrf.c
++++ /dev/null
+@@ -1,93 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- * Wifi Band Exclusion Interface for WLAN
+- * Copyright (C) 2023 Advanced Micro Devices
+- *
+- */
+-
+-#include <linux/acpi_amd_wbrf.h>
+-#include <linux/units.h>
+-#include <net/cfg80211.h>
+-#include "ieee80211_i.h"
+-
+-void ieee80211_check_wbrf_support(struct ieee80211_local *local)
+-{
+-	struct wiphy *wiphy = local->hw.wiphy;
+-	struct device *dev;
+-
+-	if (!wiphy)
+-		return;
+-
+-	dev = wiphy->dev.parent;
+-	if (!dev)
+-		return;
+-
+-	local->wbrf_supported = acpi_amd_wbrf_supported_producer(dev);
+-}
+-
+-static void get_chan_freq_boundary(u32 center_freq, u32 bandwidth, u64 *start, u64 *end)
+-{
+-	bandwidth *= KHZ_PER_MHZ;
+-	center_freq *= KHZ_PER_MHZ;
+-
+-	*start = center_freq - bandwidth / 2;
+-	*end = center_freq + bandwidth / 2;
+-
+-	/* Frequency in Hz is expected */
+-	*start = *start * HZ_PER_KHZ;
+-	*end = *end * HZ_PER_KHZ;
+-}
+-
+-static void get_ranges_from_chandef(struct cfg80211_chan_def *chandef,
+-				    struct wbrf_ranges_in_out *ranges_in)
+-{
+-	u64 start_freq1, end_freq1;
+-	u64 start_freq2, end_freq2;
+-	int bandwidth;
+-
+-	bandwidth = nl80211_chan_width_to_mhz(chandef->width);
+-
+-	get_chan_freq_boundary(chandef->center_freq1, bandwidth, &start_freq1, &end_freq1);
+-
+-	ranges_in->band_list[0].start = start_freq1;
+-	ranges_in->band_list[0].end = end_freq1;
+-	ranges_in->num_of_ranges = 1;
+-
+-	if (chandef->width == NL80211_CHAN_WIDTH_80P80) {
+-		get_chan_freq_boundary(chandef->center_freq2, bandwidth, &start_freq2, &end_freq2);
+-
+-		ranges_in->band_list[1].start = start_freq2;
+-		ranges_in->band_list[1].end = end_freq2;
+-		ranges_in->num_of_ranges++;
+-	}
+-}
+-
+-void ieee80211_add_wbrf(struct ieee80211_local *local, struct cfg80211_chan_def *chandef)
+-{
+-	struct wbrf_ranges_in_out ranges_in = {0};
+-	struct device *dev;
+-
+-	if (!local->wbrf_supported)
+-		return;
+-
+-	dev = local->hw.wiphy->dev.parent;
+-
+-	get_ranges_from_chandef(chandef, &ranges_in);
+-
+-	acpi_amd_wbrf_add_remove(dev, WBRF_RECORD_ADD, &ranges_in);
+-}
+-
+-void ieee80211_remove_wbrf(struct ieee80211_local *local, struct cfg80211_chan_def *chandef)
+-{
+-	struct wbrf_ranges_in_out ranges_in = {0};
+-	struct device *dev;
+-
+-	if (!local->wbrf_supported)
+-		return;
+-
+-	dev = local->hw.wiphy->dev.parent;
+-
+-	get_ranges_from_chandef(chandef, &ranges_in);
+-
+-	acpi_amd_wbrf_add_remove(dev, WBRF_RECORD_REMOVE, &ranges_in);
+-}
