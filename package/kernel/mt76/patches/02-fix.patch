@@ -1,0 +1,101 @@
+--- a/mt7915/main.c
++++ b/mt7915/main.c
+@@ -1168,9 +1168,10 @@ static void mt7915_sta_rc_work(void *dat
+ 
+ static void mt7915_sta_rc_update(struct ieee80211_hw *hw,
+ 				 struct ieee80211_vif *vif,
+-				 struct ieee80211_sta *sta,
++				 struct ieee80211_link_sta *link_sta,
+ 				 u32 changed)
+ {
++	struct ieee80211_sta *sta = link_sta->sta;
+ 	struct mt7915_phy *phy = mt7915_hw_phy(hw);
+ 	struct mt7915_dev *dev = phy->dev;
+ 	struct mt7915_sta *msta = (struct mt7915_sta *)sta->drv_priv;
+@@ -1714,7 +1715,7 @@ const struct ieee80211_ops mt7915_ops =
+ 	.stop_ap = mt7915_stop_ap,
+ 	.sta_state = mt76_sta_state,
+ 	.sta_pre_rcu_remove = mt76_sta_pre_rcu_remove,
+-	.sta_rc_update = mt7915_sta_rc_update,
++	.link_sta_rc_update = mt7915_sta_rc_update,
+ 	.set_key = mt7915_set_key,
+ 	.ampdu_action = mt7915_ampdu_action,
+ 	.set_rts_threshold = mt7915_set_rts_threshold,
+--- a/mt7996/main.c
++++ b/mt7996/main.c
+@@ -1209,9 +1209,10 @@ static void mt7996_sta_rc_work(void *dat
+ 
+ static void mt7996_sta_rc_update(struct ieee80211_hw *hw,
+ 				 struct ieee80211_vif *vif,
+-				 struct ieee80211_sta *sta,
++				 struct ieee80211_link_sta *link_sta,
+ 				 u32 changed)
+ {
++	struct ieee80211_sta *sta = link_sta->sta;
+ 	struct mt7996_dev *dev = mt7996_hw_dev(hw);
+ 
+ 	mt7996_sta_rc_work(&changed, sta);
+@@ -1637,7 +1638,7 @@ const struct ieee80211_ops mt7996_ops =
+ 	.bss_info_changed = mt7996_bss_info_changed,
+ 	.sta_state = mt76_sta_state,
+ 	.sta_pre_rcu_remove = mt76_sta_pre_rcu_remove,
+-	.sta_rc_update = mt7996_sta_rc_update,
++	.link_sta_rc_update = mt7996_sta_rc_update,
+ 	.set_key = mt7996_set_key,
+ 	.ampdu_action = mt7996_ampdu_action,
+ 	.set_rts_threshold = mt7996_set_rts_threshold,
+--- a/mac80211.c
++++ b/mac80211.c
+@@ -1677,7 +1677,7 @@ void mt76_wcid_cleanup(struct mt76_dev *
+ EXPORT_SYMBOL_GPL(mt76_wcid_cleanup);
+ 
+ int mt76_get_txpower(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+-		     int *dbm)
++		     unsigned int link_id, int *dbm)
+ {
+ 	struct mt76_phy *phy = mt76_vif_phy(hw, vif);
+ 	int n_chains, delta;
+--- a/mt76.h
++++ b/mt76.h
+@@ -1488,7 +1488,7 @@ void mt76_sta_pre_rcu_remove(struct ieee
+ int mt76_get_min_avg_rssi(struct mt76_dev *dev, u8 phy_idx);
+ 
+ int mt76_get_txpower(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+-		     int *dbm);
++		     unsigned int link_id, int *dbm);
+ int mt76_init_sar_power(struct ieee80211_hw *hw,
+ 			const struct cfg80211_sar_specs *sar);
+ int mt76_get_sar_power(struct mt76_phy *phy,
+--- a/mt76x0/eeprom.c
++++ b/mt76x0/eeprom.c
+@@ -10,7 +10,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/etherdevice.h>
+-#include <asm/unaligned.h>
++#include <linux/unaligned.h>
+ #include "mt76x0.h"
+ #include "eeprom.h"
+ #include "../mt76x02_phy.h"
+--- a/mt76x02_eeprom.c
++++ b/mt76x02_eeprom.c
+@@ -4,7 +4,7 @@
+  * Copyright (C) 2018 Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>
+  */
+ 
+-#include <asm/unaligned.h>
++#include <linux/unaligned.h>
+ 
+ #include "mt76x02_eeprom.h"
+ 
+--- a/mt76x2/eeprom.c
++++ b/mt76x2/eeprom.c
+@@ -5,7 +5,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <asm/unaligned.h>
++#include <linux/unaligned.h>
+ #include "mt76x2.h"
+ #include "eeprom.h"
+ 
