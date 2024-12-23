@@ -87,7 +87,6 @@ define KernelPackage/lib-crc32c
   TITLE:=CRC32 support
   KCONFIG:=CONFIG_LIBCRC32C
   DEPENDS:=+kmod-crypto-crc32c
-  FILES:=$(LINUX_DIR)/lib/libcrc32c.ko
   AUTOLOAD:=$(call AutoProbe,libcrc32c)
 endef
 
