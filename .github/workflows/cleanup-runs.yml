@@ -1,10 +1,9 @@
 name: Cleanup
 on:
   push:
-  
 jobs:
   del_runs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2
