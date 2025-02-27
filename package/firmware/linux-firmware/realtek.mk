@@ -218,3 +218,23 @@ define Package/rtl8922ae-firmware/install
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtw89/rtw8922a_fw.bin $(1)/lib/firmware/rtw89
 endef
 $(eval $(call BuildPackage,rtl8922ae-firmware))
+
+
+Package/rtl8814au-firmware = $(call Package/firmware-default,RealTek RTL8814au firmware)
+define Package/rtl8814au-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/rtw88
+	$(INSTALL_DATA) \
+		$(DL_DIR)/rtw8814a_fw.bin \
+		$(1)/lib/firmware/rtw88/rtw8814a_fw.bin
+endef
+$(eval $(call BuildPackage,rtl8814au-firmware))
+
+RTL_8814_URL:=https://raw.githubusercontent.com/lwfinger/rtw88/master/firmware/
+
+define Download/rtl8814au-firmware
+  FILE:=rtw8814a_fw.bin
+  URL:=$(RTL_8814_URL)
+  HASH:=aa6bf9d62b2d2d8a37254fd6d917ba2839888cdedc21850d4481874cb1d3d7cb
+endef
+
+$(eval $(call Download,rtl8814au-firmware))
