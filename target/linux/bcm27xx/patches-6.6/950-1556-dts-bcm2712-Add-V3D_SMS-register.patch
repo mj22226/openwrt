@@ -13,7 +13,7 @@ Signed-off-by: Maíra Canal <mcanal@igalia.com>
 
 --- a/arch/arm64/boot/dts/broadcom/bcm2712.dtsi
 +++ b/arch/arm64/boot/dts/broadcom/bcm2712.dtsi
-@@ -1222,8 +1222,9 @@
+@@ -1224,8 +1224,9 @@
  		v3d: v3d@2000000 {
  			compatible = "brcm,2712-v3d";
  			reg = <0x10 0x02000000  0x0 0x4000>,
