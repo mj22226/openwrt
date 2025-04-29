@@ -1,0 +1,55 @@
+From 24dab555ad5951824e3fb6b665aaca84ac69dd12 Mon Sep 17 00:00:00 2001
+From: Rameshkumar Sundaram <quic_ramess@quicinc.com>
+Date: Mon, 25 Nov 2024 14:02:17 +0530
+Subject: [PATCH] wifi: mac80211: get tx power per link
+
+ML interfaces can have multiple affiliated links to it and
+hence there is a need to report tx power of specified link
+rather deflink.
+
+Add changes to report tx power of requested link from mac80211,
+also pass link id as an argument in get_tx_power op so that supported
+drivers can use it to report link's tx power.
+
+Co-developed-by: Aaradhana Sahu <quic_aarasahu@quicinc.com>
+Signed-off-by: Aaradhana Sahu <quic_aarasahu@quicinc.com>
+Signed-off-by: Rameshkumar Sundaram <quic_ramess@quicinc.com>
+Link: https://patch.msgid.link/20241125083217.216095-3-quic_ramess@quicinc.com
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+---
+ drivers/net/wireless/ath/ath11k/mac.c         |  1 +
+ drivers/net/wireless/ath/ath9k/main.c         |  2 +-
+ mac80211.c |  2 +-
+ mt76.h     |  2 +-
+ include/net/mac80211.h                        |  2 +-
+ net/mac80211/cfg.c                            | 15 +++++++++++----
+ net/mac80211/driver-ops.h                     |  7 ++++---
+ net/mac80211/trace.h                          | 10 ++++++----
+ 8 files changed, 26 insertions(+), 15 deletions(-)
+
+diff --git a/mac80211.c b/mac80211.c
+index 9d5561f441347b..7fbce5e757df59 100644
+--- a/mac80211.c
++++ b/mac80211.c
+@@ -1596,7 +1596,7 @@ void mt76_wcid_cleanup(struct mt76_dev *dev, struct mt76_wcid *wcid)
+ EXPORT_SYMBOL_GPL(mt76_wcid_cleanup);
+ 
+ int mt76_get_txpower(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+-		     int *dbm)
++		     unsigned int link_id, int *dbm)
+ {
+ 	struct mt76_phy *phy = hw->priv;
+ 	int n_chains = hweight16(phy->chainmask);
+diff --git a/mt76.h b/mt76.h
+index 0b75a45ad2e821..ca2dba3ac65d57 100644
+--- a/mt76.h
++++ b/mt76.h
+@@ -1431,7 +1431,7 @@ void mt76_sta_pre_rcu_remove(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ int mt76_get_min_avg_rssi(struct mt76_dev *dev, bool ext_phy);
+ 
+ int mt76_get_txpower(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+-		     int *dbm);
++		     unsigned int link_id, int *dbm);
+ int mt76_init_sar_power(struct ieee80211_hw *hw,
+ 			const struct cfg80211_sar_specs *sar);
+ int mt76_get_sar_power(struct mt76_phy *phy,
