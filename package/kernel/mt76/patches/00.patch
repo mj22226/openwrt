@@ -1,0 +1,254 @@
+From 08f116c9ea6dfddf2a9649a10032902a4d72f6da Mon Sep 17 00:00:00 2001
+From: Breno Leitao <leitao@debian.org>
+Date: Wed, 19 Jun 2024 03:52:36 -0700
+Subject: [PATCH] wifi: mt76: un-embedd netdev from mt76_dev
+
+Embedding net_device into structures prohibits the usage of flexible
+arrays in the net_device structure. For more details, see the discussion
+at [1].
+
+Un-embed the net_devices from struct mt76_dev by converting them
+into pointers, and allocating them dynamically. Use the leverage
+alloc_netdev_dummy() to allocate the net_device object at
+mt76_dma_init().
+
+The free of the device occurs at mt76_dma_cleanup().
+
+Link: https://lore.kernel.org/all/20240229225910.79e224cf@kernel.org/ [1]
+Reviewed-by: Simon Horman <horms@kernel.org>
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Acked-by: Kalle Valo <kvalo@kernel.org>
+Link: https://patch.msgid.link/20240619105311.3144908-1-leitao@debian.org
+Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+---
+ debugfs.c  |  6 ++--
+ dma.c      | 31 +++++++++++++++----
+ dma.h      |  9 ++++++
+ mt76.h     |  4 +--
+ .../net/wireless/mediatek/mt76/mt7603/dma.c   |  2 +-
+ .../net/wireless/mediatek/mt76/mt7615/dma.c   |  6 ++--
+ .../net/wireless/mediatek/mt76/mt76x02_mmio.c |  2 +-
+ .../net/wireless/mediatek/mt76/mt7915/dma.c   |  2 +-
+ .../net/wireless/mediatek/mt76/mt7921/pci.c   |  2 +-
+ .../net/wireless/mediatek/mt76/mt7925/pci.c   |  2 +-
+ .../net/wireless/mediatek/mt76/mt792x_dma.c   |  2 +-
+ .../net/wireless/mediatek/mt76/mt7996/dma.c   |  2 +-
+ 12 files changed, 49 insertions(+), 21 deletions(-)
+
+--- a/debugfs.c
++++ b/debugfs.c
+@@ -33,8 +33,8 @@ mt76_napi_threaded_set(void *data, u64 v
+ 	if (!mt76_is_mmio(dev))
+ 		return -EOPNOTSUPP;
+ 
+-	if (dev->napi_dev.threaded != val)
+-		return dev_set_threaded(&dev->napi_dev, val);
++	if (dev->napi_dev->threaded != val)
++		return dev_set_threaded(dev->napi_dev, val);
+ 
+ 	return 0;
+ }
+@@ -44,7 +44,7 @@ mt76_napi_threaded_get(void *data, u64 *
+ {
+ 	struct mt76_dev *dev = data;
+ 
+-	*val = dev->napi_dev.threaded;
++	*val = dev->napi_dev->threaded;
+ 	return 0;
+ }
+ 
+--- a/dma.c
++++ b/dma.c
+@@ -928,7 +928,7 @@ int mt76_dma_rx_poll(struct napi_struct
+ 	struct mt76_dev *dev;
+ 	int qid, done = 0, cur;
+ 
+-	dev = container_of(napi->dev, struct mt76_dev, napi_dev);
++	dev = mt76_priv(napi->dev);
+ 	qid = napi - dev->napi;
+ 
+ 	rcu_read_lock();
+@@ -952,18 +952,35 @@ static int
+ mt76_dma_init(struct mt76_dev *dev,
+ 	      int (*poll)(struct napi_struct *napi, int budget))
+ {
++	struct mt76_dev **priv;
+ 	int i;
+ 
+-	init_dummy_netdev(&dev->napi_dev);
+-	init_dummy_netdev(&dev->tx_napi_dev);
+-	snprintf(dev->napi_dev.name, sizeof(dev->napi_dev.name), "%s",
++	dev->napi_dev = alloc_netdev_dummy(sizeof(struct mt76_dev *));
++	if (!dev->napi_dev)
++		return -ENOMEM;
++
++	/* napi_dev private data points to mt76_dev parent, so, mt76_dev
++	 * can be retrieved given napi_dev
++	 */
++	priv = netdev_priv(dev->napi_dev);
++	*priv = dev;
++
++	dev->tx_napi_dev = alloc_netdev_dummy(sizeof(struct mt76_dev *));
++	if (!dev->tx_napi_dev) {
++		free_netdev(dev->napi_dev);
++		return -ENOMEM;
++	}
++	priv = netdev_priv(dev->tx_napi_dev);
++	*priv = dev;
++
++	snprintf(dev->napi_dev->name, sizeof(dev->napi_dev->name), "%s",
+ 		 wiphy_name(dev->hw->wiphy));
+-	dev->napi_dev.threaded = 1;
++	dev->napi_dev->threaded = 1;
+ 	init_completion(&dev->mmio.wed_reset);
+ 	init_completion(&dev->mmio.wed_reset_complete);
+ 
+ 	mt76_for_each_q_rx(dev, i) {
+-		netif_napi_add(&dev->napi_dev, &dev->napi[i], poll);
++		netif_napi_add(dev->napi_dev, &dev->napi[i], poll);
+ 		mt76_dma_rx_fill_buf(dev, &dev->q_rx[i], false);
+ 		napi_enable(&dev->napi[i]);
+ 	}
+@@ -1031,5 +1048,7 @@ void mt76_dma_cleanup(struct mt76_dev *d
+ 
+ 	mt76_free_pending_txwi(dev);
+ 	mt76_free_pending_rxwi(dev);
++	free_netdev(dev->napi_dev);
++	free_netdev(dev->tx_napi_dev);
+ }
+ EXPORT_SYMBOL_GPL(mt76_dma_cleanup);
+--- a/dma.h
++++ b/dma.h
+@@ -116,4 +116,13 @@ mt76_dma_should_drop_buf(bool *drop, u32
+ 	}
+ }
+ 
++static inline void *mt76_priv(struct net_device *dev)
++{
++	struct mt76_dev **priv;
++
++	priv = netdev_priv(dev);
++
++	return *priv;
++}
++
+ #endif
+--- a/mt76.h
++++ b/mt76.h
+@@ -892,8 +892,8 @@ struct mt76_dev {
+ 
+ 	struct mt76_mcu mcu;
+ 
+-	struct net_device napi_dev;
+-	struct net_device tx_napi_dev;
++	struct net_device *napi_dev;
++	struct net_device *tx_napi_dev;
+ 	spinlock_t rx_lock;
+ 	struct napi_struct napi[__MT_RXQ_MAX];
+ 	struct sk_buff_head rx_skb[__MT_RXQ_MAX];
+--- a/mt7603/dma.c
++++ b/mt7603/dma.c
+@@ -242,7 +242,7 @@ int mt7603_dma_init(struct mt7603_dev *d
+ 	if (ret)
+ 		return ret;
+ 
+-	netif_napi_add_tx(&dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
++	netif_napi_add_tx(dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
+ 			  mt7603_poll_tx);
+ 	napi_enable(&dev->mt76.tx_napi);
+ 
+--- a/mt7615/dma.c
++++ b/mt7615/dma.c
+@@ -67,7 +67,7 @@ static int mt7615_poll_tx(struct napi_st
+ {
+ 	struct mt7615_dev *dev;
+ 
+-	dev = container_of(napi, struct mt7615_dev, mt76.tx_napi);
++	dev = mt76_priv(napi->dev);
+ 	if (!mt76_connac_pm_ref(&dev->mphy, &dev->pm)) {
+ 		napi_complete(napi);
+ 		queue_work(dev->mt76.wq, &dev->pm.wake_work);
+@@ -89,7 +89,7 @@ static int mt7615_poll_rx(struct napi_st
+ 	struct mt7615_dev *dev;
+ 	int done;
+ 
+-	dev = container_of(napi->dev, struct mt7615_dev, mt76.napi_dev);
++	dev = mt76_priv(napi->dev);
+ 
+ 	if (!mt76_connac_pm_ref(&dev->mphy, &dev->pm)) {
+ 		napi_complete(napi);
+@@ -282,7 +282,7 @@ int mt7615_dma_init(struct mt7615_dev *d
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	netif_napi_add_tx(&dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
++	netif_napi_add_tx(dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
+ 			  mt7615_poll_tx);
+ 	napi_enable(&dev->mt76.tx_napi);
+ 
+--- a/mt76x02_mmio.c
++++ b/mt76x02_mmio.c
+@@ -239,7 +239,7 @@ int mt76x02_dma_init(struct mt76x02_dev
+ 	if (ret)
+ 		return ret;
+ 
+-	netif_napi_add_tx(&dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
++	netif_napi_add_tx(dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
+ 			  mt76x02_poll_tx);
+ 	napi_enable(&dev->mt76.tx_napi);
+ 
+--- a/mt7915/dma.c
++++ b/mt7915/dma.c
+@@ -578,7 +578,7 @@ int mt7915_dma_init(struct mt7915_dev *d
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	netif_napi_add_tx(&dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
++	netif_napi_add_tx(dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
+ 			  mt7915_poll_tx);
+ 	napi_enable(&dev->mt76.tx_napi);
+ 
+--- a/mt7921/pci.c
++++ b/mt7921/pci.c
+@@ -223,7 +223,7 @@ static int mt7921_dma_init(struct mt792x
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	netif_napi_add_tx(&dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
++	netif_napi_add_tx(dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
+ 			  mt792x_poll_tx);
+ 	napi_enable(&dev->mt76.tx_napi);
+ 
+--- a/mt7925/pci.c
++++ b/mt7925/pci.c
+@@ -254,7 +254,7 @@ static int mt7925_dma_init(struct mt792x
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	netif_napi_add_tx(&dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
++	netif_napi_add_tx(dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
+ 			  mt792x_poll_tx);
+ 	napi_enable(&dev->mt76.tx_napi);
+ 
+--- a/mt792x_dma.c
++++ b/mt792x_dma.c
+@@ -340,7 +340,7 @@ int mt792x_poll_rx(struct napi_struct *n
+ 	struct mt792x_dev *dev;
+ 	int done;
+ 
+-	dev = container_of(napi->dev, struct mt792x_dev, mt76.napi_dev);
++	dev = mt76_priv(napi->dev);
+ 
+ 	if (!mt76_connac_pm_ref(&dev->mphy, &dev->pm)) {
+ 		napi_complete(napi);
+--- a/mt7996/dma.c
++++ b/mt7996/dma.c
+@@ -709,7 +709,7 @@ int mt7996_dma_init(struct mt7996_dev *d
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	netif_napi_add_tx(&dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
++	netif_napi_add_tx(dev->mt76.tx_napi_dev, &dev->mt76.tx_napi,
+ 			  mt7996_poll_tx);
+ 	napi_enable(&dev->mt76.tx_napi);
+ 
