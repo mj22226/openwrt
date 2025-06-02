@@ -574,6 +574,7 @@ define KernelPackage/ppp
 	CONFIG_PPP_ASYNC
   FILES:= \
 	$(LINUX_DIR)/drivers/net/ppp/ppp_async.ko \
+	$(LINUX_DIR)/lib/crc-ccitt.ko \
 	$(LINUX_DIR)/drivers/net/ppp/ppp_generic.ko
   AUTOLOAD:=$(call AutoProbe,ppp_async)
 endef
