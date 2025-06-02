@@ -143,8 +143,8 @@ define KernelPackage/crypto-crc32
   DEPENDS:=+kmod-crypto-hash
   KCONFIG:=CONFIG_CRYPTO_CRC32
   HIDDEN:=1
-  FILES:=$(LINUX_DIR)/crypto/crc32_generic.ko
-  AUTOLOAD:=$(call AutoLoad,04,crc32_generic,1)
+  FILES:=$(LINUX_DIR)/crypto/crc32c-cryptoapi.ko
+  AUTOLOAD:=$(call AutoLoad,04,crc32c-cryptoapi,1)
   $(call AddDepends/crypto)
 endef
 
@@ -155,8 +155,8 @@ define KernelPackage/crypto-crc32c
   TITLE:=CRC32c CRC module
   DEPENDS:=+kmod-crypto-hash
   KCONFIG:=CONFIG_CRYPTO_CRC32C
-  FILES:=$(LINUX_DIR)/crypto/crc32c_generic.ko
-  AUTOLOAD:=$(call AutoLoad,04,crc32c_generic,1)
+  FILES:=$(LINUX_DIR)/crypto/crc32c-cryptoapi.ko
+  AUTOLOAD:=$(call AutoLoad,04,crc32c-cryptoapi,1)
   $(call AddDepends/crypto)
 endef
 
@@ -585,7 +585,7 @@ KernelPackage/crypto-lib-chacha20/armeb=$(KernelPackage/crypto-lib-chacha20/arm)
 
 define KernelPackage/crypto-lib-chacha20/aarch64
   KCONFIG+=CONFIG_CRYPTO_CHACHA20_NEON
-  FILES+=$(LINUX_DIR)/arch/arm64/crypto/chacha-neon.ko
+  FILES+=$(LINUX_DIR)/arch/arm64/lib/crypto/chacha-neon.ko
 endef
 
 define KernelPackage/crypto-lib-chacha20/mips32r2
@@ -684,7 +684,7 @@ KernelPackage/crypto-lib-poly1305/armeb=$(KernelPackage/crypto-lib-poly1305/arm)
 
 define KernelPackage/crypto-lib-poly1305/aarch64
   KCONFIG+=CONFIG_CRYPTO_POLY1305_NEON
-  FILES:=$(LINUX_DIR)/arch/arm64/crypto/poly1305-neon.ko
+  FILES:=$(LINUX_DIR)/arch/arm64/lib/crypto/poly1305-neon.ko
 endef
 
 define KernelPackage/crypto-lib-poly1305/mips
@@ -1051,27 +1051,18 @@ define KernelPackage/crypto-sha256
   DEPENDS:=+kmod-crypto-hash
   KCONFIG:= \
 	CONFIG_CRYPTO_SHA256 \
+	CONFIG_CRYPTO_LIB_SHA256_GENERIC=y \
+	CRYPTO_ARCH_HAVE_LIB_SHA256=y \
 	CONFIG_CRYPTO_SHA256_OCTEON \
 	CONFIG_CRYPTO_SHA256_PPC_SPE \
 	CONFIG_CRYPTO_SHA256_ARM64 \
 	CONFIG_CRYPTO_SHA2_ARM64_CE \
 	CONFIG_CRYPTO_SHA256_SSSE3
   FILES:= \
-	$(LINUX_DIR)/crypto/sha256_generic.ko \
-	$(LINUX_DIR)/lib/crypto/libsha256.ko
+	$(LINUX_DIR)/crypto/sha256.ko \
+	$(LINUX_DIR)/lib/crypto/libsha256-generic.ko
   AUTOLOAD:=$(call AutoLoad,09,sha256_generic)
   $(call AddDepends/crypto)
-endef
-
-define KernelPackage/crypto-sha256/aarch64
-  FILES+=$(LINUX_DIR)/arch/arm64/crypto/sha256-arm64.ko
-  AUTOLOAD+=$(call AutoLoad,09,sha256-arm64)
-endef
-
-define KernelPackage/crypto-sha256/aarch64-ce
-  $(call KernelPackage/crypto-sha256/aarch64)
-  FILES+=$(LINUX_DIR)/arch/arm64/crypto/sha2-ce.ko
-  AUTOLOAD+=$(call AutoLoad,09,sha2-ce)
 endef
 
 define KernelPackage/crypto-sha256/octeon
