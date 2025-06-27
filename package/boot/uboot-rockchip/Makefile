@@ -128,6 +128,29 @@ define U-Boot/nanopc-t4-rk3399
     friendlyarm_nanopc-t4
 endef
 
+define U-Boot/nanopi-m4-rk3399
+  $(U-Boot/rk3399/Default)
+  NAME:=NanoPi M4
+  BUILD_DEVICES:= \
+    friendlyarm_nanopi-m4
+endef
+
+define U-Boot/nanopi-m4-2gb-rk3399
+  $(U-Boot/rk3399/Default)
+  NAME:=NanoPi M4 2GB
+  BUILD_DEVICES:= \
+    friendlyarm_nanopi-m4-2gb
+endef
+
+define U-Boot/nanopi-m4v2-rk3399
+  $(U-Boot/rk3399/Default)
+  NAME:=NanoPi m4v2
+  BUILD_DEVICES:= \
+    friendlyarm_nanopi-m4v2
+  UBOOT_DTS:=rk3399-nanopi-m4.dts
+  UBOOT_CONFIG:=roc-pc-rk3399
+endef
+
 define U-Boot/nanopi-r4s-rk3399
   $(U-Boot/rk3399/Default)
   NAME:=NanoPi R4S
@@ -433,6 +456,9 @@ endef
 
 UBOOT_TARGETS := \
   nanopc-t4-rk3399 \
+  nanopi-m4-rk3399 \
+  nanopi-m4-2gb-rk3399 \
+  nanopi-m4v2-rk3399 \
   nanopi-r4s-rk3399 \
   rock-4c-plus-rk3399 \
   rock-4se-rk3399 \
