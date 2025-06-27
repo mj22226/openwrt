@@ -1,0 +1,22 @@
+--- a/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi
+@@ -21,6 +21,10 @@
+ 		mmc0 = &sdio0;
+ 		mmc1 = &sdmmc;
+ 		mmc2 = &sdhci;
++		led-boot = &status_led;
++		led-failsafe = &status_led;
++		led-running = &status_led;
++		led-upgrade = &status_led;
+ 	};
+ 
+ 	chosen {
+@@ -128,7 +132,7 @@
+ 		status_led: led-0 {
+ 			gpios = <&gpio0 RK_PB5 GPIO_ACTIVE_HIGH>;
+ 			label = "status_led";
+-			linux,default-trigger = "heartbeat";
++			default-state = "on";
+ 		};
+ 	};
+ 

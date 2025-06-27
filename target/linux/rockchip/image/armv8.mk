@@ -88,6 +88,40 @@ define Device/friendlyarm_nanopc-t6
 endef
 TARGET_DEVICES += friendlyarm_nanopc-t6
 
+define Device/friendlyarm_nanopi-m4
+  $(Device/rk3399)
+  DEVICE_VENDOR := FriendlyARM
+  DEVICE_MODEL := NanoPi M4
+  DEVICE_PACKAGES := \
+		brcmfmac-firmware-4356-nanopi-m4 \
+		kmod-brcmfmac wpad-basic-mbedtls brcmfmac-sdio-firmware-4356A2-bt
+endef
+TARGET_DEVICES += friendlyarm_nanopi-m4
+
+define Device/friendlyarm_nanopi-m4-2gb
+  $(Device/rk3399)
+  DEVICE_VENDOR := FriendlyARM
+  DEVICE_MODEL := NanoPi M4 2GB
+  DEVICE_VARIANT := DDR3
+  SUPPORTED_DEVICES := friendlyarm,nanopi-m4
+  DEVICE_DTS := rk3399-nanopi-m4
+  DEVICE_PACKAGES := \
+		brcmfmac-firmware-4356-nanopi-m4 \
+		kmod-brcmfmac wpad-basic-mbedtls brcmfmac-sdio-firmware-4356A2-bt
+endef
+TARGET_DEVICES += friendlyarm_nanopi-m4-2gb
+
+define Device/friendlyarm_nanopi-m4v2
+  $(Device/rk3399)
+  DEVICE_VENDOR := FriendlyARM
+  DEVICE_MODEL := NanoPi M4V2
+  SUPPORTED_DEVICES := friendlyarm,nanopi-m4
+  DEVICE_PACKAGES := \
+		brcmfmac-firmware-4356-nanopi-m4 \
+		kmod-brcmfmac wpad-basic-mbedtls brcmfmac-sdio-firmware-4356A2-bt
+endef
+TARGET_DEVICES += friendlyarm_nanopi-m4v2
+
 define Device/friendlyarm_nanopi-r2c
   $(Device/rk3328)
   DEVICE_VENDOR := FriendlyARM
