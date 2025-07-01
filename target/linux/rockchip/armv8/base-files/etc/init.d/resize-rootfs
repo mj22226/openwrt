@@ -1,0 +1,9 @@
+#!/bin/sh /etc/rc.common
+
+START=22
+start() {
+	rm -rf /etc/rc.d/S22resize-rootfs
+	#service resize-rootfs disable
+	/usr/bin/resize-rootfs.sh
+}
+
