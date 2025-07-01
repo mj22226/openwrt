@@ -1,0 +1,39 @@
+From 07e04c071a35abe12957b575cd1453ccafc02eb6 Mon Sep 17 00:00:00 2001
+From: Diederik de Haas <didi.debian@cknow.org>
+Date: Wed, 16 Jul 2025 10:33:35 +0200
+Subject: [PATCH] arm64: dts: rockchip: Add maskrom button to NanoPi R5S + R5C
+
+Both the R5S and R5C have a MASKROM button connected via saradc.
+For both the R5S as the R5C it's described on page 9 of their
+respective schematic, identified as 'Recovery'.
+
+Signed-off-by: Diederik de Haas <didi.debian@cknow.org>
+Link: https://lore.kernel.org/r/20250716083355.327451-1-didi.debian@cknow.org
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ .../arm64/boot/dts/rockchip/rk3568-nanopi-r5s.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5s.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3568-nanopi-r5s.dtsi
+@@ -24,6 +24,20 @@
+ 		stdout-path = "serial2:1500000n8";
+ 	};
+ 
++	adc-keys {
++		compatible = "adc-keys";
++		io-channels = <&saradc 0>;
++		io-channel-names = "buttons";
++		keyup-threshold-microvolt = <1800000>;
++		poll-interval = <100>;
++
++		button-maskrom {
++			label = "MASKROM";
++			linux,code = <KEY_SETUP>;
++			press-threshold-microvolt = <0>;
++		};
++	};
++
+ 	hdmi-con {
+ 		compatible = "hdmi-connector";
+ 		type = "a";
