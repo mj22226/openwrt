@@ -484,3 +484,14 @@ define Device/xunlong_orangepi-r1-plus-lts
   DEVICE_PACKAGES := kmod-usb-net-rtl8152
 endef
 TARGET_DEVICES += xunlong_orangepi-r1-plus-lts
+
+define Device/xunlong_orangepi-5-plus
+  $(Device/rk3588)
+  DEVICE_VENDOR := XunLong
+  DEVICE_MODEL := Orange Pi 5 Plus
+  SUPPORTED_DEVICES := \
+	xunlong,orangepi-5-plus \
+	rockchip,rk3588-orangepi-5-plus
+  DEVICE_PACKAGES := kmod-r8169
+endef
+TARGET_DEVICES += xunlong_orangepi-5-plus
