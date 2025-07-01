@@ -87,5 +87,9 @@ radxa,e52c)
 	set_interface_core 10 "lan"
 	set_interface_core 20 "wan"
 	;;
+xunlong,orangepi-5-plus)
+	set_interface_core 20 "eth0"
+	set_interface_core 40 "eth1"
+	;;
 esac
 
