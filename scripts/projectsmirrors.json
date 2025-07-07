@@ -58,6 +58,7 @@
 		"http://ftp.nara.wide.ad.jp/pub/X11/GNOME/sources"
 	],
 	"@OPENWRT": [
+		"https://github.com/mj22226/linux/releases/download/v6.16/",
 		"https://sources.cdn.openwrt.org",
 		"https://sources.openwrt.org",
 		"https://mirror2.openwrt.org/sources"
