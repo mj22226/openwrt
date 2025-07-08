@@ -1,0 +1,46 @@
+From 9dcd6ed8adfdf35fec59d5775aabd47beb2e4aa8 Mon Sep 17 00:00:00 2001
+From: Marty <mj8263788@gmail.com>
+Date: Tue, 8 Jul 2025 11:18:28 -0400
+Subject: [PATCH 2/2] net: rename netns_local to netns_immutable
+ net/wireless/core.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+--- a/net/wireless/core.c
++++ b/net/wireless/core.c
+@@ -162,11 +162,11 @@ int cfg80211_switch_netns(struct cfg8021
+ 	list_for_each_entry(wdev, &rdev->wiphy.wdev_list, list) {
+ 		if (!wdev->netdev)
+ 			continue;
+-		wdev->netdev->netns_local = false;
++		wdev->netdev->netns_immutable = false;
+ 		err = dev_change_net_namespace(wdev->netdev, net, "wlan%d");
+ 		if (err)
+ 			break;
+-		wdev->netdev->netns_local = true;
++		wdev->netdev->netns_immutable = true;
+ 	}
+ 
+ 	if (err) {
+@@ -178,11 +178,11 @@ int cfg80211_switch_netns(struct cfg8021
+ 						     list) {
+ 			if (!wdev->netdev)
+ 				continue;
+-			wdev->netdev->netns_local = false;
++			wdev->netdev->netns_immutable = false;
+ 			err = dev_change_net_namespace(wdev->netdev, net,
+ 							"wlan%d");
+ 			WARN_ON(err);
+-			wdev->netdev->netns_local = true;
++			wdev->netdev->netns_immutable = true;
+ 		}
+ 
+ 		return err;
+@@ -1520,7 +1520,7 @@ static int cfg80211_netdev_notifier_call
+ 		SET_NETDEV_DEVTYPE(dev, &wiphy_type);
+ 		wdev->netdev = dev;
+ 		/* can only change netns with wiphy */
+-		dev->netns_local = true;
++		dev->netns_immutable = true;
+ 
+ 		cfg80211_init_wdev(wdev);
+ 		break;
