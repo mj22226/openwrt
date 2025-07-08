@@ -16,7 +16,7 @@ and we should ignore this.
 
 --- a/net/wireless/core.c
 +++ b/net/wireless/core.c
-@@ -671,21 +671,6 @@ int wiphy_verify_iface_combinations(stru
+@@ -663,21 +663,6 @@ int wiphy_verify_iface_combinations(stru
  				    c->limits[j].max > 1))
  				return -EINVAL;
  

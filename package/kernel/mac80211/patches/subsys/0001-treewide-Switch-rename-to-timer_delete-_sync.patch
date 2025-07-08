@@ -1,0 +1,2292 @@
+From 43ab41e991748a252c93bdb8212736033f8bd56f Mon Sep 17 00:00:00 2001
+From: Marty <mj8263788@gmail.com>
+Date: Tue, 8 Jul 2025 10:50:54 -0400
+Subject: [PATCH] treewide: Switch/rename to timer_delete[_sync]()
+---
+ backport-include/linux/timer.h                |  4 ++--
+ drivers/bus/mhi/host/pci_generic.c            |  8 +++----
+ drivers/net/usb/sierra_net.c                  |  2 +-
+ drivers/net/usb/usbnet.c                      |  6 ++---
+ drivers/net/wireless/ath/ar5523/ar5523.c      |  4 ++--
+ drivers/net/wireless/ath/ath10k/debug.c       |  2 +-
+ drivers/net/wireless/ath/ath10k/htt_rx.c      |  2 +-
+ drivers/net/wireless/ath/ath10k/pci.c         |  4 ++--
+ drivers/net/wireless/ath/ath10k/sdio.c        |  2 +-
+ drivers/net/wireless/ath/ath10k/snoc.c        |  2 +-
+ drivers/net/wireless/ath/ath11k/ahb.c         |  2 +-
+ drivers/net/wireless/ath/ath11k/dp.c          |  4 ++--
+ drivers/net/wireless/ath/ath11k/dp_rx.c       |  8 +++----
+ drivers/net/wireless/ath/ath12k/dp.c          |  2 +-
+ drivers/net/wireless/ath/ath12k/dp_rx.c       |  4 ++--
+ drivers/net/wireless/ath/ath6kl/cfg80211.c    |  6 ++---
+ drivers/net/wireless/ath/ath6kl/init.c        |  2 +-
+ drivers/net/wireless/ath/ath6kl/main.c        |  2 +-
+ drivers/net/wireless/ath/ath6kl/recovery.c    |  4 ++--
+ drivers/net/wireless/ath/ath6kl/txrx.c        |  2 +-
+ drivers/net/wireless/ath/ath9k/channel.c      |  2 +-
+ drivers/net/wireless/ath/ath9k/gpio.c         |  8 +++----
+ drivers/net/wireless/ath/ath9k/htc_drv_main.c |  6 ++---
+ drivers/net/wireless/ath/ath9k/init.c         |  2 +-
+ drivers/net/wireless/ath/ath9k/link.c         |  2 +-
+ drivers/net/wireless/ath/ath9k/main.c         | 10 ++++-----
+ drivers/net/wireless/ath/ath9k/pci.c          |  2 +-
+ drivers/net/wireless/ath/wcn36xx/dxe.c        |  4 ++--
+ drivers/net/wireless/ath/wil6210/cfg80211.c   |  2 +-
+ drivers/net/wireless/ath/wil6210/main.c       |  6 ++---
+ drivers/net/wireless/ath/wil6210/netdev.c     |  6 ++---
+ drivers/net/wireless/ath/wil6210/p2p.c        |  2 +-
+ drivers/net/wireless/ath/wil6210/wmi.c        |  6 ++---
+ drivers/net/wireless/atmel/at76c50x-usb.c     |  2 +-
+ .../broadcom/brcm80211/brcmfmac/btcoex.c      |  4 ++--
+ .../broadcom/brcm80211/brcmfmac/pcie.c        |  2 +-
+ .../broadcom/brcm80211/brcmfmac/sdio.c        |  2 +-
+ .../broadcom/brcm80211/brcmsmac/mac80211_if.c |  4 ++--
+ .../broadcom/brcm80211/brcmsmac/mac80211_if.h |  2 +-
+ .../broadcom/brcm80211/brcmsmac/main.c        |  4 ++--
+ .../broadcom/brcm80211/brcmsmac/phy/phy_cmn.c |  6 ++---
+ .../broadcom/brcm80211/brcmsmac/phy_shim.c    |  4 ++--
+ .../broadcom/brcm80211/brcmsmac/phy_shim.h    |  2 +-
+ .../wireless/intel/ipw2x00/libipw_crypto.c    |  2 +-
+ .../net/wireless/intel/iwlegacy/3945-mac.c    |  2 +-
+ drivers/net/wireless/intel/iwlegacy/3945-rs.c |  2 +-
+ .../net/wireless/intel/iwlegacy/4965-mac.c    |  4 ++--
+ drivers/net/wireless/intel/iwlegacy/common.c  |  2 +-
+ .../net/wireless/intel/iwlwifi/dvm/debugfs.c  |  2 +-
+ drivers/net/wireless/intel/iwlwifi/dvm/main.c |  4 ++--
+ drivers/net/wireless/intel/iwlwifi/dvm/tt.c   | 10 ++++-----
+ drivers/net/wireless/intel/iwlwifi/fw/dbg.c   |  2 +-
+ drivers/net/wireless/intel/iwlwifi/fw/dbg.h   |  2 +-
+ .../net/wireless/intel/iwlwifi/fw/runtime.h   |  2 +-
+ .../net/wireless/intel/iwlwifi/iwl-dbg-tlv.c  |  6 ++---
+ .../net/wireless/intel/iwlwifi/iwl-dbg-tlv.h  |  2 +-
+ drivers/net/wireless/intel/iwlwifi/mvm/ops.c  |  2 +-
+ drivers/net/wireless/intel/iwlwifi/pcie/rx.c  |  2 +-
+ .../net/wireless/intel/iwlwifi/pcie/tx-gen2.c |  2 +-
+ drivers/net/wireless/intel/iwlwifi/pcie/tx.c  |  6 ++---
+ .../net/wireless/marvell/libertas/cmdresp.c   |  2 +-
+ .../net/wireless/marvell/libertas/if_usb.c    |  2 +-
+ drivers/net/wireless/marvell/libertas/main.c  | 18 +++++++--------
+ .../net/wireless/marvell/libertas_tf/cmd.c    |  2 +-
+ .../net/wireless/marvell/libertas_tf/if_usb.c |  2 +-
+ .../net/wireless/marvell/libertas_tf/main.c   |  4 ++--
+ .../wireless/marvell/mwifiex/11n_rxreorder.c  |  2 +-
+ drivers/net/wireless/marvell/mwifiex/cmdevt.c |  2 +-
+ drivers/net/wireless/marvell/mwifiex/init.c   |  4 ++--
+ drivers/net/wireless/marvell/mwifiex/main.c   |  2 +-
+ drivers/net/wireless/marvell/mwifiex/pcie.c   |  4 ++--
+ .../net/wireless/marvell/mwifiex/sta_event.c  |  4 ++--
+ drivers/net/wireless/marvell/mwifiex/tdls.c   |  2 +-
+ drivers/net/wireless/marvell/mwifiex/usb.c    |  6 ++---
+ .../net/wireless/mediatek/mt76/mt7615/main.c  |  4 ++--
+ .../wireless/mediatek/mt76/mt7615/pci_mac.c   |  4 ++--
+ .../net/wireless/mediatek/mt76/mt7615/usb.c   |  2 +-
+ .../net/wireless/mediatek/mt76/mt7921/main.c  |  6 ++---
+ .../net/wireless/mediatek/mt76/mt7925/main.c  |  4 ++--
+ .../net/wireless/mediatek/mt76/mt792x_core.c  |  2 +-
+ drivers/net/wireless/microchip/wilc1000/hif.c | 18 +++++++--------
+ drivers/net/wireless/purelifi/plfxlc/usb.c    |  4 ++--
+ drivers/net/wireless/realtek/rtlwifi/base.c   |  2 +-
+ .../wireless/realtek/rtlwifi/rtl8188ee/sw.c   |  4 ++--
+ drivers/net/wireless/rsi/rsi_91x_hal.c        |  4 ++--
+ drivers/net/wireless/rsi/rsi_91x_mac80211.c   |  6 ++---
+ drivers/net/wireless/st/cw1200/main.c         |  2 +-
+ drivers/net/wireless/st/cw1200/pm.c           |  2 +-
+ drivers/net/wireless/st/cw1200/queue.c        |  2 +-
+ drivers/net/wireless/st/cw1200/sta.c          |  6 ++---
+ drivers/net/wireless/ti/wlcore/main.c         |  4 ++--
+ drivers/staging/rtl8723bs/core/rtw_cmd.c      |  2 +-
+ drivers/staging/rtl8723bs/core/rtw_mlme.c     |  4 ++--
+ drivers/staging/rtl8723bs/core/rtw_mlme_ext.c | 22 +++++++++----------
+ drivers/staging/rtl8723bs/core/rtw_recv.c     |  2 +-
+ drivers/staging/rtl8723bs/core/rtw_sta_mgt.c  |  6 ++---
+ drivers/staging/rtl8723bs/hal/sdio_ops.c      |  2 +-
+ drivers/staging/rtl8723bs/os_dep/os_intfs.c   | 12 +++++-----
+ net/mac80211/agg-rx.c                         |  4 ++--
+ net/mac80211/agg-tx.c                         |  6 ++---
+ net/mac80211/ibss.c                           |  2 +-
+ net/mac80211/iface.c                          |  2 +-
+ net/mac80211/led.c                            |  2 +-
+ net/mac80211/mesh.c                           |  8 +++----
+ net/mac80211/mesh_plink.c                     | 12 +++++-----
+ net/mac80211/mlme.c                           | 16 +++++++-------
+ net/mac80211/ocb.c                            |  2 +-
+ net/mac80211/offchannel.c                     |  6 ++---
+ net/mac80211/pm.c                             |  4 ++--
+ net/mac80211/rx.c                             |  2 +-
+ net/mac80211/sta_info.c                       |  2 +-
+ net/wireless/core.c                           |  6 ++---
+ 112 files changed, 236 insertions(+), 236 deletions(-)
+
+--- a/backport-include/linux/timer.h
++++ b/backport-include/linux/timer.h
+@@ -75,14 +75,14 @@ static inline void timer_setup(struct ti
+ 	!LINUX_VERSION_IN_RANGE(5,15,154, 5,16,0)
+ static inline int timer_delete_sync(struct timer_list *timer)
+ {
+-	return del_timer_sync(timer);
++	return timer_delete_sync(timer);
+ }
+ #endif /* < 6.1.84 */
+ 
+ #if LINUX_VERSION_IS_LESS(6,2,0)
+ static inline int timer_shutdown_sync(struct timer_list *timer)
+ {
+-	return del_timer_sync(timer);
++	return timer_delete_sync(timer);
+ }
+ #endif /* < 6.2 */
+ 
+--- a/drivers/bus/mhi/host/pci_generic.c
++++ b/drivers/bus/mhi/host/pci_generic.c
+@@ -1062,7 +1062,7 @@ static void mhi_pci_recovery_work(struct
+ 
+ 	dev_warn(&pdev->dev, "device recovery started\n");
+ 
+-	del_timer(&mhi_pdev->health_check_timer);
++	timer_delete(&mhi_pdev->health_check_timer);
+ 	pm_runtime_forbid(&pdev->dev);
+ 
+ 	/* Clean up MHI state */
+@@ -1259,7 +1259,7 @@ static void mhi_pci_remove(struct pci_de
+ 	struct mhi_pci_device *mhi_pdev = pci_get_drvdata(pdev);
+ 	struct mhi_controller *mhi_cntrl = &mhi_pdev->mhi_cntrl;
+ 
+-	del_timer_sync(&mhi_pdev->health_check_timer);
++	timer_delete_sync(&mhi_pdev->health_check_timer);
+ 	cancel_work_sync(&mhi_pdev->recovery_work);
+ 
+ 	if (test_and_clear_bit(MHI_PCI_DEV_STARTED, &mhi_pdev->status)) {
+@@ -1287,7 +1287,7 @@ static void mhi_pci_reset_prepare(struct
+ 
+ 	dev_info(&pdev->dev, "reset\n");
+ 
+-	del_timer(&mhi_pdev->health_check_timer);
++	timer_delete(&mhi_pdev->health_check_timer);
+ 
+ 	/* Clean up MHI state */
+ 	if (test_and_clear_bit(MHI_PCI_DEV_STARTED, &mhi_pdev->status)) {
+@@ -1397,7 +1397,7 @@ static int  __maybe_unused mhi_pci_runti
+ 	if (test_and_set_bit(MHI_PCI_DEV_SUSPENDED, &mhi_pdev->status))
+ 		return 0;
+ 
+-	del_timer(&mhi_pdev->health_check_timer);
++	timer_delete(&mhi_pdev->health_check_timer);
+ 	cancel_work_sync(&mhi_pdev->recovery_work);
+ 
+ 	if (!test_bit(MHI_PCI_DEV_STARTED, &mhi_pdev->status) ||
+--- a/drivers/net/usb/sierra_net.c
++++ b/drivers/net/usb/sierra_net.c
+@@ -522,7 +522,7 @@ static void sierra_net_kevent(struct wor
+ 						" stopping sync timer",
+ 						hh.msgspecific.byte);
+ 				/* Got sync resp - stop timer & clear mask */
+-				del_timer_sync(&priv->sync_timer);
++				timer_delete_sync(&priv->sync_timer);
+ 				clear_bit(SIERRA_NET_TIMER_EXPIRY,
+ 					  &priv->kevent_flags);
+ 				break;
+--- a/drivers/net/usb/usbnet.c
++++ b/drivers/net/usb/usbnet.c
+@@ -865,7 +865,7 @@ int usbnet_stop (struct net_device *net)
+ 
+ 	/* deferred work (timer, softirq, task) must also stop */
+ 	dev->flags = 0;
+-	del_timer_sync(&dev->delay);
++	timer_delete_sync(&dev->delay);
+ 	tasklet_kill(&dev->bh);
+ 	cancel_work_sync(&dev->kevent);
+ 
+@@ -874,7 +874,7 @@ int usbnet_stop (struct net_device *net)
+ 	 * we have a flag
+ 	 */
+ 	tasklet_kill(&dev->bh);
+-	del_timer_sync(&dev->delay);
++	timer_delete_sync(&dev->delay);
+ 	cancel_work_sync(&dev->kevent);
+ 
+ 	if (!pm)
+@@ -1892,7 +1892,7 @@ out1:
+ 	 */
+ 	usbnet_mark_going_away(dev);
+ 	cancel_work_sync(&dev->kevent);
+-	del_timer_sync(&dev->delay);
++	timer_delete_sync(&dev->delay);
+ 	free_netdev(net);
+ out:
+ 	return status;
+--- a/drivers/net/wireless/ath/ar5523/ar5523.c
++++ b/drivers/net/wireless/ath/ar5523/ar5523.c
+@@ -733,7 +733,7 @@ static void ar5523_data_tx_pkt_put(struc
+ {
+ 	atomic_dec(&ar->tx_nr_total);
+ 	if (!atomic_dec_return(&ar->tx_nr_pending)) {
+-		del_timer(&ar->tx_wd_timer);
++		timer_delete(&ar->tx_wd_timer);
+ 		wake_up(&ar->tx_flush_waitq);
+ 	}
+ 
+@@ -1076,7 +1076,7 @@ static void ar5523_stop(struct ieee80211
+ 
+ 	ar5523_cmd_write(ar, WDCMSG_TARGET_STOP, NULL, 0, 0);
+ 
+-	del_timer_sync(&ar->tx_wd_timer);
++	timer_delete_sync(&ar->tx_wd_timer);
+ 	cancel_work_sync(&ar->tx_wd_work);
+ 	cancel_work_sync(&ar->rx_refill_work);
+ 	ar5523_cancel_rx_bufs(ar);
+--- a/drivers/net/wireless/ath/ath10k/debug.c
++++ b/drivers/net/wireless/ath/ath10k/debug.c
+@@ -1751,7 +1751,7 @@ void ath10k_debug_stop(struct ath10k *ar
+ 
+ 	/* Must not use _sync to avoid deadlock, we do that in
+ 	 * ath10k_debug_destroy(). The check for htt_stats_mask is to avoid
+-	 * warning from del_timer().
++	 * warning from timer_delete().
+ 	 */
+ 	if (ar->debug.htt_stats_mask != 0)
+ 		cancel_delayed_work(&ar->debug.htt_stats_dwork);
+--- a/drivers/net/wireless/ath/ath10k/htt_rx.c
++++ b/drivers/net/wireless/ath/ath10k/htt_rx.c
+@@ -287,7 +287,7 @@ void ath10k_htt_rx_free(struct ath10k_ht
+ 	if (htt->ar->bus_param.dev_type == ATH10K_DEV_TYPE_HL)
+ 		return;
+ 
+-	del_timer_sync(&htt->rx_ring.refill_retry_timer);
++	timer_delete_sync(&htt->rx_ring.refill_retry_timer);
+ 
+ 	skb_queue_purge(&htt->rx_msdus_q);
+ 	skb_queue_purge(&htt->rx_in_ord_compl_q);
+--- a/drivers/net/wireless/ath/ath10k/pci.c
++++ b/drivers/net/wireless/ath/ath10k/pci.c
+@@ -619,7 +619,7 @@ static void ath10k_pci_sleep_sync(struct
+ 		return;
+ 	}
+ 
+-	del_timer_sync(&ar_pci->ps_timer);
++	timer_delete_sync(&ar_pci->ps_timer);
+ 
+ 	spin_lock_irqsave(&ar_pci->ps_lock, flags);
+ 	WARN_ON(ar_pci->ps_wake_refcount > 0);
+@@ -1817,7 +1817,7 @@ static void ath10k_pci_rx_retry_sync(str
+ {
+ 	struct ath10k_pci *ar_pci = ath10k_pci_priv(ar);
+ 
+-	del_timer_sync(&ar_pci->rx_post_retry);
++	timer_delete_sync(&ar_pci->rx_post_retry);
+ }
+ 
+ int ath10k_pci_hif_map_service_to_pipe(struct ath10k *ar, u16 service_id,
+--- a/drivers/net/wireless/ath/ath10k/sdio.c
++++ b/drivers/net/wireless/ath/ath10k/sdio.c
+@@ -1621,7 +1621,7 @@ static void ath10k_sdio_hif_power_down(s
+ 
+ 	ath10k_dbg(ar, ATH10K_DBG_BOOT, "sdio power off\n");
+ 
+-	del_timer_sync(&ar_sdio->sleep_timer);
++	timer_delete_sync(&ar_sdio->sleep_timer);
+ 	ath10k_sdio_set_mbox_sleep(ar, true);
+ 
+ 	/* Disable the card */
+--- a/drivers/net/wireless/ath/ath10k/snoc.c
++++ b/drivers/net/wireless/ath/ath10k/snoc.c
+@@ -911,7 +911,7 @@ static void ath10k_snoc_buffer_cleanup(s
+ 	struct ath10k_snoc_pipe *pipe_info;
+ 	int pipe_num;
+ 
+-	del_timer_sync(&ar_snoc->rx_post_retry);
++	timer_delete_sync(&ar_snoc->rx_post_retry);
+ 	for (pipe_num = 0; pipe_num < CE_COUNT; pipe_num++) {
+ 		pipe_info = &ar_snoc->pipe_info[pipe_num];
+ 		ath10k_snoc_rx_pipe_cleanup(pipe_info);
+--- a/drivers/net/wireless/ath/ath11k/ahb.c
++++ b/drivers/net/wireless/ath/ath11k/ahb.c
+@@ -397,7 +397,7 @@ static void ath11k_ahb_stop(struct ath11
+ 		ath11k_ahb_ce_irqs_disable(ab);
+ 	ath11k_ahb_sync_ce_irqs(ab);
+ 	ath11k_ahb_kill_tasklets(ab);
+-	del_timer_sync(&ab->rx_replenish_retry);
++	timer_delete_sync(&ab->rx_replenish_retry);
+ 	ath11k_ce_cleanup_pipes(ab);
+ }
+ 
+--- a/drivers/net/wireless/ath/ath11k/dp.c
++++ b/drivers/net/wireless/ath/ath11k/dp.c
+@@ -875,7 +875,7 @@ void ath11k_dp_pdev_free(struct ath11k_b
+ 	struct ath11k *ar;
+ 	int i;
+ 
+-	del_timer_sync(&ab->mon_reap_timer);
++	timer_delete_sync(&ab->mon_reap_timer);
+ 
+ 	for (i = 0; i < ab->num_radios; i++) {
+ 		ar = ab->pdevs[i].ar;
+@@ -1170,7 +1170,7 @@ void ath11k_dp_shadow_stop_timer(struct
+ 	if (!update_timer->init)
+ 		return;
+ 
+-	del_timer_sync(&update_timer->timer);
++	timer_delete_sync(&update_timer->timer);
+ }
+ 
+ void ath11k_dp_shadow_init_timer(struct ath11k_base *ab,
+--- a/drivers/net/wireless/ath/ath11k/dp_rx.c
++++ b/drivers/net/wireless/ath/ath11k/dp_rx.c
+@@ -906,7 +906,7 @@ void ath11k_peer_frags_flush(struct ath1
+ 		rx_tid = &peer->rx_tid[i];
+ 
+ 		spin_unlock_bh(&ar->ab->base_lock);
+-		del_timer_sync(&rx_tid->frag_timer);
++		timer_delete_sync(&rx_tid->frag_timer);
+ 		spin_lock_bh(&ar->ab->base_lock);
+ 
+ 		ath11k_dp_rx_frags_cleanup(rx_tid, true);
+@@ -927,7 +927,7 @@ void ath11k_peer_rx_tid_cleanup(struct a
+ 		ath11k_dp_rx_frags_cleanup(rx_tid, true);
+ 
+ 		spin_unlock_bh(&ar->ab->base_lock);
+-		del_timer_sync(&rx_tid->frag_timer);
++		timer_delete_sync(&rx_tid->frag_timer);
+ 		spin_lock_bh(&ar->ab->base_lock);
+ 	}
+ }
+@@ -3712,7 +3712,7 @@ static int ath11k_dp_rx_frag_h_mpdu(stru
+ 	}
+ 
+ 	spin_unlock_bh(&ab->base_lock);
+-	del_timer_sync(&rx_tid->frag_timer);
++	timer_delete_sync(&rx_tid->frag_timer);
+ 	spin_lock_bh(&ab->base_lock);
+ 
+ 	peer = ath11k_peer_find_by_id(ab, peer_id);
+@@ -5783,7 +5783,7 @@ int ath11k_dp_rx_pktlog_stop(struct ath1
+ 	int ret;
+ 
+ 	if (stop_timer)
+-		del_timer_sync(&ab->mon_reap_timer);
++		timer_delete_sync(&ab->mon_reap_timer);
+ 
+ 	/* reap all the monitor related rings */
+ 	ret = ath11k_dp_purge_mon_ring(ab);
+--- a/drivers/net/wireless/ath/ath12k/dp.c
++++ b/drivers/net/wireless/ath/ath12k/dp.c
+@@ -985,7 +985,7 @@ void ath12k_dp_pdev_free(struct ath12k_b
+ 	if (!ab->mon_reap_timer.function)
+ 		return;
+ 
+-	del_timer_sync(&ab->mon_reap_timer);
++	timer_delete_sync(&ab->mon_reap_timer);
+ 
+ 	for (i = 0; i < ab->num_radios; i++)
+ 		ath12k_dp_rx_pdev_free(ab, i);
+--- a/drivers/net/wireless/ath/ath12k/dp_rx.c
++++ b/drivers/net/wireless/ath/ath12k/dp_rx.c
+@@ -895,7 +895,7 @@ void ath12k_dp_rx_peer_tid_cleanup(struc
+ 		ath12k_dp_rx_frags_cleanup(rx_tid, true);
+ 
+ 		spin_unlock_bh(&ar->ab->base_lock);
+-		del_timer_sync(&rx_tid->frag_timer);
++		timer_delete_sync(&rx_tid->frag_timer);
+ 		spin_lock_bh(&ar->ab->base_lock);
+ 	}
+ }
+@@ -3451,7 +3451,7 @@ static int ath12k_dp_rx_frag_h_mpdu(stru
+ 	}
+ 
+ 	spin_unlock_bh(&ab->base_lock);
+-	del_timer_sync(&rx_tid->frag_timer);
++	timer_delete_sync(&rx_tid->frag_timer);
+ 	spin_lock_bh(&ab->base_lock);
+ 
+ 	peer = ath12k_peer_find_by_id(ab, peer_id);
+--- a/drivers/net/wireless/ath/ath6kl/cfg80211.c
++++ b/drivers/net/wireless/ath/ath6kl/cfg80211.c
+@@ -149,7 +149,7 @@ static bool __ath6kl_cfg80211_sscan_stop
+ 	if (!test_and_clear_bit(SCHED_SCANNING, &vif->flags))
+ 		return false;
+ 
+-	del_timer_sync(&vif->sched_scan_timer);
++	timer_delete_sync(&vif->sched_scan_timer);
+ 
+ 	if (ar->state == ATH6KL_STATE_RECOVERY)
+ 		return true;
+@@ -1200,7 +1200,7 @@ static int ath6kl_cfg80211_add_key(struc
+ 	if (((vif->auth_mode == WPA_PSK_AUTH) ||
+ 	     (vif->auth_mode == WPA2_PSK_AUTH)) &&
+ 	    (key_usage & GROUP_USAGE))
+-		del_timer(&vif->disconnect_timer);
++		timer_delete(&vif->disconnect_timer);
+ 
+ 	ath6kl_dbg(ATH6KL_DBG_WLAN_CFG,
+ 		   "%s: index %d, key_len %d, key_type 0x%x, key_usage 0x%x, seq_len %d\n",
+@@ -3612,7 +3612,7 @@ void ath6kl_cfg80211_vif_stop(struct ath
+ 		discon_issued = test_bit(CONNECTED, &vif->flags) ||
+ 				test_bit(CONNECT_PEND, &vif->flags);
+ 		ath6kl_disconnect(vif);
+-		del_timer(&vif->disconnect_timer);
++		timer_delete(&vif->disconnect_timer);
+ 
+ 		if (discon_issued)
+ 			ath6kl_disconnect_event(vif, DISCONNECT_CMD,
+--- a/drivers/net/wireless/ath/ath6kl/init.c
++++ b/drivers/net/wireless/ath/ath6kl/init.c
+@@ -1915,7 +1915,7 @@ void ath6kl_stop_txrx(struct ath6kl *ar)
+ 	clear_bit(WMI_READY, &ar->flag);
+ 
+ 	if (ar->fw_recovery.enable)
+-		del_timer_sync(&ar->fw_recovery.hb_timer);
++		timer_delete_sync(&ar->fw_recovery.hb_timer);
+ 
+ 	/*
+ 	 * After wmi_shudown all WMI events will be dropped. We
+--- a/drivers/net/wireless/ath/ath6kl/main.c
++++ b/drivers/net/wireless/ath/ath6kl/main.c
+@@ -1027,7 +1027,7 @@ void ath6kl_disconnect_event(struct ath6
+ 
+ 	aggr_reset_state(vif->aggr_cntxt->aggr_conn);
+ 
+-	del_timer(&vif->disconnect_timer);
++	timer_delete(&vif->disconnect_timer);
+ 
+ 	ath6kl_dbg(ATH6KL_DBG_WLAN_CFG, "disconnect reason is %d\n", reason);
+ 
+--- a/drivers/net/wireless/ath/ath6kl/recovery.c
++++ b/drivers/net/wireless/ath/ath6kl/recovery.c
+@@ -25,7 +25,7 @@ static void ath6kl_recovery_work(struct
+ 
+ 	ar->state = ATH6KL_STATE_RECOVERY;
+ 
+-	del_timer_sync(&ar->fw_recovery.hb_timer);
++	timer_delete_sync(&ar->fw_recovery.hb_timer);
+ 
+ 	ath6kl_init_hw_restart(ar);
+ 
+@@ -119,7 +119,7 @@ void ath6kl_recovery_cleanup(struct ath6
+ 
+ 	set_bit(RECOVERY_CLEANUP, &ar->flag);
+ 
+-	del_timer_sync(&ar->fw_recovery.hb_timer);
++	timer_delete_sync(&ar->fw_recovery.hb_timer);
+ 	cancel_work_sync(&ar->fw_recovery.recovery_work);
+ }
+ 
+--- a/drivers/net/wireless/ath/ath6kl/txrx.c
++++ b/drivers/net/wireless/ath/ath6kl/txrx.c
+@@ -1827,7 +1827,7 @@ void aggr_reset_state(struct aggr_info_c
+ 		return;
+ 
+ 	if (aggr_conn->timer_scheduled) {
+-		del_timer(&aggr_conn->timer);
++		timer_delete(&aggr_conn->timer);
+ 		aggr_conn->timer_scheduled = false;
+ 	}
+ 
+--- a/drivers/net/wireless/ath/ath9k/channel.c
++++ b/drivers/net/wireless/ath/ath9k/channel.c
+@@ -1556,7 +1556,7 @@ void ath9k_p2p_ps_timer(void *priv)
+ 	struct ath_node *an;
+ 	u32 tsf;
+ 
+-	del_timer_sync(&sc->sched.timer);
++	timer_delete_sync(&sc->sched.timer);
+ 	ath9k_hw_gen_timer_stop(sc->sc_ah, sc->p2p_ps_timer);
+ 	ath_chanctx_event(sc, NULL, ATH_CHANCTX_EVENT_TSF_TIMER);
+ 
+--- a/drivers/net/wireless/ath/ath9k/gpio.c
++++ b/drivers/net/wireless/ath/ath9k/gpio.c
+@@ -305,7 +305,7 @@ void ath9k_btcoex_timer_resume(struct at
+ 	ath_dbg(ath9k_hw_common(ah), BTCOEX, "Starting btcoex timers\n");
+ 
+ 	/* make sure duty cycle timer is also stopped when resuming */
+-	del_timer_sync(&btcoex->no_stomp_timer);
++	timer_delete_sync(&btcoex->no_stomp_timer);
+ 
+ 	btcoex->bt_priority_cnt = 0;
+ 	btcoex->bt_priority_time = jiffies;
+@@ -329,15 +329,15 @@ void ath9k_btcoex_timer_pause(struct ath
+ 
+ 	ath_dbg(ath9k_hw_common(ah), BTCOEX, "Stopping btcoex timers\n");
+ 
+-	del_timer_sync(&btcoex->period_timer);
+-	del_timer_sync(&btcoex->no_stomp_timer);
++	timer_delete_sync(&btcoex->period_timer);
++	timer_delete_sync(&btcoex->no_stomp_timer);
+ }
+ 
+ void ath9k_btcoex_stop_gen_timer(struct ath_softc *sc)
+ {
+ 	struct ath_btcoex *btcoex = &sc->btcoex;
+ 
+-	del_timer_sync(&btcoex->no_stomp_timer);
++	timer_delete_sync(&btcoex->no_stomp_timer);
+ }
+ 
+ u16 ath9k_btcoex_aggr_limit(struct ath_softc *sc, u32 max_4ms_framelen)
+--- a/drivers/net/wireless/ath/ath9k/htc_drv_main.c
++++ b/drivers/net/wireless/ath/ath9k/htc_drv_main.c
+@@ -198,7 +198,7 @@ void ath9k_htc_reset(struct ath9k_htc_pr
+ 	ath9k_htc_stop_ani(priv);
+ 	ieee80211_stop_queues(priv->hw);
+ 
+-	del_timer_sync(&priv->tx.cleanup_timer);
++	timer_delete_sync(&priv->tx.cleanup_timer);
+ 	ath9k_htc_tx_drain(priv);
+ 
+ 	WMI_CMD(WMI_DISABLE_INTR_CMDID);
+@@ -260,7 +260,7 @@ static int ath9k_htc_set_channel(struct
+ 	ath9k_htc_ps_wakeup(priv);
+ 
+ 	ath9k_htc_stop_ani(priv);
+-	del_timer_sync(&priv->tx.cleanup_timer);
++	timer_delete_sync(&priv->tx.cleanup_timer);
+ 	ath9k_htc_tx_drain(priv);
+ 
+ 	WMI_CMD(WMI_DISABLE_INTR_CMDID);
+@@ -997,7 +997,7 @@ static void ath9k_htc_stop(struct ieee80
+ 
+ 	tasklet_kill(&priv->rx_tasklet);
+ 
+-	del_timer_sync(&priv->tx.cleanup_timer);
++	timer_delete_sync(&priv->tx.cleanup_timer);
+ 	ath9k_htc_tx_drain(priv);
+ 	ath9k_wmi_event_drain(priv);
+ 
+--- a/drivers/net/wireless/ath/ath9k/init.c
++++ b/drivers/net/wireless/ath/ath9k/init.c
+@@ -1099,7 +1099,7 @@ static void ath9k_deinit_softc(struct at
+ 		if (ATH_TXQ_SETUP(sc, i))
+ 			ath_tx_cleanupq(sc, &sc->tx.txq[i]);
+ 
+-	del_timer_sync(&sc->sleep_timer);
++	timer_delete_sync(&sc->sleep_timer);
+ 	ath9k_hw_deinit(sc->sc_ah);
+ 	if (sc->dfs_detector != NULL)
+ 		sc->dfs_detector->exit(sc->dfs_detector);
+--- a/drivers/net/wireless/ath/ath9k/link.c
++++ b/drivers/net/wireless/ath/ath9k/link.c
+@@ -472,7 +472,7 @@ void ath_stop_ani(struct ath_softc *sc)
+ 	struct ath_common *common = ath9k_hw_common(sc->sc_ah);
+ 
+ 	ath_dbg(common, ANI, "Stopping ANI\n");
+-	del_timer_sync(&common->ani.timer);
++	timer_delete_sync(&common->ani.timer);
+ }
+ 
+ void ath_check_ani(struct ath_softc *sc)
+--- a/drivers/net/wireless/ath/ath9k/main.c
++++ b/drivers/net/wireless/ath/ath9k/main.c
+@@ -123,7 +123,7 @@ void ath9k_ps_wakeup(struct ath_softc *s
+ 	if (++sc->ps_usecount != 1)
+ 		goto unlock;
+ 
+-	del_timer_sync(&sc->sleep_timer);
++	timer_delete_sync(&sc->sleep_timer);
+ 	power_mode = sc->sc_ah->power_mode;
+ 	ath9k_hw_setpower(sc->sc_ah, ATH9K_PM_AWAKE);
+ 
+@@ -2418,7 +2418,7 @@ static void ath9k_cancel_pending_offchan
+ 		ath_dbg(common, CHAN_CTX,
+ 			"%s: Aborting RoC\n", __func__);
+ 
+-		del_timer_sync(&sc->offchannel.timer);
++		timer_delete_sync(&sc->offchannel.timer);
+ 		if (sc->offchannel.state >= ATH_OFFCHANNEL_ROC_START)
+ 			ath_roc_complete(sc, ATH_ROC_COMPLETE_ABORT);
+ 	}
+@@ -2427,7 +2427,7 @@ static void ath9k_cancel_pending_offchan
+ 		ath_dbg(common, CHAN_CTX,
+ 			"%s: Aborting HW scan\n", __func__);
+ 
+-		del_timer_sync(&sc->offchannel.timer);
++		timer_delete_sync(&sc->offchannel.timer);
+ 		ath_scan_complete(sc, true);
+ 	}
+ }
+@@ -2476,7 +2476,7 @@ static void ath9k_cancel_hw_scan(struct
+ 	ath_dbg(common, CHAN_CTX, "Cancel HW scan on vif: %pM\n", vif->addr);
+ 
+ 	mutex_lock(&sc->mutex);
+-	del_timer_sync(&sc->offchannel.timer);
++	timer_delete_sync(&sc->offchannel.timer);
+ 	ath_scan_complete(sc, true);
+ 	mutex_unlock(&sc->mutex);
+ }
+@@ -2526,7 +2526,7 @@ static int ath9k_cancel_remain_on_channe
+ 	mutex_lock(&sc->mutex);
+ 
+ 	ath_dbg(common, CHAN_CTX, "Cancel RoC\n");
+-	del_timer_sync(&sc->offchannel.timer);
++	timer_delete_sync(&sc->offchannel.timer);
+ 
+ 	if (sc->offchannel.roc_vif) {
+ 		if (sc->offchannel.state >= ATH_OFFCHANNEL_ROC_START)
+--- a/drivers/net/wireless/ath/ath9k/pci.c
++++ b/drivers/net/wireless/ath/ath9k/pci.c
+@@ -1029,7 +1029,7 @@ static int ath_pci_suspend(struct device
+ 	 */
+ 	ath9k_stop_btcoex(sc);
+ 	ath9k_hw_disable(sc->sc_ah);
+-	del_timer_sync(&sc->sleep_timer);
++	timer_delete_sync(&sc->sleep_timer);
+ 	ath9k_hw_setpower(sc->sc_ah, ATH9K_PM_FULL_SLEEP);
+ 
+ 	return 0;
+--- a/drivers/net/wireless/ath/wcn36xx/dxe.c
++++ b/drivers/net/wireless/ath/wcn36xx/dxe.c
+@@ -350,7 +350,7 @@ void wcn36xx_dxe_tx_ack_ind(struct wcn36
+ 	spin_lock_irqsave(&wcn->dxe_lock, flags);
+ 	skb = wcn->tx_ack_skb;
+ 	wcn->tx_ack_skb = NULL;
+-	del_timer(&wcn->tx_ack_timer);
++	timer_delete(&wcn->tx_ack_timer);
+ 	spin_unlock_irqrestore(&wcn->dxe_lock, flags);
+ 
+ 	if (!skb) {
+@@ -1055,7 +1055,7 @@ void wcn36xx_dxe_deinit(struct wcn36xx *
+ 
+ 	free_irq(wcn->tx_irq, wcn);
+ 	free_irq(wcn->rx_irq, wcn);
+-	del_timer(&wcn->tx_ack_timer);
++	timer_delete(&wcn->tx_ack_timer);
+ 
+ 	if (wcn->tx_ack_skb) {
+ 		ieee80211_tx_status_irqsafe(wcn->hw, wcn->tx_ack_skb);
+--- a/drivers/net/wireless/ath/wil6210/cfg80211.c
++++ b/drivers/net/wireless/ath/wil6210/cfg80211.c
+@@ -1017,7 +1017,7 @@ static int wil_cfg80211_scan(struct wiph
+ 
+ out_restore:
+ 	if (rc) {
+-		del_timer_sync(&vif->scan_timer);
++		timer_delete_sync(&vif->scan_timer);
+ 		if (vif->mid == 0)
+ 			wil->radio_wdev = wil->main_ndev->ieee80211_ptr;
+ 		vif->scan_request = NULL;
+--- a/drivers/net/wireless/ath/wil6210/main.c
++++ b/drivers/net/wireless/ath/wil6210/main.c
+@@ -798,7 +798,7 @@ void wil6210_disconnect(struct wil6210_v
+ 
+ 	wil_dbg_misc(wil, "disconnecting\n");
+ 
+-	del_timer_sync(&vif->connect_timer);
++	timer_delete_sync(&vif->connect_timer);
+ 	_wil6210_disconnect(vif, bssid, reason_code);
+ }
+ 
+@@ -818,7 +818,7 @@ void wil6210_disconnect_complete(struct
+ 
+ 	wil_dbg_misc(wil, "got disconnect\n");
+ 
+-	del_timer_sync(&vif->connect_timer);
++	timer_delete_sync(&vif->connect_timer);
+ 	_wil6210_disconnect_complete(vif, bssid, reason_code);
+ }
+ 
+@@ -1465,7 +1465,7 @@ void wil_abort_scan(struct wil6210_vif *
+ 		return;
+ 
+ 	wil_dbg_misc(wil, "Abort scan_request 0x%p\n", vif->scan_request);
+-	del_timer_sync(&vif->scan_timer);
++	timer_delete_sync(&vif->scan_timer);
+ 	mutex_unlock(&wil->vif_mutex);
+ 	rc = wmi_abort_scan(vif);
+ 	if (!rc && sync)
+--- a/drivers/net/wireless/ath/wil6210/netdev.c
++++ b/drivers/net/wireless/ath/wil6210/netdev.c
+@@ -200,8 +200,8 @@ static void wil_dev_setup(struct net_dev
+ 
+ static void wil_vif_deinit(struct wil6210_vif *vif)
+ {
+-	del_timer_sync(&vif->scan_timer);
+-	del_timer_sync(&vif->p2p.discovery_timer);
++	timer_delete_sync(&vif->scan_timer);
++	timer_delete_sync(&vif->p2p.discovery_timer);
+ 	cancel_work_sync(&vif->disconnect_worker);
+ 	cancel_work_sync(&vif->p2p.discovery_expired_work);
+ 	cancel_work_sync(&vif->p2p.delayed_listen_work);
+@@ -533,7 +533,7 @@ void wil_vif_remove(struct wil6210_priv
+ 	mutex_unlock(&wil->vif_mutex);
+ 
+ 	flush_work(&wil->wmi_event_worker);
+-	del_timer_sync(&vif->connect_timer);
++	timer_delete_sync(&vif->connect_timer);
+ 	cancel_work_sync(&vif->disconnect_worker);
+ 	wil_probe_client_flush(vif);
+ 	cancel_work_sync(&vif->probe_client_worker);
+--- a/drivers/net/wireless/ath/wil6210/p2p.c
++++ b/drivers/net/wireless/ath/wil6210/p2p.c
+@@ -184,7 +184,7 @@ u8 wil_p2p_stop_discovery(struct wil6210
+ 			/* discovery not really started, only pending */
+ 			p2p->pending_listen_wdev = NULL;
+ 		} else {
+-			del_timer_sync(&p2p->discovery_timer);
++			timer_delete_sync(&p2p->discovery_timer);
+ 			wmi_stop_discovery(vif);
+ 		}
+ 		p2p->discovery_started = 0;
+--- a/drivers/net/wireless/ath/wil6210/wmi.c
++++ b/drivers/net/wireless/ath/wil6210/wmi.c
+@@ -933,7 +933,7 @@ static void wmi_evt_scan_complete(struct
+ 		wil_dbg_wmi(wil, "SCAN_COMPLETE(0x%08x)\n", status);
+ 		wil_dbg_misc(wil, "Complete scan_request 0x%p aborted %d\n",
+ 			     vif->scan_request, info.aborted);
+-		del_timer_sync(&vif->scan_timer);
++		timer_delete_sync(&vif->scan_timer);
+ 		cfg80211_scan_done(vif->scan_request, &info);
+ 		if (vif->mid == 0)
+ 			wil->radio_wdev = wil->main_ndev->ieee80211_ptr;
+@@ -1023,7 +1023,7 @@ static void wmi_evt_connect(struct wil62
+ 			mutex_unlock(&wil->mutex);
+ 			return;
+ 		}
+-		del_timer_sync(&vif->connect_timer);
++		timer_delete_sync(&vif->connect_timer);
+ 	} else if ((wdev->iftype == NL80211_IFTYPE_AP) ||
+ 		   (wdev->iftype == NL80211_IFTYPE_P2P_GO)) {
+ 		if (wil->sta[evt->cid].status != wil_sta_unused) {
+@@ -1814,7 +1814,7 @@ wmi_evt_reassoc_status(struct wil6210_vi
+ 	wil->sta[cid].stats.ft_roams++;
+ 	ether_addr_copy(wil->sta[cid].addr, vif->bss->bssid);
+ 	mutex_unlock(&wil->mutex);
+-	del_timer_sync(&vif->connect_timer);
++	timer_delete_sync(&vif->connect_timer);
+ 
+ 	cfg80211_ref_bss(wiphy, vif->bss);
+ 	freq = ieee80211_channel_to_frequency(ch, NL80211_BAND_60GHZ);
+--- a/drivers/net/wireless/atmel/at76c50x-usb.c
++++ b/drivers/net/wireless/atmel/at76c50x-usb.c
+@@ -2417,7 +2417,7 @@ static void at76_delete_device(struct at
+ 
+ 	kfree(priv->bulk_out_buffer);
+ 
+-	del_timer_sync(&ledtrig_tx_timer);
++	timer_delete_sync(&ledtrig_tx_timer);
+ 
+ 	kfree_skb(priv->rx_skb);
+ 
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/btcoex.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/btcoex.c
+@@ -289,7 +289,7 @@ static void brcmf_btcoex_handler(struct
+ 	btci = container_of(work, struct brcmf_btcoex_info, work);
+ 	if (btci->timer_on) {
+ 		btci->timer_on = false;
+-		del_timer_sync(&btci->timer);
++		timer_delete_sync(&btci->timer);
+ 	}
+ 
+ 	switch (btci->bt_state) {
+@@ -428,7 +428,7 @@ static void brcmf_btcoex_dhcp_end(struct
+ 	if (btci->timer_on) {
+ 		brcmf_dbg(INFO, "disable BT DHCP Timer\n");
+ 		btci->timer_on = false;
+-		del_timer_sync(&btci->timer);
++		timer_delete_sync(&btci->timer);
+ 
+ 		/* schedule worker if transition to IDLE is needed */
+ 		if (btci->bt_state != BRCMF_BT_DHCP_IDLE) {
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c
+@@ -2304,7 +2304,7 @@ brcmf_pcie_fwcon_timer(struct brcmf_pcie
+ {
+ 	if (!active) {
+ 		if (devinfo->console_active) {
+-			del_timer_sync(&devinfo->timer);
++			timer_delete_sync(&devinfo->timer);
+ 			devinfo->console_active = false;
+ 		}
+ 		return;
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+@@ -4611,7 +4611,7 @@ void brcmf_sdio_wd_timer(struct brcmf_sd
+ {
+ 	/* Totally stop the timer */
+ 	if (!active && bus->wd_active) {
+-		del_timer_sync(&bus->timer);
++		timer_delete_sync(&bus->timer);
+ 		bus->wd_active = false;
+ 		return;
+ 	}
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/mac80211_if.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/mac80211_if.c
+@@ -1546,7 +1546,7 @@ void brcms_add_timer(struct brcms_timer
+  *
+  * precondition: perimeter lock has been acquired
+  */
+-bool brcms_del_timer(struct brcms_timer *t)
++bool brcms_timer_delete(struct brcms_timer *t)
+ {
+ 	if (t->set) {
+ 		t->set = false;
+@@ -1568,7 +1568,7 @@ void brcms_free_timer(struct brcms_timer
+ 	struct brcms_timer *tmp;
+ 
+ 	/* delete the timer in case it is active */
+-	brcms_del_timer(t);
++	brcms_timer_delete(t);
+ 
+ 	if (wl->timers == t) {
+ 		wl->timers = wl->timers->next;
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/mac80211_if.h
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/mac80211_if.h
+@@ -105,7 +105,7 @@ struct brcms_timer *brcms_init_timer(str
+ 				     const char *name);
+ void brcms_free_timer(struct brcms_timer *timer);
+ void brcms_add_timer(struct brcms_timer *timer, uint ms, int periodic);
+-bool brcms_del_timer(struct brcms_timer *timer);
++bool brcms_timer_delete(struct brcms_timer *timer);
+ void brcms_dpc(struct tasklet_struct *t);
+ void brcms_timer(struct brcms_timer *t);
+ void brcms_fatal_error(struct brcms_info *wl);
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/main.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/main.c
+@@ -4144,7 +4144,7 @@ static bool brcms_c_radio_monitor_stop(s
+ 
+ 	wlc->radio_monitor = false;
+ 	brcms_b_pllreq(wlc->hw, false, BRCMS_PLLREQ_RADIO_MON);
+-	return brcms_del_timer(wlc->radio_timer);
++	return brcms_timer_delete(wlc->radio_timer);
+ }
+ 
+ /* read hwdisable state and propagate to wlc flag */
+@@ -5181,7 +5181,7 @@ uint brcms_c_down(struct brcms_c_info *w
+ 
+ 	/* cancel the watchdog timer */
+ 	if (wlc->WDarmed) {
+-		if (!brcms_del_timer(wlc->wdtimer))
++		if (!brcms_timer_delete(wlc->wdtimer))
+ 			callbacks++;
+ 		wlc->WDarmed = false;
+ 	}
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_cmn.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy/phy_cmn.c
+@@ -809,7 +809,7 @@ int wlc_phy_down(struct brcms_phy_pub *p
+ 	int callbacks = 0;
+ 
+ 	if (pi->phycal_timer
+-	    && !wlapi_del_timer(pi->phycal_timer))
++	    && !wlapi_timer_delete(pi->phycal_timer))
+ 		callbacks++;
+ 
+ 	pi->nphy_iqcal_chanspec_2G = 0;
+@@ -2672,7 +2672,7 @@ wlc_phy_papd_decode_epsilon(u32 epsilon,
+ 
+ void wlc_phy_cal_perical_mphase_reset(struct brcms_phy *pi)
+ {
+-	wlapi_del_timer(pi->phycal_timer);
++	wlapi_timer_delete(pi->phycal_timer);
+ 
+ 	pi->cal_type_override = PHY_PERICAL_AUTO;
+ 	pi->mphase_cal_phase_id = MPHASE_CAL_STATE_IDLE;
+@@ -2687,7 +2687,7 @@ wlc_phy_cal_perical_mphase_schedule(stru
+ 	    (pi->nphy_perical != PHY_PERICAL_MANUAL))
+ 		return;
+ 
+-	wlapi_del_timer(pi->phycal_timer);
++	wlapi_timer_delete(pi->phycal_timer);
+ 
+ 	pi->mphase_cal_phase_id = MPHASE_CAL_STATE_INIT;
+ 	wlapi_add_timer(pi->phycal_timer, delay, 0);
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy_shim.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy_shim.c
+@@ -75,9 +75,9 @@ wlapi_add_timer(struct wlapi_timer *t, u
+ 	brcms_add_timer((struct brcms_timer *)t, ms, periodic);
+ }
+ 
+-bool wlapi_del_timer(struct wlapi_timer *t)
++bool wlapi_timer_delete(struct wlapi_timer *t)
+ {
+-	return brcms_del_timer((struct brcms_timer *)t);
++	return brcms_timer_delete((struct brcms_timer *)t);
+ }
+ 
+ void wlapi_intrson(struct phy_shim_info *physhim)
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy_shim.h
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/phy_shim.h
+@@ -135,7 +135,7 @@ struct wlapi_timer *wlapi_init_timer(str
+ 				     void *arg, const char *name);
+ void wlapi_free_timer(struct wlapi_timer *t);
+ void wlapi_add_timer(struct wlapi_timer *t, uint ms, int periodic);
+-bool wlapi_del_timer(struct wlapi_timer *t);
++bool wlapi_timer_delete(struct wlapi_timer *t);
+ void wlapi_intrson(struct phy_shim_info *physhim);
+ u32 wlapi_intrsoff(struct phy_shim_info *physhim);
+ void wlapi_intrsrestore(struct phy_shim_info *physhim, u32 macintmask);
+--- a/drivers/net/wireless/intel/ipw2x00/libipw_crypto.c
++++ b/drivers/net/wireless/intel/ipw2x00/libipw_crypto.c
+@@ -59,7 +59,7 @@ void libipw_crypt_info_free(struct libip
+ 	int i;
+ 
+         libipw_crypt_quiescing(info);
+-        del_timer_sync(&info->crypt_deinit_timer);
++        timer_delete_sync(&info->crypt_deinit_timer);
+         libipw_crypt_deinit_entries(info, 1);
+ 
+         for (i = 0; i < NUM_WEP_KEYS; i++) {
+--- a/drivers/net/wireless/intel/iwlegacy/3945-mac.c
++++ b/drivers/net/wireless/intel/iwlegacy/3945-mac.c
+@@ -2188,7 +2188,7 @@ __il3945_down(struct il_priv *il)
+ 
+ 	/* Stop TX queues watchdog. We need to have S_EXIT_PENDING bit set
+ 	 * to prevent rearm timer */
+-	del_timer_sync(&il->watchdog);
++	timer_delete_sync(&il->watchdog);
+ 
+ 	/* Station information will now be cleared in device */
+ 	il_clear_ucode_stations(il);
+--- a/drivers/net/wireless/intel/iwlegacy/3945-rs.c
++++ b/drivers/net/wireless/intel/iwlegacy/3945-rs.c
+@@ -413,7 +413,7 @@ il3945_rs_free_sta(void *il_priv, struct
+ 	 * to use il_priv to print out debugging) since it may not be fully
+ 	 * initialized at this point.
+ 	 */
+-	del_timer_sync(&rs_sta->rate_scale_flush);
++	timer_delete_sync(&rs_sta->rate_scale_flush);
+ }
+ 
+ /*
+--- a/drivers/net/wireless/intel/iwlegacy/4965-mac.c
++++ b/drivers/net/wireless/intel/iwlegacy/4965-mac.c
+@@ -5350,7 +5350,7 @@ __il4965_down(struct il_priv *il)
+ 
+ 	/* Stop TX queues watchdog. We need to have S_EXIT_PENDING bit set
+ 	 * to prevent rearm timer */
+-	del_timer_sync(&il->watchdog);
++	timer_delete_sync(&il->watchdog);
+ 
+ 	il_clear_ucode_stations(il);
+ 
+@@ -6243,7 +6243,7 @@ il4965_cancel_deferred_work(struct il_pr
+ 
+ 	il_cancel_scan_deferred_work(il);
+ 
+-	del_timer_sync(&il->stats_periodic);
++	timer_delete_sync(&il->stats_periodic);
+ }
+ 
+ static void
+--- a/drivers/net/wireless/intel/iwlegacy/common.c
++++ b/drivers/net/wireless/intel/iwlegacy/common.c
+@@ -4842,7 +4842,7 @@ il_setup_watchdog(struct il_priv *il)
+ 		mod_timer(&il->watchdog,
+ 			  jiffies + msecs_to_jiffies(IL_WD_TICK(timeout)));
+ 	else
+-		del_timer(&il->watchdog);
++		timer_delete(&il->watchdog);
+ }
+ EXPORT_SYMBOL(il_setup_watchdog);
+ 
+--- a/drivers/net/wireless/intel/iwlwifi/dvm/debugfs.c
++++ b/drivers/net/wireless/intel/iwlwifi/dvm/debugfs.c
+@@ -1870,7 +1870,7 @@ static ssize_t iwl_dbgfs_ucode_tracing_w
+ 		}
+ 	} else {
+ 		priv->event_log.ucode_trace = false;
+-		del_timer_sync(&priv->ucode_trace);
++		timer_delete_sync(&priv->ucode_trace);
+ 	}
+ 
+ 	return count;
+--- a/drivers/net/wireless/intel/iwlwifi/dvm/main.c
++++ b/drivers/net/wireless/intel/iwlwifi/dvm/main.c
+@@ -1082,8 +1082,8 @@ void iwl_cancel_deferred_work(struct iwl
+ 	cancel_work_sync(&priv->bt_full_concurrency);
+ 	cancel_work_sync(&priv->bt_runtime_config);
+ 
+-	del_timer_sync(&priv->statistics_periodic);
+-	del_timer_sync(&priv->ucode_trace);
++	timer_delete_sync(&priv->statistics_periodic);
++	timer_delete_sync(&priv->ucode_trace);
+ }
+ 
+ static int iwl_init_drv(struct iwl_priv *priv)
+--- a/drivers/net/wireless/intel/iwlwifi/dvm/tt.c
++++ b/drivers/net/wireless/intel/iwlwifi/dvm/tt.c
+@@ -268,7 +268,7 @@ static void iwl_legacy_tt_handler(struct
+ 	tt->tt_previous_temp = temp;
+ #endif
+ 	/* stop ct_kill_waiting_tm timer */
+-	del_timer_sync(&priv->thermal_throttle.ct_kill_waiting_tm);
++	timer_delete_sync(&priv->thermal_throttle.ct_kill_waiting_tm);
+ 	if (tt->state != old_state) {
+ 		switch (tt->state) {
+ 		case IWL_TI_0:
+@@ -389,7 +389,7 @@ static void iwl_advance_tt_handler(struc
+ 		}
+ 	}
+ 	/* stop ct_kill_waiting_tm timer */
+-	del_timer_sync(&priv->thermal_throttle.ct_kill_waiting_tm);
++	timer_delete_sync(&priv->thermal_throttle.ct_kill_waiting_tm);
+ 	if (changed) {
+ 		if (tt->state >= IWL_TI_1) {
+ 			/* force PI = IWL_POWER_INDEX_5 in the case of TI > 0 */
+@@ -517,7 +517,7 @@ static void iwl_bg_ct_exit(struct work_s
+ 		return;
+ 
+ 	/* stop ct_kill_exit_tm timer */
+-	del_timer_sync(&priv->thermal_throttle.ct_kill_exit_tm);
++	timer_delete_sync(&priv->thermal_throttle.ct_kill_exit_tm);
+ 
+ 	if (tt->state == IWL_TI_CT_KILL) {
+ 		IWL_ERR(priv,
+@@ -651,9 +651,9 @@ void iwl_tt_exit(struct iwl_priv *priv)
+ 	struct iwl_tt_mgmt *tt = &priv->thermal_throttle;
+ 
+ 	/* stop ct_kill_exit_tm timer if activated */
+-	del_timer_sync(&priv->thermal_throttle.ct_kill_exit_tm);
++	timer_delete_sync(&priv->thermal_throttle.ct_kill_exit_tm);
+ 	/* stop ct_kill_waiting_tm timer if activated */
+-	del_timer_sync(&priv->thermal_throttle.ct_kill_waiting_tm);
++	timer_delete_sync(&priv->thermal_throttle.ct_kill_waiting_tm);
+ 	cancel_work_sync(&priv->tt_work);
+ 	cancel_work_sync(&priv->ct_enter);
+ 	cancel_work_sync(&priv->ct_exit);
+--- a/drivers/net/wireless/intel/iwlwifi/fw/dbg.c
++++ b/drivers/net/wireless/intel/iwlwifi/fw/dbg.c
+@@ -3264,7 +3264,7 @@ void iwl_fw_dbg_stop_sync(struct iwl_fw_
+ {
+ 	int i;
+ 
+-	iwl_dbg_tlv_del_timers(fwrt->trans);
++	iwl_dbg_tlv_timer_deletes(fwrt->trans);
+ 	for (i = 0; i < IWL_FW_RUNTIME_DUMP_WK_NUM; i++)
+ 		iwl_fw_dbg_collect_sync(fwrt, i);
+ 
+--- a/drivers/net/wireless/intel/iwlwifi/fw/dbg.h
++++ b/drivers/net/wireless/intel/iwlwifi/fw/dbg.h
+@@ -222,7 +222,7 @@ static inline void iwl_fw_flush_dumps(st
+ {
+ 	int i;
+ 
+-	iwl_dbg_tlv_del_timers(fwrt->trans);
++	iwl_dbg_tlv_timer_deletes(fwrt->trans);
+ 	for (i = 0; i < IWL_FW_RUNTIME_DUMP_WK_NUM; i++)
+ 		flush_delayed_work(&fwrt->dump.wks[i].wk);
+ }
+--- a/drivers/net/wireless/intel/iwlwifi/fw/runtime.h
++++ b/drivers/net/wireless/intel/iwlwifi/fw/runtime.h
+@@ -198,7 +198,7 @@ static inline void iwl_fw_runtime_free(s
+ 	kfree(fwrt->dump.d3_debug_data);
+ 	fwrt->dump.d3_debug_data = NULL;
+ 
+-	iwl_dbg_tlv_del_timers(fwrt->trans);
++	iwl_dbg_tlv_timer_deletes(fwrt->trans);
+ 	for (i = 0; i < IWL_FW_RUNTIME_DUMP_WK_NUM; i++)
+ 		cancel_delayed_work_sync(&fwrt->dump.wks[i].wk);
+ }
+--- a/drivers/net/wireless/intel/iwlwifi/iwl-dbg-tlv.c
++++ b/drivers/net/wireless/intel/iwlwifi/iwl-dbg-tlv.c
+@@ -374,7 +374,7 @@ out_err:
+ 	*cfg_state = IWL_INI_CFG_STATE_CORRUPTED;
+ }
+ 
+-void iwl_dbg_tlv_del_timers(struct iwl_trans *trans)
++void iwl_dbg_tlv_timer_deletes(struct iwl_trans *trans)
+ {
+ 	struct list_head *timer_list = &trans->dbg.periodic_trig_list;
+ 	struct iwl_dbg_tlv_timer_node *node, *tmp;
+@@ -385,7 +385,7 @@ void iwl_dbg_tlv_del_timers(struct iwl_t
+ 		kfree(node);
+ 	}
+ }
+-IWL_EXPORT_SYMBOL(iwl_dbg_tlv_del_timers);
++IWL_EXPORT_SYMBOL(iwl_dbg_tlv_timer_deletes);
+ 
+ static void iwl_dbg_tlv_fragments_free(struct iwl_trans *trans,
+ 				       enum iwl_fw_ini_allocation_id alloc_id)
+@@ -420,7 +420,7 @@ void iwl_dbg_tlv_free(struct iwl_trans *
+ 	struct iwl_dbg_tlv_node *tlv_node, *tlv_node_tmp;
+ 	int i;
+ 
+-	iwl_dbg_tlv_del_timers(trans);
++	iwl_dbg_tlv_timer_deletes(trans);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(trans->dbg.active_regions); i++) {
+ 		struct iwl_ucode_tlv **active_reg =
+--- a/drivers/net/wireless/intel/iwlwifi/iwl-dbg-tlv.h
++++ b/drivers/net/wireless/intel/iwlwifi/iwl-dbg-tlv.h
+@@ -73,6 +73,6 @@ static inline void iwl_dbg_tlv_time_poin
+ 	_iwl_dbg_tlv_time_point(fwrt, tp_id, tp_data, true);
+ }
+ 
+-void iwl_dbg_tlv_del_timers(struct iwl_trans *trans);
++void iwl_dbg_tlv_timer_deletes(struct iwl_trans *trans);
+ 
+ #endif /* __iwl_dbg_tlv_h__*/
+--- a/drivers/net/wireless/intel/iwlwifi/mvm/ops.c
++++ b/drivers/net/wireless/intel/iwlwifi/mvm/ops.c
+@@ -2012,7 +2012,7 @@ static void iwl_mvm_nic_error(struct iwl
+ 	struct iwl_mvm *mvm = IWL_OP_MODE_GET_MVM(op_mode);
+ 
+ 	iwl_abort_notification_waits(&mvm->notif_wait);
+-	iwl_dbg_tlv_del_timers(mvm->trans);
++	iwl_dbg_tlv_timer_deletes(mvm->trans);
+ 
+ 	if (type == IWL_ERR_TYPE_CMD_QUEUE_FULL)
+ 		IWL_ERR(mvm, "Command queue full!\n");
+--- a/drivers/net/wireless/intel/iwlwifi/pcie/rx.c
++++ b/drivers/net/wireless/intel/iwlwifi/pcie/rx.c
+@@ -1697,7 +1697,7 @@ static void iwl_pcie_irq_handle_error(st
+ 	for (i = 0; i < trans->trans_cfg->base_params->num_of_queues; i++) {
+ 		if (!trans_pcie->txqs.txq[i])
+ 			continue;
+-		del_timer(&trans_pcie->txqs.txq[i]->stuck_timer);
++		timer_delete(&trans_pcie->txqs.txq[i]->stuck_timer);
+ 	}
+ 
+ 	/* The STATUS_FW_ERROR bit is set in this function. This must happen
+--- a/drivers/net/wireless/intel/iwlwifi/pcie/tx-gen2.c
++++ b/drivers/net/wireless/intel/iwlwifi/pcie/tx-gen2.c
+@@ -911,7 +911,7 @@ static void iwl_txq_gen2_free(struct iwl
+ 			kfree_sensitive(txq->entries[i].cmd);
+ 			kfree_sensitive(txq->entries[i].free_buf);
+ 		}
+-	del_timer_sync(&txq->stuck_timer);
++	timer_delete_sync(&txq->stuck_timer);
+ 
+ 	iwl_txq_gen2_free_memory(trans, txq);
+ 
+--- a/drivers/net/wireless/intel/iwlwifi/pcie/tx.c
++++ b/drivers/net/wireless/intel/iwlwifi/pcie/tx.c
+@@ -469,7 +469,7 @@ static void iwl_pcie_txq_free(struct iwl
+ 	kfree(txq->entries);
+ 	txq->entries = NULL;
+ 
+-	del_timer_sync(&txq->stuck_timer);
++	timer_delete_sync(&txq->stuck_timer);
+ 
+ 	/* 0-fill queue descriptor structure */
+ 	memset(txq, 0, sizeof(*txq));
+@@ -1054,7 +1054,7 @@ static void iwl_txq_progress(struct iwl_
+ 	 * since we're making progress on this queue
+ 	 */
+ 	if (txq->read_ptr == txq->write_ptr)
+-		del_timer(&txq->stuck_timer);
++		timer_delete(&txq->stuck_timer);
+ 	else
+ 		mod_timer(&txq->stuck_timer, jiffies + txq->wd_timeout);
+ }
+@@ -2529,7 +2529,7 @@ void iwl_pcie_freeze_txq_timer(struct iw
+ 			/* remember how long until the timer fires */
+ 			txq->frozen_expiry_remainder =
+ 				txq->stuck_timer.expires - now;
+-			del_timer(&txq->stuck_timer);
++			timer_delete(&txq->stuck_timer);
+ 			goto next_queue;
+ 		}
+ 
+--- a/drivers/net/wireless/marvell/libertas/cmdresp.c
++++ b/drivers/net/wireless/marvell/libertas/cmdresp.c
+@@ -119,7 +119,7 @@ int lbs_process_command_response(struct
+ 	}
+ 
+ 	/* Now we got response from FW, cancel the command timer */
+-	del_timer(&priv->command_timer);
++	timer_delete(&priv->command_timer);
+ 	priv->cmd_timed_out = 0;
+ 
+ 	if (respcmd == CMD_RET(CMD_802_11_PS_MODE)) {
+--- a/drivers/net/wireless/marvell/libertas/if_usb.c
++++ b/drivers/net/wireless/marvell/libertas/if_usb.c
+@@ -897,7 +897,7 @@ restart:
+ 	/* ... and wait for the process to complete */
+ 	wait_event_interruptible(cardp->fw_wq, cardp->surprise_removed || cardp->fwdnldover);
+ 
+-	del_timer_sync(&cardp->fw_timeout);
++	timer_delete_sync(&cardp->fw_timeout);
+ 	usb_kill_urb(cardp->rx_urb);
+ 
+ 	if (!cardp->fwdnldover) {
+--- a/drivers/net/wireless/marvell/libertas/main.c
++++ b/drivers/net/wireless/marvell/libertas/main.c
+@@ -222,7 +222,7 @@ int lbs_stop_iface(struct lbs_private *p
+ 	spin_unlock_irqrestore(&priv->driver_lock, flags);
+ 
+ 	cancel_work_sync(&priv->mcast_work);
+-	del_timer_sync(&priv->tx_lockup_timer);
++	timer_delete_sync(&priv->tx_lockup_timer);
+ 
+ 	/* Disable command processing, and wait for all commands to complete */
+ 	lbs_deb_main("waiting for commands to complete\n");
+@@ -270,7 +270,7 @@ void lbs_host_to_card_done(struct lbs_pr
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&priv->driver_lock, flags);
+-	del_timer(&priv->tx_lockup_timer);
++	timer_delete(&priv->tx_lockup_timer);
+ 
+ 	priv->dnld_sent = DNLD_RES_RECEIVED;
+ 
+@@ -624,9 +624,9 @@ static int lbs_thread(void *data)
+ 		spin_unlock_irq(&priv->driver_lock);
+ 	}
+ 
+-	del_timer(&priv->command_timer);
+-	del_timer(&priv->tx_lockup_timer);
+-	del_timer(&priv->auto_deepsleep_timer);
++	timer_delete(&priv->command_timer);
++	timer_delete(&priv->tx_lockup_timer);
++	timer_delete(&priv->auto_deepsleep_timer);
+ 
+ 	return 0;
+ }
+@@ -817,7 +817,7 @@ int lbs_exit_auto_deep_sleep(struct lbs_
+ {
+ 	priv->is_auto_deep_sleep_enabled = 0;
+ 	priv->auto_deep_sleep_timeout = 0;
+-	del_timer(&priv->auto_deepsleep_timer);
++	timer_delete(&priv->auto_deepsleep_timer);
+ 
+ 	return 0;
+ }
+@@ -881,9 +881,9 @@ static void lbs_free_adapter(struct lbs_
+ {
+ 	lbs_free_cmd_buffer(priv);
+ 	kfifo_free(&priv->event_fifo);
+-	del_timer(&priv->command_timer);
+-	del_timer(&priv->tx_lockup_timer);
+-	del_timer(&priv->auto_deepsleep_timer);
++	timer_delete(&priv->command_timer);
++	timer_delete(&priv->tx_lockup_timer);
++	timer_delete(&priv->auto_deepsleep_timer);
+ }
+ 
+ static const struct net_device_ops lbs_netdev_ops = {
+--- a/drivers/net/wireless/marvell/libertas_tf/cmd.c
++++ b/drivers/net/wireless/marvell/libertas_tf/cmd.c
+@@ -757,7 +757,7 @@ int lbtf_process_rx_command(struct lbtf_
+ 	}
+ 
+ 	/* Now we got response from FW, cancel the command timer */
+-	del_timer(&priv->command_timer);
++	timer_delete(&priv->command_timer);
+ 	priv->cmd_timed_out = 0;
+ 	if (priv->nr_retries)
+ 		priv->nr_retries = 0;
+--- a/drivers/net/wireless/marvell/libertas_tf/if_usb.c
++++ b/drivers/net/wireless/marvell/libertas_tf/if_usb.c
+@@ -875,7 +875,7 @@ restart:
+ 	wait_event_interruptible(cardp->fw_wq, cardp->priv->surpriseremoved ||
+ 					       cardp->fwdnldover);
+ 
+-	del_timer_sync(&cardp->fw_timeout);
++	timer_delete_sync(&cardp->fw_timeout);
+ 	usb_kill_urb(cardp->rx_urb);
+ 
+ 	if (!cardp->fwdnldover) {
+--- a/drivers/net/wireless/marvell/libertas_tf/main.c
++++ b/drivers/net/wireless/marvell/libertas_tf/main.c
+@@ -174,7 +174,7 @@ static void lbtf_free_adapter(struct lbt
+ {
+ 	lbtf_deb_enter(LBTF_DEB_MAIN);
+ 	lbtf_free_cmd_buffer(priv);
+-	del_timer(&priv->command_timer);
++	timer_delete(&priv->command_timer);
+ 	lbtf_deb_leave(LBTF_DEB_MAIN);
+ }
+ 
+@@ -642,7 +642,7 @@ int lbtf_remove_card(struct lbtf_private
+ 	lbtf_deb_enter(LBTF_DEB_MAIN);
+ 
+ 	priv->surpriseremoved = 1;
+-	del_timer(&priv->command_timer);
++	timer_delete(&priv->command_timer);
+ 	lbtf_free_adapter(priv);
+ 	priv->hw = NULL;
+ 	ieee80211_unregister_hw(hw);
+--- a/drivers/net/wireless/marvell/mwifiex/11n_rxreorder.c
++++ b/drivers/net/wireless/marvell/mwifiex/11n_rxreorder.c
+@@ -206,7 +206,7 @@ mwifiex_del_rx_reorder_entry(struct mwif
+ 	start_win = (tbl->start_win + tbl->win_size) & (MAX_TID_VALUE - 1);
+ 	mwifiex_11n_dispatch_pkt_until_start_win(priv, tbl, start_win);
+ 
+-	del_timer_sync(&tbl->timer_context.timer);
++	timer_delete_sync(&tbl->timer_context.timer);
+ 	tbl->timer_context.timer_is_set = false;
+ 
+ 	spin_lock_bh(&priv->rx_reorder_tbl_lock);
+--- a/drivers/net/wireless/marvell/mwifiex/cmdevt.c
++++ b/drivers/net/wireless/marvell/mwifiex/cmdevt.c
+@@ -836,7 +836,7 @@ int mwifiex_process_cmdresp(struct mwifi
+ 		return -1;
+ 	}
+ 	/* Now we got response from FW, cancel the command timer */
+-	del_timer_sync(&adapter->cmd_timer);
++	timer_delete_sync(&adapter->cmd_timer);
+ 	clear_bit(MWIFIEX_IS_CMD_TIMEDOUT, &adapter->work_flags);
+ 
+ 	if (adapter->curr_cmd->cmd_flag & CMD_F_HOSTCMD) {
+--- a/drivers/net/wireless/marvell/mwifiex/init.c
++++ b/drivers/net/wireless/marvell/mwifiex/init.c
+@@ -390,7 +390,7 @@ static void mwifiex_invalidate_lists(str
+ static void
+ mwifiex_adapter_cleanup(struct mwifiex_adapter *adapter)
+ {
+-	del_timer(&adapter->wakeup_timer);
++	timer_delete(&adapter->wakeup_timer);
+ 	cancel_delayed_work_sync(&adapter->devdump_work);
+ 	mwifiex_cancel_all_pending_cmd(adapter);
+ 	wake_up_interruptible(&adapter->cmd_wait_q.wait);
+@@ -613,7 +613,7 @@ mwifiex_shutdown_drv(struct mwifiex_adap
+ 	if (adapter->curr_cmd) {
+ 		mwifiex_dbg(adapter, WARN,
+ 			    "curr_cmd is still in processing\n");
+-		del_timer_sync(&adapter->cmd_timer);
++		timer_delete_sync(&adapter->cmd_timer);
+ 		mwifiex_recycle_cmd_node(adapter, adapter->curr_cmd);
+ 		adapter->curr_cmd = NULL;
+ 	}
+--- a/drivers/net/wireless/marvell/mwifiex/main.c
++++ b/drivers/net/wireless/marvell/mwifiex/main.c
+@@ -307,7 +307,7 @@ process_start:
+ 		if (IS_CARD_RX_RCVD(adapter)) {
+ 			adapter->data_received = false;
+ 			adapter->pm_wakeup_fw_try = false;
+-			del_timer(&adapter->wakeup_timer);
++			timer_delete(&adapter->wakeup_timer);
+ 			if (adapter->ps_state == PS_STATE_SLEEP)
+ 				adapter->ps_state = PS_STATE_AWAKE;
+ 		} else {
+--- a/drivers/net/wireless/marvell/mwifiex/pcie.c
++++ b/drivers/net/wireless/marvell/mwifiex/pcie.c
+@@ -2437,7 +2437,7 @@ static void mwifiex_interrupt_status(str
+ 		 */
+ 		adapter->ps_state = PS_STATE_AWAKE;
+ 		adapter->pm_wakeup_fw_try = false;
+-		del_timer(&adapter->wakeup_timer);
++		timer_delete(&adapter->wakeup_timer);
+ 	}
+ 
+ 	spin_lock_irqsave(&adapter->int_lock, flags);
+@@ -2527,7 +2527,7 @@ static int mwifiex_process_int_status(st
+ 				    adapter->ps_state == PS_STATE_SLEEP) {
+ 					adapter->ps_state = PS_STATE_AWAKE;
+ 					adapter->pm_wakeup_fw_try = false;
+-					del_timer(&adapter->wakeup_timer);
++					timer_delete(&adapter->wakeup_timer);
+ 				}
+ 			}
+ 		}
+--- a/drivers/net/wireless/marvell/mwifiex/sta_event.c
++++ b/drivers/net/wireless/marvell/mwifiex/sta_event.c
+@@ -789,7 +789,7 @@ int mwifiex_process_sta_event(struct mwi
+ 					adapter->ps_state = PS_STATE_AWAKE;
+ 					adapter->pm_wakeup_card_req = false;
+ 					adapter->pm_wakeup_fw_try = false;
+-					del_timer(&adapter->wakeup_timer);
++					timer_delete(&adapter->wakeup_timer);
+ 					break;
+ 				}
+ 				if (!mwifiex_send_null_packet
+@@ -804,7 +804,7 @@ int mwifiex_process_sta_event(struct mwi
+ 		adapter->ps_state = PS_STATE_AWAKE;
+ 		adapter->pm_wakeup_card_req = false;
+ 		adapter->pm_wakeup_fw_try = false;
+-		del_timer(&adapter->wakeup_timer);
++		timer_delete(&adapter->wakeup_timer);
+ 
+ 		break;
+ 
+--- a/drivers/net/wireless/marvell/mwifiex/tdls.c
++++ b/drivers/net/wireless/marvell/mwifiex/tdls.c
+@@ -1490,7 +1490,7 @@ void mwifiex_clean_auto_tdls(struct mwif
+ 	    priv->adapter->auto_tdls &&
+ 	    priv->bss_type == MWIFIEX_BSS_TYPE_STA) {
+ 		priv->auto_tdls_timer_active = false;
+-		del_timer(&priv->auto_tdls_timer);
++		timer_delete(&priv->auto_tdls_timer);
+ 		mwifiex_flush_auto_tdls_list(priv);
+ 	}
+ }
+--- a/drivers/net/wireless/marvell/mwifiex/usb.c
++++ b/drivers/net/wireless/marvell/mwifiex/usb.c
+@@ -877,7 +877,7 @@ static int mwifiex_usb_prepare_tx_aggr_s
+ 	 * write complete, delete the tx_aggr timer
+ 	 */
+ 	if (port->tx_aggr.timer_cnxt.is_hold_timer_set) {
+-		del_timer(&port->tx_aggr.timer_cnxt.hold_timer);
++		timer_delete(&port->tx_aggr.timer_cnxt.hold_timer);
+ 		port->tx_aggr.timer_cnxt.is_hold_timer_set = false;
+ 		port->tx_aggr.timer_cnxt.hold_tmo_msecs = 0;
+ 	}
+@@ -1354,7 +1354,7 @@ static void mwifiex_usb_cleanup_tx_aggr(
+ 				mwifiex_write_data_complete(adapter, skb_tmp,
+ 							    0, -1);
+ 		if (port->tx_aggr.timer_cnxt.hold_timer.function)
+-			del_timer_sync(&port->tx_aggr.timer_cnxt.hold_timer);
++			timer_delete_sync(&port->tx_aggr.timer_cnxt.hold_timer);
+ 		port->tx_aggr.timer_cnxt.is_hold_timer_set = false;
+ 		port->tx_aggr.timer_cnxt.hold_tmo_msecs = 0;
+ 	}
+@@ -1557,7 +1557,7 @@ static int mwifiex_pm_wakeup_card(struct
+ {
+ 	/* Simulation of HS_AWAKE event */
+ 	adapter->pm_wakeup_fw_try = false;
+-	del_timer(&adapter->wakeup_timer);
++	timer_delete(&adapter->wakeup_timer);
+ 	adapter->pm_wakeup_card_req = false;
+ 	adapter->ps_state = PS_STATE_AWAKE;
+ 
+--- a/drivers/net/wireless/mediatek/mt76/mt7615/main.c
++++ b/drivers/net/wireless/mediatek/mt76/mt7615/main.c
+@@ -97,7 +97,7 @@ static void mt7615_stop(struct ieee80211
+ 	struct mt7615_phy *phy = mt7615_hw_phy(hw);
+ 
+ 	cancel_delayed_work_sync(&phy->mt76->mac_work);
+-	del_timer_sync(&phy->roc_timer);
++	timer_delete_sync(&phy->roc_timer);
+ 	cancel_work_sync(&phy->roc_work);
+ 
+ 	cancel_delayed_work_sync(&dev->pm.ps_work);
+@@ -1194,7 +1194,7 @@ static int mt7615_cancel_remain_on_chann
+ 	if (!test_and_clear_bit(MT76_STATE_ROC, &phy->mt76->state))
+ 		return 0;
+ 
+-	del_timer_sync(&phy->roc_timer);
++	timer_delete_sync(&phy->roc_timer);
+ 	cancel_work_sync(&phy->roc_work);
+ 
+ 	mt7615_mutex_acquire(phy->dev);
+--- a/drivers/net/wireless/mediatek/mt76/mt7615/pci_mac.c
++++ b/drivers/net/wireless/mediatek/mt76/mt7615/pci_mac.c
+@@ -220,12 +220,12 @@ void mt7615_mac_reset_work(struct work_s
+ 	set_bit(MT76_MCU_RESET, &dev->mphy.state);
+ 	wake_up(&dev->mt76.mcu.wait);
+ 	cancel_delayed_work_sync(&dev->mphy.mac_work);
+-	del_timer_sync(&dev->phy.roc_timer);
++	timer_delete_sync(&dev->phy.roc_timer);
+ 	cancel_work_sync(&dev->phy.roc_work);
+ 	if (phy2) {
+ 		set_bit(MT76_RESET, &phy2->mt76->state);
+ 		cancel_delayed_work_sync(&phy2->mt76->mac_work);
+-		del_timer_sync(&phy2->roc_timer);
++		timer_delete_sync(&phy2->roc_timer);
+ 		cancel_work_sync(&phy2->roc_work);
+ 	}
+ 
+--- a/drivers/net/wireless/mediatek/mt76/mt7615/usb.c
++++ b/drivers/net/wireless/mediatek/mt76/mt7615/usb.c
+@@ -85,7 +85,7 @@ static void mt7663u_stop(struct ieee8021
+ 	struct mt7615_dev *dev = hw->priv;
+ 
+ 	clear_bit(MT76_STATE_RUNNING, &dev->mphy.state);
+-	del_timer_sync(&phy->roc_timer);
++	timer_delete_sync(&phy->roc_timer);
+ 	cancel_work_sync(&phy->roc_work);
+ 	cancel_delayed_work_sync(&phy->scan_work);
+ 	cancel_delayed_work_sync(&phy->mt76->mac_work);
+--- a/drivers/net/wireless/mediatek/mt76/mt7921/main.c
++++ b/drivers/net/wireless/mediatek/mt76/mt7921/main.c
+@@ -364,7 +364,7 @@ void mt7921_roc_abort_sync(struct mt792x
+ {
+ 	struct mt792x_phy *phy = &dev->phy;
+ 
+-	del_timer_sync(&phy->roc_timer);
++	timer_delete_sync(&phy->roc_timer);
+ 	cancel_work_sync(&phy->roc_work);
+ 	if (test_and_clear_bit(MT76_STATE_ROC, &phy->mt76->state))
+ 		ieee80211_iterate_interfaces(mt76_hw(dev),
+@@ -395,7 +395,7 @@ static int mt7921_abort_roc(struct mt792
+ {
+ 	int err = 0;
+ 
+-	del_timer_sync(&phy->roc_timer);
++	timer_delete_sync(&phy->roc_timer);
+ 	cancel_work_sync(&phy->roc_work);
+ 
+ 	mt792x_mutex_acquire(phy->dev);
+@@ -1476,7 +1476,7 @@ static void mt7921_abort_channel_switch(
+ {
+ 	struct mt792x_vif *mvif = (struct mt792x_vif *)vif->drv_priv;
+ 
+-	del_timer_sync(&mvif->csa_timer);
++	timer_delete_sync(&mvif->csa_timer);
+ 	cancel_work_sync(&mvif->csa_work);
+ }
+ 
+--- a/drivers/net/wireless/mediatek/mt76/mt7925/main.c
++++ b/drivers/net/wireless/mediatek/mt76/mt7925/main.c
+@@ -453,7 +453,7 @@ void mt7925_roc_abort_sync(struct mt792x
+ {
+ 	struct mt792x_phy *phy = &dev->phy;
+ 
+-	del_timer_sync(&phy->roc_timer);
++	timer_delete_sync(&phy->roc_timer);
+ 	cancel_work_sync(&phy->roc_work);
+ 	if (test_and_clear_bit(MT76_STATE_ROC, &phy->mt76->state))
+ 		ieee80211_iterate_interfaces(mt76_hw(dev),
+@@ -485,7 +485,7 @@ static int mt7925_abort_roc(struct mt792
+ {
+ 	int err = 0;
+ 
+-	del_timer_sync(&phy->roc_timer);
++	timer_delete_sync(&phy->roc_timer);
+ 	cancel_work_sync(&phy->roc_work);
+ 
+ 	mt792x_mutex_acquire(phy->dev);
+--- a/drivers/net/wireless/mediatek/mt76/mt792x_core.c
++++ b/drivers/net/wireless/mediatek/mt76/mt792x_core.c
+@@ -340,7 +340,7 @@ void mt792x_unassign_vif_chanctx(struct
+ 	mutex_unlock(&dev->mt76.mutex);
+ 
+ 	if (vif->bss_conf.csa_active) {
+-		del_timer_sync(&mvif->csa_timer);
++		timer_delete_sync(&mvif->csa_timer);
+ 		cancel_work_sync(&mvif->csa_work);
+ 	}
+ }
+--- a/drivers/net/wireless/microchip/wilc1000/hif.c
++++ b/drivers/net/wireless/microchip/wilc1000/hif.c
+@@ -643,7 +643,7 @@ static inline void host_int_parse_assoc_
+ 		}
+ 	}
+ 
+-	del_timer(&hif_drv->connect_timer);
++	timer_delete(&hif_drv->connect_timer);
+ 	conn_info->conn_result(CONN_DISCONN_EVENT_CONN_RESP, mac_status,
+ 			       hif_drv->conn_info.priv);
+ 
+@@ -669,7 +669,7 @@ void wilc_handle_disconnect(struct wilc_
+ 	struct host_if_drv *hif_drv = vif->hif_drv;
+ 
+ 	if (hif_drv->usr_scan_req.scan_result) {
+-		del_timer(&hif_drv->scan_timer);
++		timer_delete(&hif_drv->scan_timer);
+ 		handle_scan_done(vif, SCAN_EVENT_ABORTED);
+ 	}
+ 
+@@ -713,7 +713,7 @@ static void handle_rcvd_gnrl_async_info(
+ 		if (hif_drv->hif_state == HOST_IF_CONNECTED) {
+ 			wilc_handle_disconnect(vif);
+ 		} else if (hif_drv->usr_scan_req.scan_result) {
+-			del_timer(&hif_drv->scan_timer);
++			timer_delete(&hif_drv->scan_timer);
+ 			handle_scan_done(vif, SCAN_EVENT_ABORTED);
+ 		}
+ 	}
+@@ -746,7 +746,7 @@ int wilc_disconnect(struct wilc_vif *vif
+ 	conn_info = &hif_drv->conn_info;
+ 
+ 	if (scan_req->scan_result) {
+-		del_timer(&hif_drv->scan_timer);
++		timer_delete(&hif_drv->scan_timer);
+ 		scan_req->scan_result(SCAN_EVENT_ABORTED, NULL, scan_req->priv);
+ 		scan_req->scan_result = NULL;
+ 	}
+@@ -754,7 +754,7 @@ int wilc_disconnect(struct wilc_vif *vif
+ 	if (conn_info->conn_result) {
+ 		if (hif_drv->hif_state == HOST_IF_WAITING_CONN_RESP ||
+ 		    hif_drv->hif_state == HOST_IF_EXTERNAL_AUTH)
+-			del_timer(&hif_drv->connect_timer);
++			timer_delete(&hif_drv->connect_timer);
+ 
+ 		conn_info->conn_result(CONN_DISCONN_EVENT_DISCONN_NOTIF, 0,
+ 				       conn_info->priv);
+@@ -959,7 +959,7 @@ static void listen_timer_cb(struct timer
+ 	int result;
+ 	struct host_if_msg *msg;
+ 
+-	del_timer(&vif->hif_drv->remain_on_ch_timer);
++	timer_delete(&vif->hif_drv->remain_on_ch_timer);
+ 
+ 	msg = wilc_alloc_work(vif, wilc_handle_listen_state_expired, false);
+ 	if (IS_ERR(msg))
+@@ -1066,7 +1066,7 @@ static void handle_scan_complete(struct
+ {
+ 	struct host_if_msg *msg = container_of(work, struct host_if_msg, work);
+ 
+-	del_timer(&msg->vif->hif_drv->scan_timer);
++	timer_delete(&msg->vif->hif_drv->scan_timer);
+ 
+ 	handle_scan_done(msg->vif, SCAN_EVENT_DONE);
+ 
+@@ -1551,7 +1551,7 @@ int wilc_deinit(struct wilc_vif *vif)
+ 
+ 	timer_shutdown_sync(&hif_drv->scan_timer);
+ 	timer_shutdown_sync(&hif_drv->connect_timer);
+-	del_timer_sync(&vif->periodic_rssi);
++	timer_delete_sync(&vif->periodic_rssi);
+ 	timer_shutdown_sync(&hif_drv->remain_on_ch_timer);
+ 
+ 	if (hif_drv->usr_scan_req.scan_result) {
+@@ -1718,7 +1718,7 @@ int wilc_listen_state_expired(struct wil
+ 		return -EFAULT;
+ 	}
+ 
+-	del_timer(&vif->hif_drv->remain_on_ch_timer);
++	timer_delete(&vif->hif_drv->remain_on_ch_timer);
+ 
+ 	return wilc_handle_roc_expired(vif, cookie);
+ }
+--- a/drivers/net/wireless/purelifi/plfxlc/usb.c
++++ b/drivers/net/wireless/purelifi/plfxlc/usb.c
+@@ -714,8 +714,8 @@ static void disconnect(struct usb_interf
+ 	mac = plfxlc_hw_mac(hw);
+ 	usb = &mac->chip.usb;
+ 
+-	del_timer_sync(&usb->tx.tx_retry_timer);
+-	del_timer_sync(&usb->sta_queue_cleanup);
++	timer_delete_sync(&usb->tx.tx_retry_timer);
++	timer_delete_sync(&usb->sta_queue_cleanup);
+ 
+ 	ieee80211_unregister_hw(hw);
+ 
+--- a/drivers/net/wireless/realtek/rtlwifi/base.c
++++ b/drivers/net/wireless/realtek/rtlwifi/base.c
+@@ -473,7 +473,7 @@ void rtl_deinit_deferred_work(struct iee
+ {
+ 	struct rtl_priv *rtlpriv = rtl_priv(hw);
+ 
+-	del_timer_sync(&rtlpriv->works.watchdog_timer);
++	timer_delete_sync(&rtlpriv->works.watchdog_timer);
+ 
+ 	cancel_delayed_work_sync(&rtlpriv->works.watchdog_wq);
+ 	if (ips_wq)
+--- a/drivers/net/wireless/realtek/rtlwifi/rtl8188ee/sw.c
++++ b/drivers/net/wireless/realtek/rtlwifi/rtl8188ee/sw.c
+@@ -179,9 +179,9 @@ static void rtl88e_deinit_sw_vars(struct
+ 	}
+ 
+ 	if (rtlpriv->psc.low_power_enable)
+-		del_timer_sync(&rtlpriv->works.fw_clockoff_timer);
++		timer_delete_sync(&rtlpriv->works.fw_clockoff_timer);
+ 
+-	del_timer_sync(&rtlpriv->works.fast_antenna_training_timer);
++	timer_delete_sync(&rtlpriv->works.fast_antenna_training_timer);
+ }
+ 
+ /* get bt coexist status */
+--- a/drivers/net/wireless/rsi/rsi_91x_hal.c
++++ b/drivers/net/wireless/rsi/rsi_91x_hal.c
+@@ -493,7 +493,7 @@ static void bl_cmd_timeout(struct timer_
+ 	struct rsi_hw *adapter = from_timer(adapter, t, bl_cmd_timer);
+ 
+ 	adapter->blcmd_timer_expired = true;
+-	del_timer(&adapter->bl_cmd_timer);
++	timer_delete(&adapter->bl_cmd_timer);
+ }
+ 
+ static int bl_start_cmd_timer(struct rsi_hw *adapter, u32 timeout)
+@@ -511,7 +511,7 @@ static int bl_stop_cmd_timer(struct rsi_
+ {
+ 	adapter->blcmd_timer_expired = false;
+ 	if (timer_pending(&adapter->bl_cmd_timer))
+-		del_timer(&adapter->bl_cmd_timer);
++		timer_delete(&adapter->bl_cmd_timer);
+ 
+ 	return 0;
+ }
+--- a/drivers/net/wireless/rsi/rsi_91x_mac80211.c
++++ b/drivers/net/wireless/rsi/rsi_91x_mac80211.c
+@@ -1754,7 +1754,7 @@ void rsi_roc_timeout(struct timer_list *
+ 	ieee80211_remain_on_channel_expired(common->priv->hw);
+ 
+ 	if (timer_pending(&common->roc_timer))
+-		del_timer(&common->roc_timer);
++		timer_delete(&common->roc_timer);
+ 
+ 	rsi_resume_conn_channel(common);
+ 	mutex_unlock(&common->mutex);
+@@ -1776,7 +1776,7 @@ static int rsi_mac80211_roc(struct ieee8
+ 
+ 	if (timer_pending(&common->roc_timer)) {
+ 		rsi_dbg(INFO_ZONE, "Stop on-going ROC\n");
+-		del_timer(&common->roc_timer);
++		timer_delete(&common->roc_timer);
+ 	}
+ 	common->roc_timer.expires = msecs_to_jiffies(duration) + jiffies;
+ 	add_timer(&common->roc_timer);
+@@ -1820,7 +1820,7 @@ static int rsi_mac80211_cancel_roc(struc
+ 		return 0;
+ 	}
+ 
+-	del_timer(&common->roc_timer);
++	timer_delete(&common->roc_timer);
+ 
+ 	rsi_resume_conn_channel(common);
+ 	mutex_unlock(&common->mutex);
+--- a/drivers/net/wireless/st/cw1200/main.c
++++ b/drivers/net/wireless/st/cw1200/main.c
+@@ -458,7 +458,7 @@ static void cw1200_unregister_common(str
+ 
+ 	ieee80211_unregister_hw(dev);
+ 
+-	del_timer_sync(&priv->mcast_timeout);
++	timer_delete_sync(&priv->mcast_timeout);
+ 	cw1200_unregister_bh(priv);
+ 
+ 	cw1200_debug_release(priv);
+--- a/drivers/net/wireless/st/cw1200/pm.c
++++ b/drivers/net/wireless/st/cw1200/pm.c
+@@ -105,7 +105,7 @@ int cw1200_pm_init(struct cw1200_pm_stat
+ 
+ void cw1200_pm_deinit(struct cw1200_pm_state *pm)
+ {
+-	del_timer_sync(&pm->stay_awake);
++	timer_delete_sync(&pm->stay_awake);
+ }
+ 
+ void cw1200_pm_stay_awake(struct cw1200_pm_state *pm,
+--- a/drivers/net/wireless/st/cw1200/queue.c
++++ b/drivers/net/wireless/st/cw1200/queue.c
+@@ -244,7 +244,7 @@ void cw1200_queue_stats_deinit(struct cw
+ void cw1200_queue_deinit(struct cw1200_queue *queue)
+ {
+ 	cw1200_queue_clear(queue);
+-	del_timer_sync(&queue->gc);
++	timer_delete_sync(&queue->gc);
+ 	INIT_LIST_HEAD(&queue->free_pool);
+ 	kfree(queue->pool);
+ 	kfree(queue->link_map_cache);
+--- a/drivers/net/wireless/st/cw1200/sta.c
++++ b/drivers/net/wireless/st/cw1200/sta.c
+@@ -113,7 +113,7 @@ void cw1200_stop(struct ieee80211_hw *de
+ 	cancel_work_sync(&priv->unjoin_work);
+ 	cancel_delayed_work_sync(&priv->link_id_gc_work);
+ 	flush_workqueue(priv->workqueue);
+-	del_timer_sync(&priv->mcast_timeout);
++	timer_delete_sync(&priv->mcast_timeout);
+ 	mutex_lock(&priv->conf_mutex);
+ 	priv->mode = NL80211_IFTYPE_UNSPECIFIED;
+ 	priv->listening = false;
+@@ -2102,7 +2102,7 @@ void cw1200_multicast_stop_work(struct w
+ 		container_of(work, struct cw1200_common, multicast_stop_work);
+ 
+ 	if (priv->aid0_bit_set) {
+-		del_timer_sync(&priv->mcast_timeout);
++		timer_delete_sync(&priv->mcast_timeout);
+ 		wsm_lock_tx(priv);
+ 		priv->aid0_bit_set = false;
+ 		cw1200_set_tim_impl(priv, false);
+@@ -2170,7 +2170,7 @@ void cw1200_suspend_resume(struct cw1200
+ 		}
+ 		spin_unlock_bh(&priv->ps_state_lock);
+ 		if (cancel_tmo)
+-			del_timer_sync(&priv->mcast_timeout);
++			timer_delete_sync(&priv->mcast_timeout);
+ 	} else {
+ 		spin_lock_bh(&priv->ps_state_lock);
+ 		cw1200_ps_notify(priv, arg->link_id, arg->stop);
+--- a/drivers/net/wireless/ti/wlcore/main.c
++++ b/drivers/net/wireless/ti/wlcore/main.c
+@@ -117,7 +117,7 @@ int wl1271_recalc_rx_streaming(struct wl
+ 	else {
+ 		ret = wl1271_set_rx_streaming(wl, wlvif, false);
+ 		/* don't cancel_work_sync since we might deadlock */
+-		del_timer_sync(&wlvif->rx_streaming_timer);
++		timer_delete_sync(&wlvif->rx_streaming_timer);
+ 	}
+ out:
+ 	return ret;
+@@ -2841,7 +2841,7 @@ deinit:
+ unlock:
+ 	mutex_unlock(&wl->mutex);
+ 
+-	del_timer_sync(&wlvif->rx_streaming_timer);
++	timer_delete_sync(&wlvif->rx_streaming_timer);
+ 	cancel_work_sync(&wlvif->rx_streaming_enable_work);
+ 	cancel_work_sync(&wlvif->rx_streaming_disable_work);
+ 	cancel_work_sync(&wlvif->rc_update_work);
+--- a/drivers/staging/rtl8723bs/core/rtw_cmd.c
++++ b/drivers/staging/rtl8723bs/core/rtw_cmd.c
+@@ -1846,7 +1846,7 @@ void rtw_createbss_cmd_callback(struct a
+ 	if (pcmd->res != H2C_SUCCESS)
+ 		_set_timer(&pmlmepriv->assoc_timer, 1);
+ 
+-	del_timer_sync(&pmlmepriv->assoc_timer);
++	timer_delete_sync(&pmlmepriv->assoc_timer);
+ 
+ 	spin_lock_bh(&pmlmepriv->lock);
+ 
+--- a/drivers/staging/rtl8723bs/core/rtw_mlme.c
++++ b/drivers/staging/rtl8723bs/core/rtw_mlme.c
+@@ -681,7 +681,7 @@ void rtw_surveydone_event_callback(struc
+ 
+ 	if (check_fwstate(pmlmepriv, _FW_UNDER_SURVEY)) {
+ 		spin_unlock_bh(&pmlmepriv->lock);
+-		del_timer_sync(&pmlmepriv->scan_to_timer);
++		timer_delete_sync(&pmlmepriv->scan_to_timer);
+ 		spin_lock_bh(&pmlmepriv->lock);
+ 		_clr_fwstate_(pmlmepriv, _FW_UNDER_SURVEY);
+ 	}
+@@ -1166,7 +1166,7 @@ void rtw_joinbss_event_prehandle(struct
+ 
+ 			spin_unlock_bh(&pmlmepriv->lock);
+ 			/* s5. Cancel assoc_timer */
+-			del_timer_sync(&pmlmepriv->assoc_timer);
++			timer_delete_sync(&pmlmepriv->assoc_timer);
+ 			spin_lock_bh(&pmlmepriv->lock);
+ 		} else {
+ 			spin_unlock_bh(&(pmlmepriv->scanned_queue.lock));
+--- a/drivers/staging/rtl8723bs/core/rtw_mlme_ext.c
++++ b/drivers/staging/rtl8723bs/core/rtw_mlme_ext.c
+@@ -412,9 +412,9 @@ void free_mlme_ext_priv(struct mlme_ext_
+ 		return;
+ 
+ 	if (padapter->bDriverStopped) {
+-		del_timer_sync(&pmlmeext->survey_timer);
+-		del_timer_sync(&pmlmeext->link_timer);
+-		/* del_timer_sync(&pmlmeext->ADDBA_timer); */
++		timer_delete_sync(&pmlmeext->survey_timer);
++		timer_delete_sync(&pmlmeext->link_timer);
++		/* timer_delete_sync(&pmlmeext->ADDBA_timer); */
+ 	}
+ }
+ 
+@@ -1390,7 +1390,7 @@ unsigned int OnAssocRsp(struct adapter *
+ 	if (pmlmeinfo->state & WIFI_FW_ASSOC_SUCCESS)
+ 		return _SUCCESS;
+ 
+-	del_timer_sync(&pmlmeext->link_timer);
++	timer_delete_sync(&pmlmeext->link_timer);
+ 
+ 	/* status */
+ 	status = le16_to_cpu(*(__le16 *)(pframe + WLAN_HDR_A3_LEN + 2));
+@@ -1862,7 +1862,7 @@ unsigned int OnAction_sa_query(struct ad
+ 		break;
+ 
+ 	case 1: /* SA Query rsp */
+-		del_timer_sync(&pmlmeext->sa_query_timer);
++		timer_delete_sync(&pmlmeext->sa_query_timer);
+ 		break;
+ 	default:
+ 		break;
+@@ -4185,7 +4185,7 @@ void start_clnt_auth(struct adapter *pad
+ 	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
+ 	struct mlme_ext_info *pmlmeinfo = &(pmlmeext->mlmext_info);
+ 
+-	del_timer_sync(&pmlmeext->link_timer);
++	timer_delete_sync(&pmlmeext->link_timer);
+ 
+ 	pmlmeinfo->state &= (~WIFI_FW_AUTH_NULL);
+ 	pmlmeinfo->state |= WIFI_FW_AUTH_STATE;
+@@ -4210,7 +4210,7 @@ void start_clnt_assoc(struct adapter *pa
+ 	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
+ 	struct mlme_ext_info *pmlmeinfo = &(pmlmeext->mlmext_info);
+ 
+-	del_timer_sync(&pmlmeext->link_timer);
++	timer_delete_sync(&pmlmeext->link_timer);
+ 
+ 	pmlmeinfo->state &= (~(WIFI_FW_AUTH_NULL | WIFI_FW_AUTH_STATE));
+ 	pmlmeinfo->state |= (WIFI_FW_AUTH_SUCCESS | WIFI_FW_ASSOC_STATE);
+@@ -4792,7 +4792,7 @@ static void rtw_mlmeext_disconnect(struc
+ 
+ 	flush_all_cam_entry(padapter);
+ 
+-	del_timer_sync(&pmlmeext->link_timer);
++	timer_delete_sync(&pmlmeext->link_timer);
+ 
+ 	/* pmlmepriv->LinkDetectInfo.TrafficBusyState = false; */
+ 	pmlmepriv->LinkDetectInfo.TrafficTransitionCount = 0;
+@@ -5268,7 +5268,7 @@ u8 createbss_hdl(struct adapter *padapte
+ 		/* rtw_hal_set_hwreg(padapter, HW_VAR_INITIAL_GAIN, (u8 *)(&initialgain)); */
+ 
+ 		/* cancel link timer */
+-		del_timer_sync(&pmlmeext->link_timer);
++		timer_delete_sync(&pmlmeext->link_timer);
+ 
+ 		/* clear CAM */
+ 		flush_all_cam_entry(padapter);
+@@ -5312,7 +5312,7 @@ u8 join_cmd_hdl(struct adapter *padapter
+ 		/* clear CAM */
+ 		flush_all_cam_entry(padapter);
+ 
+-		del_timer_sync(&pmlmeext->link_timer);
++		timer_delete_sync(&pmlmeext->link_timer);
+ 
+ 		/* set MSR to nolink -> infra. mode */
+ 		/* Set_MSR(padapter, _HW_STATE_NOLINK_); */
+@@ -5425,7 +5425,7 @@ u8 join_cmd_hdl(struct adapter *padapter
+ 	set_channel_bwmode(padapter, ch, offset, bw);
+ 
+ 	/* cancel link timer */
+-	del_timer_sync(&pmlmeext->link_timer);
++	timer_delete_sync(&pmlmeext->link_timer);
+ 
+ 	start_clnt_join(padapter);
+ 
+--- a/drivers/staging/rtl8723bs/core/rtw_recv.c
++++ b/drivers/staging/rtl8723bs/core/rtw_recv.c
+@@ -1893,7 +1893,7 @@ static int recv_indicatepkt_reorder(stru
+ 		spin_unlock_bh(&ppending_recvframe_queue->lock);
+ 	} else {
+ 		spin_unlock_bh(&ppending_recvframe_queue->lock);
+-		del_timer_sync(&preorder_ctrl->reordering_ctrl_timer);
++		timer_delete_sync(&preorder_ctrl->reordering_ctrl_timer);
+ 	}
+ 
+ 	return _SUCCESS;
+--- a/drivers/staging/rtl8723bs/core/rtw_sta_mgt.c
++++ b/drivers/staging/rtl8723bs/core/rtw_sta_mgt.c
+@@ -158,7 +158,7 @@ u32 _rtw_free_sta_priv(struct	sta_priv *
+ 
+ 				for (i = 0; i < 16 ; i++) {
+ 					preorder_ctrl = &psta->recvreorder_ctrl[i];
+-					del_timer_sync(&preorder_ctrl->reordering_ctrl_timer);
++					timer_delete_sync(&preorder_ctrl->reordering_ctrl_timer);
+ 				}
+ 			}
+ 		}
+@@ -343,7 +343,7 @@ u32 rtw_free_stainfo(struct adapter *pad
+ 	/* _rtw_init_sta_xmit_priv(&psta->sta_xmitpriv); */
+ 	/* _rtw_init_sta_recv_priv(&psta->sta_recvpriv); */
+ 
+-	del_timer_sync(&psta->addba_retry_timer);
++	timer_delete_sync(&psta->addba_retry_timer);
+ 
+ 	/* for A-MPDU Rx reordering buffer control, cancel reordering_ctrl_timer */
+ 	for (i = 0; i < 16 ; i++) {
+@@ -354,7 +354,7 @@ u32 rtw_free_stainfo(struct adapter *pad
+ 
+ 		preorder_ctrl = &psta->recvreorder_ctrl[i];
+ 
+-		del_timer_sync(&preorder_ctrl->reordering_ctrl_timer);
++		timer_delete_sync(&preorder_ctrl->reordering_ctrl_timer);
+ 
+ 		ppending_recvframe_queue = &preorder_ctrl->pending_recvframe_queue;
+ 
+--- a/drivers/staging/rtl8723bs/hal/sdio_ops.c
++++ b/drivers/staging/rtl8723bs/hal/sdio_ops.c
+@@ -871,7 +871,7 @@ void sd_int_dpc(struct adapter *adapter)
+ 	}
+ 
+ 	if (hal->sdio_hisr & SDIO_HISR_CPWM1) {
+-		del_timer_sync(&(pwrctl->pwr_rpwm_timer));
++		timer_delete_sync(&(pwrctl->pwr_rpwm_timer));
+ 
+ 		SdioLocalCmd52Read1Byte(adapter, SDIO_REG_HCPWM1_8723B);
+ 
+--- a/drivers/staging/rtl8723bs/os_dep/os_intfs.c
++++ b/drivers/staging/rtl8723bs/os_dep/os_intfs.c
+@@ -697,18 +697,18 @@ free_cmd_priv:
+ 
+ void rtw_cancel_all_timer(struct adapter *padapter)
+ {
+-	del_timer_sync(&padapter->mlmepriv.assoc_timer);
++	timer_delete_sync(&padapter->mlmepriv.assoc_timer);
+ 
+-	del_timer_sync(&padapter->mlmepriv.scan_to_timer);
++	timer_delete_sync(&padapter->mlmepriv.scan_to_timer);
+ 
+-	del_timer_sync(&padapter->mlmepriv.dynamic_chk_timer);
++	timer_delete_sync(&padapter->mlmepriv.dynamic_chk_timer);
+ 
+-	del_timer_sync(&(adapter_to_pwrctl(padapter)->pwr_state_check_timer));
++	timer_delete_sync(&(adapter_to_pwrctl(padapter)->pwr_state_check_timer));
+ 
+-	del_timer_sync(&padapter->mlmepriv.set_scan_deny_timer);
++	timer_delete_sync(&padapter->mlmepriv.set_scan_deny_timer);
+ 	rtw_clear_scan_deny(padapter);
+ 
+-	del_timer_sync(&padapter->recvpriv.signal_stat_timer);
++	timer_delete_sync(&padapter->recvpriv.signal_stat_timer);
+ 
+ 	/* cancel dm timer */
+ 	rtw_hal_dm_deinit(padapter);
+--- a/net/mac80211/agg-rx.c
++++ b/net/mac80211/agg-rx.c
+@@ -103,13 +103,13 @@ void __ieee80211_stop_rx_ba_session(stru
+ 	if (!tid_rx)
+ 		return;
+ 
+-	del_timer_sync(&tid_rx->session_timer);
++	timer_delete_sync(&tid_rx->session_timer);
+ 
+ 	/* make sure ieee80211_sta_reorder_release() doesn't re-arm the timer */
+ 	spin_lock_bh(&tid_rx->reorder_lock);
+ 	tid_rx->removed = true;
+ 	spin_unlock_bh(&tid_rx->reorder_lock);
+-	del_timer_sync(&tid_rx->reorder_timer);
++	timer_delete_sync(&tid_rx->reorder_timer);
+ 
+ 	call_rcu(&tid_rx->rcu_head, ieee80211_free_tid_rx);
+ }
+--- a/net/mac80211/agg-tx.c
++++ b/net/mac80211/agg-tx.c
+@@ -362,8 +362,8 @@ int __ieee80211_stop_tx_ba_session(struc
+ 	ht_dbg(sta->sdata, "Tx BA session stop requested for %pM tid %u\n",
+ 	       sta->sta.addr, tid);
+ 
+-	del_timer_sync(&tid_tx->addba_resp_timer);
+-	del_timer_sync(&tid_tx->session_timer);
++	timer_delete_sync(&tid_tx->addba_resp_timer);
++	timer_delete_sync(&tid_tx->session_timer);
+ 
+ 	/*
+ 	 * After this packets are no longer handed right through
+@@ -1000,7 +1000,7 @@ void ieee80211_process_addba_resp(struct
+ 		return;
+ 	}
+ 
+-	del_timer_sync(&tid_tx->addba_resp_timer);
++	timer_delete_sync(&tid_tx->addba_resp_timer);
+ 
+ 	ht_dbg(sta->sdata, "switched off addBA timer for %pM tid %d\n",
+ 	       sta->sta.addr, tid);
+--- a/net/mac80211/ibss.c
++++ b/net/mac80211/ibss.c
+@@ -1844,7 +1844,7 @@ int ieee80211_ibss_leave(struct ieee8021
+ 
+ 	skb_queue_purge(&sdata->skb_queue);
+ 
+-	del_timer_sync(&sdata->u.ibss.timer);
++	timer_delete_sync(&sdata->u.ibss.timer);
+ 
+ 	return 0;
+ }
+--- a/net/mac80211/iface.c
++++ b/net/mac80211/iface.c
+@@ -526,7 +526,7 @@ static void ieee80211_do_stop(struct iee
+ 		netif_addr_unlock_bh(sdata->dev);
+ 	}
+ 
+-	del_timer_sync(&local->dynamic_ps_timer);
++	timer_delete_sync(&local->dynamic_ps_timer);
+ 	wiphy_work_cancel(local->hw.wiphy, &local->dynamic_ps_enable_work);
+ 
+ 	WARN(ieee80211_vif_is_mld(&sdata->vif),
+--- a/net/mac80211/led.c
++++ b/net/mac80211/led.c
+@@ -342,7 +342,7 @@ static void ieee80211_stop_tpt_led_trig(
+ 		return;
+ 
+ 	tpt_trig->running = false;
+-	del_timer_sync(&tpt_trig->timer);
++	timer_delete_sync(&tpt_trig->timer);
+ 
+ 	led_trigger_event(&local->tpt_led, LED_OFF);
+ }
+--- a/net/mac80211/mesh.c
++++ b/net/mac80211/mesh.c
+@@ -706,7 +706,7 @@ void ieee80211_mesh_root_setup(struct ie
+ 	else {
+ 		clear_bit(MESH_WORK_ROOT, &ifmsh->wrkq_flags);
+ 		/* stop running timer */
+-		del_timer_sync(&ifmsh->mesh_path_root_timer);
++		timer_delete_sync(&ifmsh->mesh_path_root_timer);
+ 	}
+ }
+ 
+@@ -1241,9 +1241,9 @@ void ieee80211_stop_mesh(struct ieee8021
+ 	local->total_ps_buffered -= skb_queue_len(&ifmsh->ps.bc_buf);
+ 	skb_queue_purge(&ifmsh->ps.bc_buf);
+ 
+-	del_timer_sync(&sdata->u.mesh.housekeeping_timer);
+-	del_timer_sync(&sdata->u.mesh.mesh_path_root_timer);
+-	del_timer_sync(&sdata->u.mesh.mesh_path_timer);
++	timer_delete_sync(&sdata->u.mesh.housekeeping_timer);
++	timer_delete_sync(&sdata->u.mesh.mesh_path_root_timer);
++	timer_delete_sync(&sdata->u.mesh.mesh_path_timer);
+ 
+ 	/* clear any mesh work (for next join) we may have accrued */
+ 	ifmsh->wrkq_flags = 0;
+--- a/net/mac80211/mesh_plink.c
++++ b/net/mac80211/mesh_plink.c
+@@ -417,7 +417,7 @@ u64 mesh_plink_deactivate(struct sta_inf
+ 	}
+ 	spin_unlock_bh(&sta->mesh->plink_lock);
+ 	if (!sdata->u.mesh.user_mpm)
+-		del_timer_sync(&sta->mesh->plink_timer);
++		timer_delete_sync(&sta->mesh->plink_timer);
+ 	mesh_path_flush_by_nexthop(sta);
+ 
+ 	/* make sure no readers can access nexthop sta from here on */
+@@ -666,7 +666,7 @@ void mesh_plink_timer(struct timer_list
+ 
+ 	/*
+ 	 * This STA is valid because sta_info_destroy() will
+-	 * del_timer_sync() this timer after having made sure
++	 * timer_delete_sync() this timer after having made sure
+ 	 * it cannot be re-added (by deleting the plink.)
+ 	 */
+ 	sta = mesh->plink_sta;
+@@ -689,7 +689,7 @@ void mesh_plink_timer(struct timer_list
+ 		return;
+ 	}
+ 
+-	/* del_timer() and handler may race when entering these states */
++	/* timer_delete() and handler may race when entering these states */
+ 	if (sta->mesh->plink_state == NL80211_PLINK_LISTEN ||
+ 	    sta->mesh->plink_state == NL80211_PLINK_ESTAB) {
+ 		mpl_dbg(sta->sdata,
+@@ -735,7 +735,7 @@ void mesh_plink_timer(struct timer_list
+ 		break;
+ 	case NL80211_PLINK_HOLDING:
+ 		/* holding timer */
+-		del_timer(&sta->mesh->plink_timer);
++		timer_delete(&sta->mesh->plink_timer);
+ 		mesh_plink_fsm_restart(sta);
+ 		break;
+ 	default:
+@@ -848,7 +848,7 @@ static u64 mesh_plink_establish(struct i
+ 	struct mesh_config *mshcfg = &sdata->u.mesh.mshcfg;
+ 	u64 changed = 0;
+ 
+-	del_timer(&sta->mesh->plink_timer);
++	timer_delete(&sta->mesh->plink_timer);
+ 	sta->mesh->plink_state = NL80211_PLINK_ESTAB;
+ 	changed |= mesh_plink_inc_estab_count(sdata);
+ 	changed |= mesh_set_ht_prot_mode(sdata);
+@@ -975,7 +975,7 @@ static u64 mesh_plink_fsm(struct ieee802
+ 	case NL80211_PLINK_HOLDING:
+ 		switch (event) {
+ 		case CLS_ACPT:
+-			del_timer(&sta->mesh->plink_timer);
++			timer_delete(&sta->mesh->plink_timer);
+ 			mesh_plink_fsm_restart(sta);
+ 			break;
+ 		case OPN_ACPT:
+--- a/net/mac80211/mlme.c
++++ b/net/mac80211/mlme.c
+@@ -3177,7 +3177,7 @@ static void ieee80211_change_ps(struct i
+ 	} else if (conf->flags & IEEE80211_CONF_PS) {
+ 		conf->flags &= ~IEEE80211_CONF_PS;
+ 		ieee80211_hw_config(local, IEEE80211_CONF_CHANGE_PS);
+-		del_timer_sync(&local->dynamic_ps_timer);
++		timer_delete_sync(&local->dynamic_ps_timer);
+ 		wiphy_work_cancel(local->hw.wiphy,
+ 				  &local->dynamic_ps_enable_work);
+ 	}
+@@ -4013,7 +4013,7 @@ static void ieee80211_set_disassoc(struc
+ 
+ 	sdata->deflink.ap_power_level = IEEE80211_UNSET_POWER_LEVEL;
+ 
+-	del_timer_sync(&local->dynamic_ps_timer);
++	timer_delete_sync(&local->dynamic_ps_timer);
+ 	wiphy_work_cancel(local->hw.wiphy, &local->dynamic_ps_enable_work);
+ 
+ 	/* Disable ARP filtering */
+@@ -4041,9 +4041,9 @@ static void ieee80211_set_disassoc(struc
+ 	/* disassociated - set to defaults now */
+ 	ieee80211_set_wmm_default(&sdata->deflink, false, false);
+ 
+-	del_timer_sync(&sdata->u.mgd.conn_mon_timer);
+-	del_timer_sync(&sdata->u.mgd.bcn_mon_timer);
+-	del_timer_sync(&sdata->u.mgd.timer);
++	timer_delete_sync(&sdata->u.mgd.conn_mon_timer);
++	timer_delete_sync(&sdata->u.mgd.bcn_mon_timer);
++	timer_delete_sync(&sdata->u.mgd.timer);
+ 
+ 	sdata->vif.bss_conf.dtim_period = 0;
+ 	sdata->vif.bss_conf.beacon_rate = NULL;
+@@ -4548,7 +4548,7 @@ static void ieee80211_destroy_auth_data(
+ 		 * running is the timeout for the authentication response which
+ 		 * which is not relevant anymore.
+ 		 */
+-		del_timer_sync(&sdata->u.mgd.timer);
++		timer_delete_sync(&sdata->u.mgd.timer);
+ 		sta_info_destroy_addr(sdata, auth_data->ap_addr);
+ 
+ 		/* other links are destroyed */
+@@ -4587,7 +4587,7 @@ static void ieee80211_destroy_assoc_data
+ 		 * running is the timeout for the association response which
+ 		 * which is not relevant anymore.
+ 		 */
+-		del_timer_sync(&sdata->u.mgd.timer);
++		timer_delete_sync(&sdata->u.mgd.timer);
+ 		sta_info_destroy_addr(sdata, assoc_data->ap_addr);
+ 
+ 		eth_zero_addr(sdata->deflink.u.mgd.bssid);
+@@ -9711,7 +9711,7 @@ void ieee80211_mgd_stop(struct ieee80211
+ 	ifmgd->assoc_req_ies = NULL;
+ 	ifmgd->assoc_req_ies_len = 0;
+ 	spin_unlock_bh(&ifmgd->teardown_lock);
+-	del_timer_sync(&ifmgd->timer);
++	timer_delete_sync(&ifmgd->timer);
+ }
+ 
+ void ieee80211_cqm_rssi_notify(struct ieee80211_vif *vif,
+--- a/net/mac80211/ocb.c
++++ b/net/mac80211/ocb.c
+@@ -230,7 +230,7 @@ int ieee80211_ocb_leave(struct ieee80211
+ 
+ 	skb_queue_purge(&sdata->skb_queue);
+ 
+-	del_timer_sync(&sdata->u.ocb.housekeeping_timer);
++	timer_delete_sync(&sdata->u.ocb.housekeeping_timer);
+ 	/* If the timer fired while we waited for it, it will have
+ 	 * requeued the work. Now the work will be running again
+ 	 * but will not rearm the timer again because it checks
+--- a/net/mac80211/offchannel.c
++++ b/net/mac80211/offchannel.c
+@@ -30,9 +30,9 @@ static void ieee80211_offchannel_ps_enab
+ 
+ 	/* FIXME: what to do when local->pspolling is true? */
+ 
+-	del_timer_sync(&local->dynamic_ps_timer);
+-	del_timer_sync(&ifmgd->bcn_mon_timer);
+-	del_timer_sync(&ifmgd->conn_mon_timer);
++	timer_delete_sync(&local->dynamic_ps_timer);
++	timer_delete_sync(&ifmgd->bcn_mon_timer);
++	timer_delete_sync(&ifmgd->conn_mon_timer);
+ 
+ 	wiphy_work_cancel(local->hw.wiphy, &local->dynamic_ps_enable_work);
+ 
+--- a/net/mac80211/pm.c
++++ b/net/mac80211/pm.c
+@@ -69,14 +69,14 @@ int __ieee80211_suspend(struct ieee80211
+ 	flush_workqueue(local->workqueue);
+ 
+ 	/* Don't try to run timers while suspended. */
+-	del_timer_sync(&local->sta_cleanup);
++	timer_delete_sync(&local->sta_cleanup);
+ 
+ 	 /*
+ 	 * Note that this particular timer doesn't need to be
+ 	 * restarted at resume.
+ 	 */
+ 	wiphy_work_cancel(local->hw.wiphy, &local->dynamic_ps_enable_work);
+-	del_timer_sync(&local->dynamic_ps_timer);
++	timer_delete_sync(&local->dynamic_ps_timer);
+ 
+ 	local->wowlan = wowlan;
+ 	if (local->wowlan) {
+--- a/net/mac80211/rx.c
++++ b/net/mac80211/rx.c
+@@ -1242,7 +1242,7 @@ static void ieee80211_sta_reorder_releas
+ 				  tid_agg_rx->reorder_time[j] + 1 +
+ 				  HT_RX_REORDER_BUF_TIMEOUT);
+ 	} else {
+-		del_timer(&tid_agg_rx->reorder_timer);
++		timer_delete(&tid_agg_rx->reorder_timer);
+ 	}
+ }
+ 
+--- a/net/mac80211/sta_info.c
++++ b/net/mac80211/sta_info.c
+@@ -1592,7 +1592,7 @@ int sta_info_init(struct ieee80211_local
+ 
+ void sta_info_stop(struct ieee80211_local *local)
+ {
+-	del_timer_sync(&local->sta_cleanup);
++	timer_delete_sync(&local->sta_cleanup);
+ 	rhltable_destroy(&local->sta_hash);
+ 	rhltable_destroy(&local->link_sta_hash);
+ }
+--- a/net/wireless/core.c
++++ b/net/wireless/core.c
+@@ -1721,7 +1721,7 @@ void wiphy_delayed_work_queue(struct wip
+ 	trace_wiphy_delayed_work_queue(wiphy, &dwork->work, delay);
+ 
+ 	if (!delay) {
+-		del_timer(&dwork->timer);
++		timer_delete(&dwork->timer);
+ 		wiphy_work_queue(wiphy, &dwork->work);
+ 		return;
+ 	}
+@@ -1736,7 +1736,7 @@ void wiphy_delayed_work_cancel(struct wi
+ {
+ 	lockdep_assert_held(&wiphy->mtx);
+ 
+-	del_timer_sync(&dwork->timer);
++	timer_delete_sync(&dwork->timer);
+ 	wiphy_work_cancel(wiphy, &dwork->work);
+ }
+ EXPORT_SYMBOL_GPL(wiphy_delayed_work_cancel);
+@@ -1746,7 +1746,7 @@ void wiphy_delayed_work_flush(struct wip
+ {
+ 	lockdep_assert_held(&wiphy->mtx);
+ 
+-	del_timer_sync(&dwork->timer);
++	timer_delete_sync(&dwork->timer);
+ 	wiphy_work_flush(wiphy, &dwork->work);
+ }
+ EXPORT_SYMBOL_GPL(wiphy_delayed_work_flush);
