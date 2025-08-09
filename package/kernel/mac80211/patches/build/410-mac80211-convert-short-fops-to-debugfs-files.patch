@@ -93,7 +93,7 @@
  	.llseek = noop_llseek,
  };
  #endif
-@@ -656,8 +664,9 @@ static ssize_t stats_ ##name## _read(str
+@@ -655,8 +663,9 @@ static ssize_t stats_ ##name## _read(str
  				      print_devstats_##name);		\
  }									\
  									\
@@ -173,7 +173,7 @@
  	.llseek = generic_file_llseek,					\
  }
  
-@@ -448,8 +450,9 @@ STA_OPS_RW(agg_status);
+@@ -442,8 +444,9 @@ STA_OPS_RW(agg_status);
  
  /* link sta attributes */
  #define LINK_STA_OPS(name)						\
