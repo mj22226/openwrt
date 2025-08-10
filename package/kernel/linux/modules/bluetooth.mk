@@ -10,7 +10,7 @@ BLUETOOTH_MENU:=Bluetooth Support
 define KernelPackage/bluetooth
   SUBMENU:=$(BLUETOOTH_MENU)
   TITLE:=Bluetooth support
-  DEPENDS:=+kmod-crypto-hash +kmod-crypto-ecb +kmod-lib-crc16 +kmod-hid +kmod-crypto-cmac +kmod-regmap-core +kmod-crypto-ecdh
+  DEPENDS:=+kmod-crypto-hash +kmod-crypto-ecb +kmod-hid +kmod-crypto-cmac +kmod-regmap-core +kmod-crypto-ecdh
   KCONFIG:= \
 	CONFIG_BT \
 	CONFIG_BT_BREDR=y \
