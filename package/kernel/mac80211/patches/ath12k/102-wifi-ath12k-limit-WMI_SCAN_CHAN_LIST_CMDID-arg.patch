@@ -142,12 +142,12 @@ Best regards,
  		arg->nallchans -= num_send_chans;
 --- a/drivers/net/wireless/ath/ath12k/wmi.h
 +++ b/drivers/net/wireless/ath/ath12k/wmi.h
-@@ -3947,6 +3947,8 @@ struct wmi_stop_scan_cmd {
+@@ -3948,6 +3948,8 @@ struct wmi_stop_scan_cmd {
  	__le32 pdev_id;
  } __packed;
  
 +#define WMI_MAX_NUM_CHAN_PER_WMI_CMD	58
 +
  struct ath12k_wmi_scan_chan_list_arg {
+ 	struct list_head list;
  	u32 pdev_id;
- 	u16 nallchans;
