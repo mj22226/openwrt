@@ -17,9 +17,9 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -612,6 +612,12 @@ ieee80211_tx_h_select_key(struct ieee802
- 	else
- 		tx->key = NULL;
+@@ -618,6 +618,12 @@ ieee80211_tx_h_select_key(struct ieee802
+ 		return TX_CONTINUE;
+ 	}
  
 +	if (info->flags & IEEE80211_TX_CTL_HW_80211_ENCAP) {
 +		if (tx->key && tx->key->flags & KEY_FLAG_UPLOADED_TO_HARDWARE)
