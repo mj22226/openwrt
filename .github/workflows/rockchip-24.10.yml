@@ -1,0 +1,77 @@
+name: Build rockchip 24.10
+on:
+   push:
+   workflow_dispatch:
+jobs:
+    build:
+        name: Build rockchip 24.10
+        runs-on: ubuntu-24.04-arm
+        steps:
+            - name: Setup Ubuntu
+              run: |
+                sudo apt update
+                sudo apt install -y subversion build-essential gettext 2to3 python3-pyelftools python3-distutils-extra
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                go-version: '1.23.5'
+                cache: false
+            - name: Go Version
+              run: go version
+            - name: checkout
+              uses: actions/checkout@v4
+            - name: Build
+              run: |
+                git clone https://github.com/mj22226/openwrt.git
+                cd openwrt
+                git fetch
+                git checkout openwrt-24.10-snapshot
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a
+                cd feeds/luci
+                wget https://gist.githubusercontent.com/mj22226/363cefecd314e45b49d8eafff8473fcf/raw/f327d1fcae5513be3abbeea1c6696c1da845a635/01-diskman.patch
+                git apply 01-diskman.patch
+                cd -
+                cd  feeds/packages
+                wget https://gist.githubusercontent.com/mj22226/351f11e66f08f06e37a985719a31ddb4/raw/2cf67633587d351b66fdf1bd902df6494cd42e68/01-cpu.patch
+                wget https://gist.githubusercontent.com/mj22226/b66f5c1bd5fc7e1cb3cf2c690b5dbd5a/raw/b955e726cbb0948d932c8d6143229ad604320149/20-lxc.patch
+                git apply 01-cpu.patch
+                git apply 20-lxc.patch
+                cd -
+                sed -i "71s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "84s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "195s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "212s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "13s/'1'/'0'/" feeds/packages/utils/dockerd/files/etc/config/dockerd
+                sed -i "4s/login/login -f root/" feeds/packages/utils/ttyd/files/ttyd.config
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a -f
+                wget https://github.com/mj22226/openwrt-arm64/releases/download/rockchip-18.1.7/llvm-bpf-18.1.7.Linux-aarch64.tar.zst
+                tar -xvf llvm-bpf-18.1.7.Linux-aarch64.tar.zst
+                wget https://gist.githubusercontent.com/mj22226/23edc25efeb65ef69d8eb6598f4f8179/raw/29c862e3e2558852523f4e8edd5f3d0cc145067e/01-key.patch
+                git apply 01-key.patch
+                cp .github/workflows/rk-config .config
+                make defconfig
+                make download -j32
+                make -j$(nproc) 'IGNORE_ERRORS=n m'
+                rm -rf bin/targets/rockchip/armv8/packages
+                echo "D=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+            - name: Delete tag
+              uses: ClementTsang/delete-tag-and-release@v0.4.0
+              with:
+                delete_release: true
+                tag_name: rockchip-24.10
+              env:
+                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Create release
+              uses: ncipollo/release-action@v1.20.0
+              with:
+                allowUpdates: true
+                name: Rockchip 24.10 Firmware  ${{ env.D }}
+                tag: rockchip-24.10
+                replacesArtifacts: true
+                makeLatest: true
+                token: "${{ secrets.GITHUB_TOKEN }}"
+                artifacts: openwrt/bin/targets/rockchip/armv8/*
+
+
