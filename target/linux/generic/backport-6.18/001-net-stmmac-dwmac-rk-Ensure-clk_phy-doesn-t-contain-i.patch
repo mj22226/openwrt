@@ -1,0 +1,39 @@
+From 0cc5bd956a7456447c80426e3f1f264a49e9c080 Mon Sep 17 00:00:00 2001
+From: Yao Zi <ziyao@disroot.org>
+Date: Thu, 4 Sep 2025 03:12:24 +0000
+Subject: [PATCH] net: stmmac: dwmac-rk: Ensure clk_phy doesn't contain invalid
+ address
+
+We must set the clk_phy pointer to NULL to indicating it isn't available
+if the optional phy clock couldn't be obtained. Otherwise the error code
+returned by of_clk_get() could be wrongly taken as an address, causing
+invalid pointer dereference when later clk_phy is passed to
+clk_prepare_enable().
+
+Fixes: da114122b831 ("net: ethernet: stmmac: dwmac-rk: Make the clk_phy could be used for external phy")
+Signed-off-by: Yao Zi <ziyao@disroot.org>
+---
+ drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
++++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-rk.c
+@@ -1414,11 +1414,17 @@ static int rk_gmac_clk_init(struct plat_
+ 	if (plat->phy_node) {
+ 		bsp_priv->clk_phy = of_clk_get(plat->phy_node, 0);
+ 		ret = PTR_ERR_OR_ZERO(bsp_priv->clk_phy);
+-		/* If it is not integrated_phy, clk_phy is optional */
++		/*
++		 * If it is not integrated_phy, clk_phy is optional. But we must
++		 * set bsp_priv->clk_phy to NULL if clk_phy isn't proivded, or
++		 * the error code could be wrongly taken as an invalid pointer.
++		 */
+ 		if (bsp_priv->integrated_phy) {
+ 			if (ret)
+ 				return dev_err_probe(dev, ret, "Cannot get PHY clock\n");
+ 			clk_set_rate(bsp_priv->clk_phy, 50000000);
++		} else if (ret) {
++			bsp_priv->clk_phy = NULL;
+ 		}
+ 	}
+ 
