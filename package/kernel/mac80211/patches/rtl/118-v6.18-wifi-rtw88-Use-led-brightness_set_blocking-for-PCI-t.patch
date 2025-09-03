@@ -1,0 +1,101 @@
+From fce6fee0817b8899e0ee38ab6b98f0d7e939ceed Mon Sep 17 00:00:00 2001
+From: Bitterblue Smith <rtl8821cerfe2@gmail.com>
+Date: Tue, 19 Aug 2025 21:46:02 +0300
+Subject: [PATCH] wifi: rtw88: Use led->brightness_set_blocking for PCI too
+
+Commit 26a8bf978ae9 ("wifi: rtw88: Lock rtwdev->mutex before setting
+the LED") made rtw_led_set() sleep, but that's not allowed. Fix it by
+using the brightness_set_blocking member of struct led_classdev for
+PCI devices too. This one is allowed to sleep.
+
+bad: scheduling from the idle thread!
+nix kernel: CPU: 7 UID: 0 PID: 0 Comm: swapper/7 Tainted: G        W  O        6.16.0 #1-NixOS PREEMPT(voluntary)
+nix kernel: Tainted: [W]=WARN, [O]=OOT_MODULE
+nix kernel: Hardware name: [REDACTED]
+nix kernel: Call Trace:
+nix kernel:  <IRQ>
+nix kernel:  dump_stack_lvl+0x63/0x90
+nix kernel:  dequeue_task_idle+0x2d/0x50
+nix kernel:  __schedule+0x191/0x1310
+nix kernel:  ? xas_load+0x11/0xd0
+nix kernel:  schedule+0x2b/0xe0
+nix kernel:  schedule_preempt_disabled+0x19/0x30
+nix kernel:  __mutex_lock.constprop.0+0x3fd/0x7d0
+nix kernel:  rtw_led_set+0x27/0x60 [rtw_core]
+nix kernel:  led_blink_set_nosleep+0x56/0xb0
+nix kernel:  led_trigger_blink+0x49/0x80
+nix kernel:  ? __pfx_tpt_trig_timer+0x10/0x10 [mac80211]
+nix kernel:  call_timer_fn+0x2f/0x140
+nix kernel:  ? __pfx_tpt_trig_timer+0x10/0x10 [mac80211]
+nix kernel:  __run_timers+0x21a/0x2b0
+nix kernel:  run_timer_softirq+0x8e/0x100
+nix kernel:  handle_softirqs+0xea/0x2c0
+nix kernel:  ? srso_alias_return_thunk+0x5/0xfbef5
+nix kernel:  __irq_exit_rcu+0xdc/0x100
+nix kernel:  sysvec_apic_timer_interrupt+0x7c/0x90
+nix kernel:  </IRQ>
+nix kernel:  <TASK>
+nix kernel:  asm_sysvec_apic_timer_interrupt+0x1a/0x20
+nix kernel: RIP: 0010:cpuidle_enter_state+0xcc/0x450
+nix kernel: Code: 00 e8 08 7c 2e ff e8 d3 ee ff ff 49 89 c6 0f 1f 44 00 00 31 ff e8 c4 d1 2c ff 80 7d d7 00 0f 85 5d 02 00 00 fb 0f 1f 44 00 00 <45> 85 ff 0f 88 a0 01 00 00 49 63 f7 4c 89 f2 48 8d 0>
+nix kernel: RSP: 0018:ffffd579801c7e68 EFLAGS: 00000246
+nix kernel: RAX: 0000000000000000 RBX: 0000000000000003 RCX: 0000000000000000
+nix kernel: RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+nix kernel: RBP: ffffd579801c7ea0 R08: 0000000000000000 R09: 0000000000000000
+nix kernel: R10: 0000000000000000 R11: 0000000000000000 R12: ffff8eab0462a400
+nix kernel: R13: ffffffff9a7d7a20 R14: 00000003aebe751d R15: 0000000000000003
+nix kernel:  ? cpuidle_enter_state+0xbc/0x450
+nix kernel:  cpuidle_enter+0x32/0x50
+nix kernel:  do_idle+0x1b1/0x210
+nix kernel:  cpu_startup_entry+0x2d/0x30
+nix kernel:  start_secondary+0x118/0x140
+nix kernel:  common_startup_64+0x13e/0x141
+nix kernel:  </TASK>
+
+Fixes: 26a8bf978ae9 ("wifi: rtw88: Lock rtwdev->mutex before setting the LED")
+Signed-off-by: Bitterblue Smith <rtl8821cerfe2@gmail.com>
+Acked-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Link: https://patch.msgid.link/ad8a49ef-4f2d-4a61-8292-952db9c4eb65@gmail.com
+---
+ drivers/net/wireless/realtek/rtw88/led.c | 15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw88/led.c
++++ b/drivers/net/wireless/realtek/rtw88/led.c
+@@ -6,8 +6,8 @@
+ #include "debug.h"
+ #include "led.h"
+ 
+-static void rtw_led_set(struct led_classdev *led,
+-			enum led_brightness brightness)
++static int rtw_led_set(struct led_classdev *led,
++		       enum led_brightness brightness)
+ {
+ 	struct rtw_dev *rtwdev = container_of(led, struct rtw_dev, led_cdev);
+ 
+@@ -16,12 +16,6 @@ static void rtw_led_set(struct led_class
+ 	rtwdev->chip->ops->led_set(led, brightness);
+ 
+ 	mutex_unlock(&rtwdev->mutex);
+-}
+-
+-static int rtw_led_set_blocking(struct led_classdev *led,
+-				enum led_brightness brightness)
+-{
+-	rtw_led_set(led, brightness);
+ 
+ 	return 0;
+ }
+@@ -46,10 +40,7 @@ void rtw_led_init(struct rtw_dev *rtwdev
+ 	if (!rtwdev->chip->ops->led_set)
+ 		return;
+ 
+-	if (rtw_hci_type(rtwdev) == RTW_HCI_TYPE_PCIE)
+-		led->brightness_set = rtw_led_set;
+-	else
+-		led->brightness_set_blocking = rtw_led_set_blocking;
++	led->brightness_set_blocking = rtw_led_set;
+ 
+ 	snprintf(rtwdev->led_name, sizeof(rtwdev->led_name),
+ 		 "rtw88-%s", dev_name(rtwdev->dev));

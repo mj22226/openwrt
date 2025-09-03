@@ -1,0 +1,52 @@
+From 793905c70a56255b04e7cff82b01a300fff822be Mon Sep 17 00:00:00 2001
+From: Bitterblue Smith <rtl8821cerfe2@gmail.com>
+Date: Sat, 7 Jun 2025 21:01:38 +0300
+Subject: [PATCH] wifi: rtw88: Enable AP and adhoc modes for SDIO again
+
+AP mode can be enabled again for SDIO now that the problem was fixed
+in commit b2effcdc2379 ("wifi: rtw88: sdio: map mgmt frames to queue
+TX_DESC_QSEL_MGMT") and commit fc5f5a0ec463 ("wifi: rtw88: sdio: call
+rtw_sdio_indicate_tx_status unconditionally").
+
+Signed-off-by: Bitterblue Smith <rtl8821cerfe2@gmail.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Link: https://patch.msgid.link/5ac60c1c-9cc8-41b8-871c-a067e74f70ea@gmail.com
+---
+ drivers/net/wireless/realtek/rtw88/main.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw88/main.c
++++ b/drivers/net/wireless/realtek/rtw88/main.c
+@@ -2219,7 +2219,6 @@ EXPORT_SYMBOL(rtw_core_deinit);
+ 
+ int rtw_register_hw(struct rtw_dev *rtwdev, struct ieee80211_hw *hw)
+ {
+-	bool sta_mode_only = rtwdev->hci.type == RTW_HCI_TYPE_SDIO;
+ 	struct rtw_hal *hal = &rtwdev->hal;
+ 	int max_tx_headroom = 0;
+ 	int ret;
+@@ -2249,12 +2248,9 @@ int rtw_register_hw(struct rtw_dev *rtwd
+ 	ieee80211_hw_set(hw, TX_AMSDU);
+ 	ieee80211_hw_set(hw, SINGLE_SCAN_ON_ALL_BANDS);
+ 
+-	if (sta_mode_only)
+-		hw->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION);
+-	else
+-		hw->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) |
+-					     BIT(NL80211_IFTYPE_AP) |
+-					     BIT(NL80211_IFTYPE_ADHOC);
++	hw->wiphy->interface_modes = BIT(NL80211_IFTYPE_STATION) |
++				     BIT(NL80211_IFTYPE_AP) |
++				     BIT(NL80211_IFTYPE_ADHOC);
+ 	hw->wiphy->available_antennas_tx = hal->antenna_tx;
+ 	hw->wiphy->available_antennas_rx = hal->antenna_rx;
+ 
+@@ -2265,7 +2261,7 @@ int rtw_register_hw(struct rtw_dev *rtwd
+ 	hw->wiphy->max_scan_ssids = RTW_SCAN_MAX_SSIDS;
+ 	hw->wiphy->max_scan_ie_len = rtw_get_max_scan_ie_len(rtwdev);
+ 
+-	if (!sta_mode_only && rtwdev->chip->id == RTW_CHIP_TYPE_8822C) {
++	if (rtwdev->chip->id == RTW_CHIP_TYPE_8822C) {
+ 		hw->wiphy->iface_combinations = rtw_iface_combs;
+ 		hw->wiphy->n_iface_combinations = ARRAY_SIZE(rtw_iface_combs);
+ 	}

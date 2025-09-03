@@ -1,0 +1,144 @@
+From cdb82c80b9349ed1d9ce6b49856128e04f4effc9 Mon Sep 17 00:00:00 2001
+From: Chin-Yen Lee <timlee@realtek.com>
+Date: Fri, 23 May 2025 14:27:10 +0800
+Subject: [PATCH] wifi: rtw88: pci: add PCI Express error handling
+
+Sometimes PCIe Advanced Error Reporting(AER), like bad TLP or
+Data link protocol error, happens due to unstable pci signal or
+no response from PCI host.
+
+  pcieport 0000:00:00.0: AER: Multiple Corrected error message received from 0000:00:00.0
+  pcieport 0000:00:00.0: AER: PCIe Bus Error: severity=Corrected, type=Physical Layer, (Receiver ID)
+  pcieport 0000:00:00.0: AER:   device [14c3:6786] error status/mask=000000c1/00006000
+  pcieport 0000:00:00.0: AER:    [ 0] RxErr                  (First)
+  pcieport 0000:00:00.0: AER:    [ 6] BadTLP
+  pcieport 0000:00:00.0: AER:    [ 7] BadDLLP
+  pcieport 0000:00:00.0: AER: Corrected error message received from 0000:00:00.0
+  pcieport 0000:00:00.0: AER: found no error details for 0000:00:00.0
+  pcieport 0000:00:00.0: AER: Multiple Corrected error message received from 0000:00:00.0
+  pcieport 0000:00:00.0: AER: found no error details for 0000:00:00.0
+  pcieport 0000:00:00.0: AER: Multiple Corrected error message received from 0000:00:00.0
+  pcieport 0000:00:00.0: AER: found no error details for 0000:00:00.0
+
+Setup callback function to call SER function to reset driver to recover
+from these states
+
+Signed-off-by: Chin-Yen Lee <timlee@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Link: https://patch.msgid.link/20250523062711.27213-2-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw88/main.c     |  1 +
+ drivers/net/wireless/realtek/rtw88/pci.c      | 37 +++++++++++++++++++
+ drivers/net/wireless/realtek/rtw88/pci.h      |  1 +
+ .../net/wireless/realtek/rtw88/rtw8723de.c    |  1 +
+ .../net/wireless/realtek/rtw88/rtw8821ce.c    |  1 +
+ .../net/wireless/realtek/rtw88/rtw8822be.c    |  1 +
+ .../net/wireless/realtek/rtw88/rtw8822ce.c    |  1 +
+ 7 files changed, 43 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw88/main.c
++++ b/drivers/net/wireless/realtek/rtw88/main.c
+@@ -636,6 +636,7 @@ void rtw_fw_recovery(struct rtw_dev *rtw
+ 	if (!test_bit(RTW_FLAG_RESTARTING, rtwdev->flags))
+ 		ieee80211_queue_work(rtwdev->hw, &rtwdev->fw_recovery_work);
+ }
++EXPORT_SYMBOL(rtw_fw_recovery);
+ 
+ static void __fw_recovery_work(struct rtw_dev *rtwdev)
+ {
+--- a/drivers/net/wireless/realtek/rtw88/pci.c
++++ b/drivers/net/wireless/realtek/rtw88/pci.c
+@@ -1707,6 +1707,43 @@ static void rtw_pci_napi_deinit(struct r
+ 	free_netdev(rtwpci->netdev);
+ }
+ 
++static pci_ers_result_t rtw_pci_io_err_detected(struct pci_dev *pdev,
++						pci_channel_state_t state)
++{
++	struct net_device *netdev = pci_get_drvdata(pdev);
++
++	netif_device_detach(netdev);
++
++	return PCI_ERS_RESULT_NEED_RESET;
++}
++
++static pci_ers_result_t rtw_pci_io_slot_reset(struct pci_dev *pdev)
++{
++	struct ieee80211_hw *hw = pci_get_drvdata(pdev);
++	struct rtw_dev *rtwdev = hw->priv;
++
++	rtw_fw_recovery(rtwdev);
++
++	return PCI_ERS_RESULT_RECOVERED;
++}
++
++static void rtw_pci_io_resume(struct pci_dev *pdev)
++{
++	struct net_device *netdev = pci_get_drvdata(pdev);
++
++	/* ack any pending wake events, disable PME */
++	pci_enable_wake(pdev, PCI_D0, 0);
++
++	netif_device_attach(netdev);
++}
++
++const struct pci_error_handlers rtw_pci_err_handler = {
++	.error_detected = rtw_pci_io_err_detected,
++	.slot_reset = rtw_pci_io_slot_reset,
++	.resume = rtw_pci_io_resume,
++};
++EXPORT_SYMBOL(rtw_pci_err_handler);
++
+ int rtw_pci_probe(struct pci_dev *pdev,
+ 		  const struct pci_device_id *id)
+ {
+--- a/drivers/net/wireless/realtek/rtw88/pci.h
++++ b/drivers/net/wireless/realtek/rtw88/pci.h
+@@ -231,6 +231,7 @@ struct rtw_pci {
+ };
+ 
+ extern const struct dev_pm_ops rtw_pm_ops;
++extern const struct pci_error_handlers rtw_pci_err_handler;
+ 
+ int rtw_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id);
+ void rtw_pci_remove(struct pci_dev *pdev);
+--- a/drivers/net/wireless/realtek/rtw88/rtw8723de.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8723de.c
+@@ -23,6 +23,7 @@ static struct pci_driver rtw_8723de_driv
+ 	.remove = rtw_pci_remove,
+ 	.driver.pm = &rtw_pm_ops,
+ 	.shutdown = rtw_pci_shutdown,
++	.err_handler  = &rtw_pci_err_handler,
+ };
+ module_pci_driver(rtw_8723de_driver);
+ 
+--- a/drivers/net/wireless/realtek/rtw88/rtw8821ce.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8821ce.c
+@@ -27,6 +27,7 @@ static struct pci_driver rtw_8821ce_driv
+ 	.remove = rtw_pci_remove,
+ 	.driver.pm = &rtw_pm_ops,
+ 	.shutdown = rtw_pci_shutdown,
++	.err_handler  = &rtw_pci_err_handler,
+ };
+ module_pci_driver(rtw_8821ce_driver);
+ 
+--- a/drivers/net/wireless/realtek/rtw88/rtw8822be.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8822be.c
+@@ -23,6 +23,7 @@ static struct pci_driver rtw_8822be_driv
+ 	.remove = rtw_pci_remove,
+ 	.driver.pm = &rtw_pm_ops,
+ 	.shutdown = rtw_pci_shutdown,
++	.err_handler  = &rtw_pci_err_handler,
+ };
+ module_pci_driver(rtw_8822be_driver);
+ 
+--- a/drivers/net/wireless/realtek/rtw88/rtw8822ce.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8822ce.c
+@@ -27,6 +27,7 @@ static struct pci_driver rtw_8822ce_driv
+ 	.remove = rtw_pci_remove,
+ 	.driver.pm = &rtw_pm_ops,
+ 	.shutdown = rtw_pci_shutdown,
++	.err_handler  = &rtw_pci_err_handler,
+ };
+ module_pci_driver(rtw_8822ce_driver);
+ 
