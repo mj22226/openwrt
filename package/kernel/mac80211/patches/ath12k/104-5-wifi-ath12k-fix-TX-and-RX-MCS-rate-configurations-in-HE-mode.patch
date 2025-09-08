@@ -140,7 +140,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  
 --- a/drivers/net/wireless/ath/ath12k/wmi.h
 +++ b/drivers/net/wireless/ath/ath12k/wmi.h
-@@ -4157,7 +4157,9 @@ struct ath12k_wmi_vht_rate_set_params {
+@@ -4159,7 +4159,9 @@ struct ath12k_wmi_vht_rate_set_params {
  
  struct ath12k_wmi_he_rate_set_params {
  	__le32 tlv_header;
