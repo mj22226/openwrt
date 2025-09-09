@@ -1,0 +1,187 @@
+From 1d739d98bf9651109ecdea1b8d062e961ba0532e Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Sat, 6 Sep 2025 21:30:37 -0300
+Subject: [PATCH] Revert "PCI: endpoint: Drop superfluous pci_epc_features
+ initialization"
+
+This reverts commit 27fce9e8c6f031b526bf471e1076abca31473464.
+---
+ drivers/pci/controller/cadence/pcie-cadence-ep.c  | 2 ++
+ drivers/pci/controller/dwc/pci-dra7xx.c           | 1 +
+ drivers/pci/controller/dwc/pci-imx6.c             | 4 ++++
+ drivers/pci/controller/dwc/pci-keystone.c         | 1 +
+ drivers/pci/controller/dwc/pcie-artpec6.c         | 2 ++
+ drivers/pci/controller/dwc/pcie-designware-plat.c | 1 +
+ drivers/pci/controller/dwc/pcie-dw-rockchip.c     | 2 ++
+ drivers/pci/controller/dwc/pcie-keembay.c         | 1 +
+ drivers/pci/controller/dwc/pcie-qcom-ep.c         | 1 +
+ drivers/pci/controller/dwc/pcie-rcar-gen4.c       | 2 ++
+ drivers/pci/controller/dwc/pcie-tegra194.c        | 2 ++
+ drivers/pci/controller/pcie-rcar-ep.c             | 2 ++
+ drivers/pci/controller/pcie-rockchip-ep.c         | 1 +
+ 13 files changed, 22 insertions(+)
+
+--- a/drivers/pci/controller/cadence/pcie-cadence-ep.c
++++ b/drivers/pci/controller/cadence/pcie-cadence-ep.c
+@@ -614,12 +614,14 @@ static int cdns_pcie_ep_start(struct pci
+ }
+ 
+ static const struct pci_epc_features cdns_pcie_epc_vf_features = {
++	.linkup_notifier = false,
+ 	.msi_capable = true,
+ 	.msix_capable = true,
+ 	.align = 65536,
+ };
+ 
+ static const struct pci_epc_features cdns_pcie_epc_features = {
++	.linkup_notifier = false,
+ 	.msi_capable = true,
+ 	.msix_capable = true,
+ 	.align = 256,
+--- a/drivers/pci/controller/dwc/pci-dra7xx.c
++++ b/drivers/pci/controller/dwc/pci-dra7xx.c
+@@ -426,6 +426,7 @@ static int dra7xx_pcie_raise_irq(struct
+ static const struct pci_epc_features dra7xx_pcie_epc_features = {
+ 	.linkup_notifier = true,
+ 	.msi_capable = true,
++	.msix_capable = false,
+ };
+ 
+ static const struct pci_epc_features*
+--- a/drivers/pci/controller/dwc/pci-imx6.c
++++ b/drivers/pci/controller/dwc/pci-imx6.c
+@@ -1387,7 +1387,9 @@ static int imx_pcie_ep_raise_irq(struct
+ }
+ 
+ static const struct pci_epc_features imx8m_pcie_epc_features = {
++	.linkup_notifier = false,
+ 	.msi_capable = true,
++	.msix_capable = false,
+ 	.bar[BAR_1] = { .type = BAR_RESERVED, },
+ 	.bar[BAR_3] = { .type = BAR_RESERVED, },
+ 	.bar[BAR_4] = { .type = BAR_FIXED, .fixed_size = SZ_256, },
+@@ -1396,7 +1398,9 @@ static const struct pci_epc_features imx
+ };
+ 
+ static const struct pci_epc_features imx8q_pcie_epc_features = {
++	.linkup_notifier = false,
+ 	.msi_capable = true,
++	.msix_capable = false,
+ 	.bar[BAR_1] = { .type = BAR_RESERVED, },
+ 	.bar[BAR_3] = { .type = BAR_RESERVED, },
+ 	.bar[BAR_5] = { .type = BAR_RESERVED, },
+--- a/drivers/pci/controller/dwc/pci-keystone.c
++++ b/drivers/pci/controller/dwc/pci-keystone.c
+@@ -960,6 +960,7 @@ static int ks_pcie_am654_raise_irq(struc
+ }
+ 
+ static const struct pci_epc_features ks_pcie_am654_epc_features = {
++	.linkup_notifier = false,
+ 	.msi_capable = true,
+ 	.msix_capable = true,
+ 	.bar[BAR_0] = { .type = BAR_RESERVED, },
+--- a/drivers/pci/controller/dwc/pcie-artpec6.c
++++ b/drivers/pci/controller/dwc/pcie-artpec6.c
+@@ -370,7 +370,9 @@ static int artpec6_pcie_raise_irq(struct
+ }
+ 
+ static const struct pci_epc_features artpec6_pcie_epc_features = {
++	.linkup_notifier = false,
+ 	.msi_capable = true,
++	.msix_capable = false,
+ };
+ 
+ static const struct pci_epc_features *
+--- a/drivers/pci/controller/dwc/pcie-designware-plat.c
++++ b/drivers/pci/controller/dwc/pcie-designware-plat.c
+@@ -61,6 +61,7 @@ static int dw_plat_pcie_ep_raise_irq(str
+ }
+ 
+ static const struct pci_epc_features dw_plat_pcie_epc_features = {
++	.linkup_notifier = false,
+ 	.msi_capable = true,
+ 	.msix_capable = true,
+ };
+--- a/drivers/pci/controller/dwc/pcie-dw-rockchip.c
++++ b/drivers/pci/controller/dwc/pcie-dw-rockchip.c
+@@ -331,6 +331,7 @@ static const struct pci_epc_features roc
+ 	.linkup_notifier = true,
+ 	.msi_capable = true,
+ 	.msix_capable = true,
++	.intx_capable = false,
+ 	.align = SZ_64K,
+ 	.bar[BAR_0] = { .type = BAR_RESIZABLE, },
+ 	.bar[BAR_1] = { .type = BAR_RESIZABLE, },
+@@ -351,6 +352,7 @@ static const struct pci_epc_features roc
+ 	.linkup_notifier = true,
+ 	.msi_capable = true,
+ 	.msix_capable = true,
++	.intx_capable = false,
+ 	.align = SZ_64K,
+ 	.bar[BAR_0] = { .type = BAR_RESIZABLE, },
+ 	.bar[BAR_1] = { .type = BAR_RESIZABLE, },
+--- a/drivers/pci/controller/dwc/pcie-keembay.c
++++ b/drivers/pci/controller/dwc/pcie-keembay.c
+@@ -309,6 +309,7 @@ static int keembay_pcie_ep_raise_irq(str
+ }
+ 
+ static const struct pci_epc_features keembay_pcie_epc_features = {
++	.linkup_notifier	= false,
+ 	.msi_capable		= true,
+ 	.msix_capable		= true,
+ 	.bar[BAR_0]		= { .only_64bit = true, },
+--- a/drivers/pci/controller/dwc/pcie-qcom-ep.c
++++ b/drivers/pci/controller/dwc/pcie-qcom-ep.c
+@@ -822,6 +822,7 @@ static void qcom_pcie_ep_init_debugfs(st
+ static const struct pci_epc_features qcom_pcie_epc_features = {
+ 	.linkup_notifier = true,
+ 	.msi_capable = true,
++	.msix_capable = false,
+ 	.align = SZ_4K,
+ 	.bar[BAR_0] = { .only_64bit = true, },
+ 	.bar[BAR_1] = { .type = BAR_RESERVED, },
+--- a/drivers/pci/controller/dwc/pcie-rcar-gen4.c
++++ b/drivers/pci/controller/dwc/pcie-rcar-gen4.c
+@@ -398,7 +398,9 @@ static int rcar_gen4_pcie_ep_raise_irq(s
+ }
+ 
+ static const struct pci_epc_features rcar_gen4_pcie_epc_features = {
++	.linkup_notifier = false,
+ 	.msi_capable = true,
++	.msix_capable = false,
+ 	.bar[BAR_1] = { .type = BAR_RESERVED, },
+ 	.bar[BAR_3] = { .type = BAR_RESERVED, },
+ 	.bar[BAR_4] = { .type = BAR_FIXED, .fixed_size = 256 },
+--- a/drivers/pci/controller/dwc/pcie-tegra194.c
++++ b/drivers/pci/controller/dwc/pcie-tegra194.c
+@@ -1998,6 +1998,8 @@ static int tegra_pcie_ep_raise_irq(struc
+ 
+ static const struct pci_epc_features tegra_pcie_epc_features = {
+ 	.linkup_notifier = true,
++	.msi_capable = false,
++	.msix_capable = false,
+ 	.bar[BAR_0] = { .type = BAR_FIXED, .fixed_size = SZ_1M,
+ 			.only_64bit = true, },
+ 	.bar[BAR_1] = { .type = BAR_RESERVED, },
+--- a/drivers/pci/controller/pcie-rcar-ep.c
++++ b/drivers/pci/controller/pcie-rcar-ep.c
+@@ -436,7 +436,9 @@ static void rcar_pcie_ep_stop(struct pci
+ }
+ 
+ static const struct pci_epc_features rcar_pcie_epc_features = {
++	.linkup_notifier = false,
+ 	.msi_capable = true,
++	.msix_capable = false,
+ 	/* use 64-bit BARs so mark BAR[1,3,5] as reserved */
+ 	.bar[BAR_0] = { .type = BAR_FIXED, .fixed_size = 128,
+ 			.only_64bit = true, },
+--- a/drivers/pci/controller/pcie-rockchip-ep.c
++++ b/drivers/pci/controller/pcie-rockchip-ep.c
+@@ -694,6 +694,7 @@ static int rockchip_pcie_ep_setup_irq(st
+ static const struct pci_epc_features rockchip_pcie_epc_features = {
+ 	.linkup_notifier = true,
+ 	.msi_capable = true,
++	.msix_capable = false,
+ 	.intx_capable = true,
+ 	.align = ROCKCHIP_PCIE_AT_SIZE_ALIGN,
+ };
