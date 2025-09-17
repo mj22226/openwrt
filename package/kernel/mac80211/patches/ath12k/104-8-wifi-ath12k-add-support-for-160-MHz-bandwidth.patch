@@ -139,7 +139,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
 
 --- a/drivers/net/wireless/ath/ath12k/core.h
 +++ b/drivers/net/wireless/ath/ath12k/core.h
-@@ -879,6 +879,8 @@ struct ath12k_pdev_cap {
+@@ -886,6 +886,8 @@ struct ath12k_pdev_cap {
  	struct ath12k_band_cap band[NUM_NL80211_BANDS];
  	u32 eml_cap;
  	u32 mld_cap;
@@ -150,7 +150,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  struct mlo_timestamp {
 --- a/drivers/net/wireless/ath/ath12k/mac.c
 +++ b/drivers/net/wireless/ath/ath12k/mac.c
-@@ -2185,6 +2185,34 @@ ath12k_peer_assoc_h_vht_limit(u16 tx_mcs
+@@ -2203,6 +2203,34 @@ ath12k_peer_assoc_h_vht_limit(u16 tx_mcs
  	return tx_mcs_set;
  }
  
@@ -185,7 +185,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  static void ath12k_peer_assoc_h_vht(struct ath12k *ar,
  				    struct ath12k_link_vif *arvif,
  				    struct ath12k_link_sta *arsta,
-@@ -2202,6 +2230,7 @@ static void ath12k_peer_assoc_h_vht(stru
+@@ -2220,6 +2248,7 @@ static void ath12k_peer_assoc_h_vht(stru
  	u8 max_nss, vht_mcs;
  	int i, vht_nss, nss_idx;
  	bool user_rate_valid = true;
@@ -193,7 +193,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  
  	lockdep_assert_wiphy(ath12k_ar_to_hw(ar)->wiphy);
  
-@@ -2306,10 +2335,24 @@ static void ath12k_peer_assoc_h_vht(stru
+@@ -2324,10 +2353,24 @@ static void ath12k_peer_assoc_h_vht(stru
  	/* TODO:  Check */
  	arg->tx_max_mcs_nss = 0xFF;
  
@@ -221,7 +221,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  }
  
  static int ath12k_mac_get_max_he_mcs_map(u16 mcs_map, int nss)
-@@ -2402,6 +2445,7 @@ static void ath12k_peer_assoc_h_he(struc
+@@ -2420,6 +2463,7 @@ static void ath12k_peer_assoc_h_he(struc
  	u16 he_tx_mcs = 0, v = 0;
  	int he_nss, nss_idx;
  	bool user_rate_valid = true;
@@ -229,7 +229,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  
  	if (WARN_ON(ath12k_mac_vif_link_chan(vif, link_id, &def)))
  		return;
-@@ -2599,9 +2643,25 @@ static void ath12k_peer_assoc_h_he(struc
+@@ -2617,9 +2661,25 @@ static void ath12k_peer_assoc_h_he(struc
  	max_nss = min(max_nss, ar->num_tx_chains);
  	arg->peer_nss = min(link_sta->rx_nss, max_nss);
  
@@ -257,7 +257,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  }
  
  static void ath12k_peer_assoc_h_he_6ghz(struct ath12k *ar,
-@@ -2842,10 +2902,13 @@ static enum wmi_phy_mode ath12k_mac_get_
+@@ -2860,10 +2920,13 @@ static enum wmi_phy_mode ath12k_mac_get_
  						    struct ieee80211_link_sta *link_sta)
  {
  	if (link_sta->bandwidth == IEEE80211_STA_RX_BW_160) {
@@ -273,7 +273,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  		return MODE_11AC_VHT160;
  	}
  
-@@ -7379,10 +7442,8 @@ ath12k_create_vht_cap(struct ath12k *ar,
+@@ -7480,10 +7543,8 @@ ath12k_create_vht_cap(struct ath12k *ar,
  
  	ath12k_set_vht_txbf_cap(ar, &vht_cap.cap);
  
@@ -286,7 +286,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  
  	rxmcs_map = 0;
  	txmcs_map = 0;
-@@ -12654,7 +12715,8 @@ ath12k_mac_setup_radio_iface_comb(struct
+@@ -12764,7 +12825,8 @@ ath12k_mac_setup_radio_iface_comb(struct
  		comb[0].radar_detect_widths = BIT(NL80211_CHAN_WIDTH_20_NOHT) |
  						BIT(NL80211_CHAN_WIDTH_20) |
  						BIT(NL80211_CHAN_WIDTH_40) |
@@ -296,7 +296,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  	}
  
  	return 0;
-@@ -13031,6 +13093,9 @@ static int ath12k_mac_hw_register(struct
+@@ -13142,6 +13204,9 @@ static int ath12k_mac_hw_register(struct
  	ieee80211_hw_set(hw, REPORTS_LOW_ACK);
  	ieee80211_hw_set(hw, NO_VIRTUAL_MONITOR);
  
@@ -330,7 +330,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  	} else {
  		return -EINVAL;
  	}
-@@ -1059,7 +1063,8 @@ static void ath12k_wmi_put_wmi_channel(s
+@@ -1107,7 +1111,8 @@ static void ath12k_wmi_put_wmi_channel(s
  
  		chan->band_center_freq2 = cpu_to_le32(center_freq1);
  
