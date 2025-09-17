@@ -131,7 +131,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
 
 --- a/drivers/net/wireless/ath/ath12k/mac.c
 +++ b/drivers/net/wireless/ath/ath12k/mac.c
-@@ -3173,6 +3173,125 @@ static u32 ath12k_mac_ieee80211_sta_bw_t
+@@ -3191,6 +3191,125 @@ static u32 ath12k_mac_ieee80211_sta_bw_t
  	return bw;
  }
  
@@ -257,7 +257,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  static void ath12k_bss_assoc(struct ath12k *ar,
  			     struct ath12k_link_vif *arvif,
  			     struct ieee80211_bss_conf *bss_conf)
-@@ -3187,6 +3306,7 @@ static void ath12k_bss_assoc(struct ath1
+@@ -3205,6 +3324,7 @@ static void ath12k_bss_assoc(struct ath1
  	struct ath12k_sta *ahsta;
  	struct ath12k_peer *peer;
  	bool is_auth = false;
@@ -265,7 +265,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  	int ret;
  
  	lockdep_assert_wiphy(ath12k_ar_to_hw(ar)->wiphy);
-@@ -3230,8 +3350,26 @@ static void ath12k_bss_assoc(struct ath1
+@@ -3248,8 +3368,26 @@ static void ath12k_bss_assoc(struct ath1
  
  	ath12k_peer_assoc_prepare(ar, arvif, arsta, peer_arg, false);
  
@@ -289,10 +289,10 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
 +		return;
 +	}
 +
+ 	peer_arg->is_assoc = true;
  	ret = ath12k_wmi_send_peer_assoc_cmd(ar, peer_arg);
  	if (ret) {
- 		ath12k_warn(ar->ab, "failed to run peer assoc for %pM vdev %i: %d\n",
-@@ -3850,6 +3988,13 @@ static void ath12k_mac_bss_info_changed(
+@@ -3892,6 +4030,13 @@ static void ath12k_mac_bss_info_changed(
  		ether_addr_copy(arvif->bssid, info->bssid);
  
  	if (changed & BSS_CHANGED_BEACON_ENABLED) {
@@ -306,7 +306,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  		ath12k_control_beaconing(arvif, info);
  
  		if (arvif->is_up && info->he_support &&
-@@ -7151,11 +7296,14 @@ static void ath12k_mac_copy_he_cap(struc
+@@ -7252,11 +7397,14 @@ static void ath12k_mac_copy_he_cap(struc
  
  	he_cap_elem->mac_cap_info[1] &=
  		IEEE80211_HE_MAC_CAP1_TF_MAC_PAD_DUR_MASK;
@@ -324,7 +324,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  	he_cap_elem->phy_cap_info[5] |= num_tx_chains - 1;
  
  	switch (iftype) {
-@@ -8454,72 +8602,6 @@ static int ath12k_mac_setup_vdev_create_
+@@ -8566,72 +8714,6 @@ static int ath12k_mac_setup_vdev_create_
  	return 0;
  }
  
@@ -397,7 +397,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  static void ath12k_mac_update_vif_offload(struct ath12k_link_vif *arvif)
  {
  	struct ath12k_vif *ahvif = arvif->ahvif;
-@@ -9706,14 +9788,6 @@ ath12k_mac_vdev_start_restart(struct ath
+@@ -9818,14 +9900,6 @@ ath12k_mac_vdev_start_restart(struct ath
  		spin_unlock_bh(&ab->base_lock);
  
  		/* TODO: Notify if secondary 80Mhz also needs radar detection */

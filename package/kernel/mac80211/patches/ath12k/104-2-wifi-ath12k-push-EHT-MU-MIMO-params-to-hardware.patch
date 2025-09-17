@@ -131,7 +131,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
 
 --- a/drivers/net/wireless/ath/ath12k/mac.c
 +++ b/drivers/net/wireless/ath/ath12k/mac.c
-@@ -3292,6 +3292,58 @@ static int ath12k_mac_vif_recalc_sta_he_
+@@ -3310,6 +3310,58 @@ static int ath12k_mac_vif_recalc_sta_he_
  	return 0;
  }
  
@@ -190,7 +190,7 @@ Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
  static void ath12k_bss_assoc(struct ath12k *ar,
  			     struct ath12k_link_vif *arvif,
  			     struct ieee80211_bss_conf *bss_conf)
-@@ -3994,6 +4046,12 @@ static void ath12k_mac_bss_info_changed(
+@@ -4036,6 +4088,12 @@ static void ath12k_mac_bss_info_changed(
  				ath12k_warn(ar->ab,
  					    "failed to set HE TXBF config for vdev: %d\n",
  					    arvif->vdev_id);
