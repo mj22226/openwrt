@@ -1,0 +1,122 @@
+--- a/devices.txt
++++ b/devices.txt
+@@ -246,6 +246,119 @@
+ # rtl8xxxu/rtl8xxxu_core.c
+ 0x0000 0x0000 0x0bda 0x8176    0      0  "Realtek" "RTL8188CU"
+ 0x0000 0x0000 0x0bda 0xf179    0      0  "Realtek" "RTL8188FTV"
++# rtw88/rtw8723du.c
++0x0000 0x0000 0x7392 0xd611    0      0  "Realtek" "RTL8723DU" /* Edimax EW-7611ULB V2 */
++# rtw88/rtw8812au.c
++0x0000 0x0000 0x0409 0x0408    0      0  "Realtek" "RTL8812AU" /* NEC */
++0x0000 0x0000 0x0411 0x025d    0      0  "Realtek" "RTL8812AU" /* Buffalo */
++0x0000 0x0000 0x04bb 0x0952    0      0  "Realtek" "RTL8812AU" /* I-O DATA */
++0x0000 0x0000 0x050d 0x1106    0      0  "Realtek" "RTL8812AU" /* Belkin */
++0x0000 0x0000 0x050d 0x1109    0      0  "Realtek" "RTL8812AU" /* Belkin */
++0x0000 0x0000 0x0586 0x3426    0      0  "Realtek" "RTL8812AU" /* ZyXEL */
++0x0000 0x0000 0x0789 0x016e    0      0  "Realtek" "RTL8812AU" /* Logitec */
++0x0000 0x0000 0x07b8 0x8812    0      0  "Realtek" "RTL8812AU" /* Abocom */
++0x0000 0x0000 0x0846 0x9051    0      0  "Realtek" "RTL8812AU" /* Netgear */
++0x0000 0x0000 0x0b05 0x17d2    0      0  "Realtek" "RTL8812AU" /* ASUS */
++0x0000 0x0000 0x0df6 0x0074    0      0  "Realtek" "RTL8812AU" /* Sitecom */
++0x0000 0x0000 0x0e66 0x0022    0      0  "Realtek" "RTL8812AU" /* Hawking */
++0x0000 0x0000 0x1058 0x0632    0      0  "Realtek" "RTL8812AU" /* WD */
++0x0000 0x0000 0x13b1 0x003f    0      0  "Realtek" "RTL8812AU" /* Linksys */
++0x0000 0x0000 0x148f 0x9097    0      0  "Realtek" "RTL8812AU" /* Amped Wireless */
++0x0000 0x0000 0x1740 0x0100    0      0  "Realtek" "RTL8812AU" /* EnGenius */
++0x0000 0x0000 0x2001 0x330e    0      0  "Realtek" "RTL8812AU" /* D-Link */
++0x0000 0x0000 0x2001 0x3313    0      0  "Realtek" "RTL8812AU" /* D-Link */
++0x0000 0x0000 0x2001 0x3315    0      0  "Realtek" "RTL8812AU" /* D-Link */
++0x0000 0x0000 0x2001 0x3316    0      0  "Realtek" "RTL8812AU" /* D-Link */
++0x0000 0x0000 0x2019 0xab30    0      0  "Realtek" "RTL8812AU" /* Planex */
++0x0000 0x0000 0x20f4 0x805b    0      0  "Realtek" "RTL8812AU" /* TRENDnet */
++0x0000 0x0000 0x2357 0x0101    0      0  "Realtek" "RTL8812AU" /* TP-Link */
++0x0000 0x0000 0x2357 0x0103    0      0  "Realtek" "RTL8812AU" /* TP-Link */
++0x0000 0x0000 0x2357 0x010d    0      0  "Realtek" "RTL8812AU" /* TP-Link */
++0x0000 0x0000 0x2357 0x010e    0      0  "Realtek" "RTL8812AU" /* TP-Link */
++0x0000 0x0000 0x2357 0x010f    0      0  "Realtek" "RTL8812AU" /* TP-Link */
++0x0000 0x0000 0x2357 0x0122    0      0  "Realtek" "RTL8812AU" /* TP-Link */
++0x0000 0x0000 0x2604 0x0012    0      0  "Realtek" "RTL8812AU" /* Tenda */
++0x0000 0x0000 0x7392 0xa822    0      0  "Realtek" "RTL8812AU" /* Edimax */
++# rtw88/rtw8814au.c
++0x0000 0x0000 0x056e 0x400b    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x056e 0x400d    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x0846 0x9054    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x0b05 0x1817    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x0b05 0x1852    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x0b05 0x1853    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x0e66 0x0026    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x2001 0x331a    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x20f4 0x809a    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x20f4 0x809b    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x2357 0x0106    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x7392 0xa834    0      0  "Realtek" "RTL8814AU"
++0x0000 0x0000 0x7392 0xa833    0      0  "Realtek" "RTL8814AU"
++# rtw88/rtw8821au.c
++0x0000 0x0000 0x0411 0x0242    0      0  "Realtek" "RTL8821AU" /* Buffalo */
++0x0000 0x0000 0x0411 0x029b    0      0  "Realtek" "RTL8821AU" /* Buffalo */
++0x0000 0x0000 0x04bb 0x0953    0      0  "Realtek" "RTL8821AU" /* I-O DATA */
++0x0000 0x0000 0x056e 0x4007    0      0  "Realtek" "RTL8821AU" /* ELECOM */
++0x0000 0x0000 0x056e 0x400e    0      0  "Realtek" "RTL8821AU" /* ELECOM */
++0x0000 0x0000 0x056e 0x400f    0      0  "Realtek" "RTL8821AU" /* ELECOM */
++0x0000 0x0000 0x0846 0x9052    0      0  "Realtek" "RTL8821AU" /* Netgear */
++0x0000 0x0000 0x0e66 0x0023    0      0  "Realtek" "RTL8821AU" /* HAWKING */
++0x0000 0x0000 0x2001 0x3314    0      0  "Realtek" "RTL8821AU" /* D-Link */
++0x0000 0x0000 0x2001 0x3318    0      0  "Realtek" "RTL8821AU" /* D-Link */
++0x0000 0x0000 0x2019 0xab32    0      0  "Realtek" "RTL8821AU" /* Planex */
++0x0000 0x0000 0x20f4 0x804b    0      0  "Realtek" "RTL8821AU" /* TRENDnet */
++0x0000 0x0000 0x2357 0x011e    0      0  "Realtek" "RTL8821AU" /* TP Link */
++0x0000 0x0000 0x2357 0x011f    0      0  "Realtek" "RTL8821AU" /* TP Link */
++0x0000 0x0000 0x2357 0x0120    0      0  "Realtek" "RTL8821AU" /* TP Link */
++0x0000 0x0000 0x3823 0x6249    0      0  "Realtek" "RTL8821AU" /* Obihai */
++0x0000 0x0000 0x7392 0xa811    0      0  "Realtek" "RTL8821AU" /* Edimax */
++0x0000 0x0000 0x7392 0xa812    0      0  "Realtek" "RTL8821AU" /* Edimax */
++0x0000 0x0000 0x7392 0xa813    0      0  "Realtek" "RTL8821AU" /* Edimax */
++0x0000 0x0000 0x7392 0xb611    0      0  "Realtek" "RTL8821AU" /* Edimax */
++0x0000 0x0000 0x0bda 0x0811    0      0  "Realtek" "RTL8821AU" /* Alfa AWUS036ACS */
++# rtw88/rtw8821cu.c
++0x0000 0x0000 0x2001 0x331d    0      0  "Realtek" "RTL8821CU" /* D-Link */
++0x0000 0x0000 0x7392 0xc811    0      0  "Realtek" "RTL8821CU" /* Edimax */
++0x0000 0x0000 0x7392 0xd811    0      0  "Realtek" "RTL8821CU" /* Edimax */
++0x0000 0x0000 0x0bda 0xc820    0      0  "Realtek" "RTL8821CU"
++# rtw88/rtw8822bu.c
++0x0000 0x0000 0x7392 0xb822    0      0  "Realtek" "RTL8822BU" /* Edimax EW-7822ULC */
++0x0000 0x0000 0x7392 0xc822    0      0  "Realtek" "RTL8822BU" /* Edimax EW-7822UTC */
++0x0000 0x0000 0x7392 0xd822    0      0  "Realtek" "RTL8822BU" /* Edimax */
++0x0000 0x0000 0x7392 0xe822    0      0  "Realtek" "RTL8822BU" /* Edimax */
++0x0000 0x0000 0x7392 0xf822    0      0  "Realtek" "RTL8822BU" /* Edimax EW-7822UAD */
++0x0000 0x0000 0x0b05 0x1841    0      0  "Realtek" "RTL8822BU" /* ASUS AC1300 USB-AC55 B1 */
++0x0000 0x0000 0x0b05 0x184c    0      0  "Realtek" "RTL8822BU" /* ASUS U2 */
++0x0000 0x0000 0x0B05 0x19aa    0      0  "Realtek" "RTL8822BU" /* ASUS - USB-AC58 rev A1 */
++0x0000 0x0000 0x0B05 0x1870    0      0  "Realtek" "RTL8822BU" /* ASUS */
++0x0000 0x0000 0x0B05 0x1874    0      0  "Realtek" "RTL8822BU" /* ASUS */
++0x0000 0x0000 0x2001 0x331e    0      0  "Realtek" "RTL8822BU" /* Dlink - DWA-181 */
++0x0000 0x0000 0x2001 0x331c    0      0  "Realtek" "RTL8822BU" /* Dlink - DWA-182 - D1 */
++0x0000 0x0000 0x2001 0x331f    0      0  "Realtek" "RTL8822BU" /* Dlink - DWA-183 D Ver */
++0x0000 0x0000 0x13b1 0x0043    0      0  "Realtek" "RTL8822BU" /* Linksys WUSB6400M */
++0x0000 0x0000 0x13b1 0x0045    0      0  "Realtek" "RTL8822BU" /* Linksys WUSB3600 v2 */
++0x0000 0x0000 0x2357 0x012d    0      0  "Realtek" "RTL8822BU" /* TP-Link Archer T3U v1 */
++0x0000 0x0000 0x2357 0x0138    0      0  "Realtek" "RTL8822BU" /* TP-Link Archer T3U Plus v1 */
++0x0000 0x0000 0x2357 0x0115    0      0  "Realtek" "RTL8822BU" /* TP-Link Archer T4U V3 */
++0x0000 0x0000 0x2357 0x012e    0      0  "Realtek" "RTL8822BU" /* TP-LINK */
++0x0000 0x0000 0x2357 0x0116    0      0  "Realtek" "RTL8822BU" /* TP-LINK */
++0x0000 0x0000 0x2357 0x0117    0      0  "Realtek" "RTL8822BU" /* TP-LINK */
++0x0000 0x0000 0x0846 0x9055    0      0  "Realtek" "RTL8822BU" /* Netgear A6150 */
++0x0000 0x0000 0x0e66 0x0025    0      0  "Realtek" "RTL8822BU" /* Hawking HW12ACU */
++0x0000 0x0000 0x04ca 0x8602    0      0  "Realtek" "RTL8822BU" /* LiteOn */
++0x0000 0x0000 0x20f4 0x808a    0      0  "Realtek" "RTL8822BU" /* TRENDnet TEW-808UBM */
++0x0000 0x0000 0x20f4 0x805a    0      0  "Realtek" "RTL8822BU" /* TRENDnet TEW-805UBH */
++0x0000 0x0000 0x056e 0x4011    0      0  "Realtek" "RTL8822BU" /* ELECOM WDB-867DU3S */
++0x0000 0x0000 0x2c4e 0x0107    0      0  "Realtek" "RTL8822BU" /* Mercusys MA30H */
++0x0000 0x0000 0x2c4e 0x010a    0      0  "Realtek" "RTL8822BU" /* Mercusys MA30N */
++0x0000 0x0000 0x2001 0x3322    0      0  "Realtek" "RTL8822BU" /* D-Link DWA-T185 rev. A1 */
++0x0000 0x0000 0x0411 0x03d1    0      0  "Realtek" "RTL8822BU" /* BUFFALO WI-U2-866DM */
++# rtw88/rtw8822cu.c
++0x0000 0x0000 0x13b1 0x0043    0      0  "Realtek" "RTL8822CU" /* Alpha - Alpha */
++#####
++0x02d0 0x4356 0x0000 0x0000    0      0  "Broadcom" "BCM4356"
++0x02d0 0xa9bf 0x0000 0x0000    0      0  "Broadcom" "BCM43456"
++0x14c3 0x7922 0x1A3B 0x5300    0      0  "MediaTek" "MT7922"
++0x10ec 0x8852 0x1e26 0x007f    0      0  "Realtek" "RTL8852AE"
+ 
+ # FDT compatible strings
+ # "compatible" | txpower offset | frequency offset | ...
