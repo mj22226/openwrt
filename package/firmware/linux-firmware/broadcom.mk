@@ -212,3 +212,222 @@ define Package/bnx2x-firmware/install
 		$(1)/lib/firmware/bnx2x/
 endef
 $(eval $(call BuildPackage,bnx2x-firmware))
+
+
+## Broadcom BRCM43456
+
+BRCMFMAC_43456_URL:=https://raw.githubusercontent.com/RPi-Distro/firmware-nonfree/bookworm/debian/config/brcm80211/brcm/
+
+define Download/brcmfmac43456-sdio.bin
+  FILE:=brcmfmac43456-sdio.bin
+  URL:=$(BRCMFMAC_43456_URL)
+  HASH:=ddf83f2100885b166be52d21c8966db164fdd4e1d816aca2acc67ee9cc28d726
+endef
+
+define Download/brcmfmac43456-sdio.clm_blob
+  FILE:=brcmfmac43456-sdio.clm_blob
+  URL:=$(BRCMFMAC_43456_URL)
+  HASH:=2dbd7d22fc9af0eb560ceab45b19646d211bc7b34a1dd00c6bfac5dd6ba25e8a
+endef
+
+define Download/brcmfmac43456-sdio.txt
+  FILE:=brcmfmac43456-sdio.txt
+  URL:=$(BRCMFMAC_43456_URL)
+  HASH:=44e0bb322dc1f39a4b0a89f30ffdd28bc93f7d7aaf534d06d229fe56f6198194
+endef
+
+$(eval $(call Download,brcmfmac43456-sdio.bin))
+$(eval $(call Download,brcmfmac43456-sdio.clm_blob))
+$(eval $(call Download,brcmfmac43456-sdio.txt))
+
+Package/brcmfmac-firmware-43456-rockpi-4 = $(call Package/firmware-default,Broadcom Rock Pi 4 firmware)
+define Package/brcmfmac-firmware-43456-rockpi-4/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(DL_DIR)/brcmfmac43456-sdio.bin \
+		$(1)/lib/firmware/brcm/brcmfmac43456-sdio.radxa,rockpi4a.bin
+	$(INSTALL_DATA) \
+		$(DL_DIR)/brcmfmac43456-sdio.clm_blob \
+		$(1)/lib/firmware/brcm/brcmfmac43456-sdio.radxa,rockpi4a.clm_blob
+	$(INSTALL_DATA) \
+		$(DL_DIR)/brcmfmac43456-sdio.txt \
+		$(1)/lib/firmware/brcm/brcmfmac43456-sdio.radxa,rockpi4a.txt
+endef
+$(eval $(call BuildPackage,brcmfmac-firmware-43456-rockpi-4))
+
+## Broadcom NanoPi M4 firmware
+
+BRCMFMAC_4356_URL:=https://raw.githubusercontent.com/armbian/firmware/master/brcm/
+
+define Download/brcmfmac4356-sdio.bin
+  FILE:=brcmfmac4356-sdio.bin
+  URL:=$(BRCMFMAC_4356_URL)
+  HASH:=cc689fc1b39bd3d1655eff9fcfac60a3bf73fb6a45e77fdbab1e762aeeecf34e
+endef
+
+define Download/brcmfmac4356-sdio.clm_blob
+  FILE:=brcmfmac4356-sdio.clm_blob
+  URL:=$(BRCMFMAC_4356_URL)
+  HASH:=e048470d674de8865c30521138af248e5f96a9878ac73b707d834698cbf9a08a
+endef
+
+define Download/brcmfmac4356-sdio.txt
+  FILE:=brcmfmac4356-sdio.txt
+  URL:=$(BRCMFMAC_4356_URL)
+  HASH:=81efd86f47fac54596d3c614872b2997ed0079303136e4c675a8eaa1a39db120
+endef
+
+$(eval $(call Download,brcmfmac4356-sdio.bin))
+$(eval $(call Download,brcmfmac4356-sdio.clm_blob))
+$(eval $(call Download,brcmfmac4356-sdio.txt))
+
+Package/brcmfmac-firmware-4356-nanopi-m4 = $(call Package/firmware-default,Broadcom NanoPi M4 firmware)
+define Package/brcmfmac-firmware-4356-nanopi-m4/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/cypress/cyfmac4356-sdio.bin \
+		$(1)/lib/firmware/brcm/brcmfmac4356-sdio.friendlyarm,nanopi-m4.bin
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/cypress/cyfmac4356-sdio.clm_blob \
+		$(1)/lib/firmware/brcm/brcmfmac4356-sdio.friendlyarm,nanopi-m4.clm_blob
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/brcm/brcmfmac4356-sdio.AP6356S.txt \
+		$(1)/lib/firmware/brcm/brcmfmac4356-sdio.friendlyarm,nanopi-m4.txt
+endef
+$(eval $(call BuildPackage,brcmfmac-firmware-4356-nanopi-m4))
+
+## Broadcom AP6255 firmware
+
+AP_6255_URL:=https://raw.githubusercontent.com/Infineon/ifx-linux-firmware/refs/heads/master/firmware/
+
+##define Download/cyfmac43455-sdio-minimal.bin
+##  FILE:=cyfmac43455-sdio-minimal.bin
+##  URL:=$(AP_6255_URL)
+##  HASH:=3075cb0bdc4b28ed4f08e01b1a216d0ebc70f4022d9d3272a4a43b3c90456e60
+##endef
+
+define Download/cyfmac43455-sdio.bin
+  FILE:=cyfmac43455-sdio.bin
+  URL:=$(AP_6255_URL)
+  HASH:=eaff8d2b6d2501bb5c477ba343900c7487af915898eac13bc91b33b1285dadce
+endef
+
+define Download/cyfmac43455-sdio.clm_blob
+  FILE:=cyfmac43455-sdio.clm_blob
+  URL:=$(AP_6255_URL)
+  HASH:=8fbe9fc2952e2fbab062a142c1ea3e261cd74604761e12f304781b911df4a328
+endef
+
+##$(eval $(call Download,cyfmac43455-sdio-minimal.bin))
+$(eval $(call Download,cyfmac43455-sdio.bin))
+$(eval $(call Download,cyfmac43455-sdio.clm_blob))
+
+Package/brcmfmac-firmware-ap6255-hugsun-x99 = $(call Package/firmware-default,Broadcom hugsun x99 firmware)
+define Package/brcmfmac-firmware-ap6255-hugsun-x99/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(DL_DIR)/cyfmac43455-sdio.bin \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.hugsun,x99.bin
+	$(INSTALL_DATA) \
+		$(DL_DIR)/cyfmac43455-sdio.clm_blob \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.hugsun,x99.clm_blob
+	$(INSTALL_DATA) \
+		$(PKG_BUILD_DIR)/brcm/brcmfmac43455-sdio.acepc-t8.txt \
+		$(1)/lib/firmware/brcm/brcmfmac43455-sdio.hugsun,x99.txt
+endef
+$(eval $(call BuildPackage,brcmfmac-firmware-ap6255-hugsun-x99))
+
+
+## Broadcom BRCMBCM43430/BCM4345
+
+BRCMFMAC_434_URL:=https://github.com/RPi-Distro/bluez-firmware/raw/refs/heads/bookworm/debian/firmware/broadcom/
+
+define Download/BCM4343A2.hcd
+  FILE:=BCM4343A2.hcd
+  URL:=$(BRCMFMAC_434_URL)
+  HASH:=5f7fb0a863f9ee8874e4ad37ccc69abbc751fdc0257cb3fdd0ba0e89378ff76a
+endef
+
+define Download/BCM4345C0.hcd
+  FILE:=BCM4345C0.hcd
+  URL:=$(BRCMFMAC_434_URL)
+  HASH:=51c45e77ddad91a19e96dc8fb75295b2087c279940df2634b23baf71b6dea42c
+endef
+
+define Download/BCM4345C5.hcd
+  FILE:=BCM4345C5.hcd
+  URL:=$(BRCMFMAC_434_URL)
+  HASH:=fb9f4ec2df5301bd35f416384e103c012c5983024c49aa72fbbaf90177512caa
+endef
+
+define Download/BCM43430A1.hcd
+  FILE:=BCM43430A1.hcd
+  URL:=$(BRCMFMAC_434_URL)
+  HASH:=c096ad4a5c3f06ed7d69eba246bf89ada9acba64a5b6f51b1e9c12f99bb1e1a7
+endef
+
+define Download/BCM43430B0.hcd
+  FILE:=BCM43430B0.hcd
+  URL:=$(BRCMFMAC_434_URL)
+  HASH:=338c2c6631131f516bfc7e64ef0872bd0402e1f98ef9d0c900eef0c814d90a25
+endef
+
+$(eval $(call Download,BCM4343A2.hcd))
+$(eval $(call Download,BCM4345C0.hcd))
+$(eval $(call Download,BCM4345C5.hcd))
+$(eval $(call Download,BCM43430A1.hcd))
+$(eval $(call Download,BCM43430B0.hcd))
+
+Package/brcmfmac-sdio-firmware-4343-bt = $(call Package/firmware-default,CYW4343 BT firmware and patch RAM)
+define Package/brcmfmac-sdio-firmware-4343-bt/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(DL_DIR)/BCM4343A2.hcd \
+		$(1)/lib/firmware/brcm/BCM4343A2.hcd
+endef
+$(eval $(call BuildPackage,brcmfmac-sdio-firmware-4343-bt))
+
+Package/brcmfmac-sdio-firmware-4345-bt = $(call Package/firmware-default,CYW4345 BT firmware and patch RAM)
+define Package/brcmfmac-sdio-firmware-4345-bt/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(DL_DIR)/BCM4345C0.hcd \
+		$(1)/lib/firmware/brcm/BCM4345C0.hcd
+	$(INSTALL_DATA) \
+		$(DL_DIR)/BCM4345C5.hcd \
+		$(1)/lib/firmware/brcm/BCM4345C5.hcd
+endef
+$(eval $(call BuildPackage,brcmfmac-sdio-firmware-4345-bt))
+
+Package/brcmfmac-sdio-firmware-43430-bt = $(call Package/firmware-default,CYW43430 BT firmware and patch RAM)
+define Package/brcmfmac-sdio-firmware-43430-bt/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(DL_DIR)/BCM43430A1.hcd \
+		$(1)/lib/firmware/brcm/BCM43430A1.hcd
+	$(INSTALL_DATA) \
+		$(DL_DIR)/BCM43430B0.hcd \
+		$(1)/lib/firmware/brcm/BCM43430B0.hcd
+endef
+$(eval $(call BuildPackage,brcmfmac-sdio-firmware-43430-bt))
+
+## Broadcom BCM4356A2
+
+BRCMFMAC_4356A2_URL:=https://github.com/LibreELEC/brcmfmac_sdio-firmware/raw/refs/heads/master/
+
+define Download/BCM4356A2.hcd
+  FILE:=BCM4356A2.hcd
+  URL:=$(BRCMFMAC_4356A2_URL)
+  HASH:=f1daa6ab28699b72c8e47a34f43c095941c9aa542d0a5f4b55baebc5fd1aae99
+endef
+
+$(eval $(call Download,BCM4356A2.hcd))
+
+Package/brcmfmac-sdio-firmware-4356A2-bt = $(call Package/firmware-default,BCM4356A2 BT firmware and patch RAM)
+define Package/brcmfmac-sdio-firmware-4356A2-bt/install
+	$(INSTALL_DIR) $(1)/lib/firmware/brcm
+	$(INSTALL_DATA) \
+		$(DL_DIR)/BCM4356A2.hcd \
+		$(1)/lib/firmware/brcm/BCM4356A2.hcd
+endef
+$(eval $(call BuildPackage,brcmfmac-sdio-firmware-4356A2-bt))
