@@ -74,6 +74,7 @@ define prepare_rootfs
 	fi)
 	@mkdir -p $(1)/etc/rc.d
 	@mkdir -p $(1)/var/lock
+        @mkdir -p $(1)/www/repo
 	@( \
 		cd $(1); \
 		if [ -n "$(CONFIG_USE_APK)" ]; then \
@@ -121,6 +122,9 @@ define prepare_rootfs
 		$(1)/usr/lib/opkg/info/*.postinst* \
 		$(1)/usr/lib/opkg/lists/* \
 		$(1)/var/lock/*.lock
+        @(      $(MAKE) package/index; \
+                $(CP) $(TOPDIR)/bin/targets/$(BOARD)/$(SUBTARGET)/packages $(1)/www/repo/packages; \
+        )
 	$(call clean_ipkg,$(1))
 	$(call mklibs,$(1))
 	$(if $(SOURCE_DATE_EPOCH),find $(1)/ -mindepth 1 -execdir touch -hcd "@$(SOURCE_DATE_EPOCH)" "{}" +)
