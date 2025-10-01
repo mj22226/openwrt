@@ -1,0 +1,8 @@
+--- a/root/etc/config/firewall
++++ b/root/etc/config/firewall
+@@ -1,4 +1,5 @@
+ config defaults
++	option flow_offloading	1
+ 	option syn_flood	1
+ 	option input		REJECT
+ 	option output		ACCEPT
