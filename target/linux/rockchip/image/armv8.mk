@@ -72,6 +72,17 @@ define Device/firefly_roc-rk3328-cc
 endef
 TARGET_DEVICES += firefly_roc-rk3328-cc
 
+define Device/hugsun_hugsun-x99
+  $(Device/rk3399)
+  DEVICE_VENDOR := Hugsun
+  DEVICE_MODEL := X99 TV BOX
+  SUPPORTED_DEVICES := hugsun,x99
+  DEVICE_DTS := rk3399-hugsun-x99
+  DEVICE_PACKAGES := brcmfmac-firmware-ap6255-hugsun-x99 \
+	kmod-brcmfmac brcmfmac-sdio-firmware-43430-bt kmod-usb-net-rtl8152 wpad-basic-mbedtls
+endef
+TARGET_DEVICES += hugsun_hugsun-x99
+
 define Device/friendlyarm_nanopc-t4
   $(Device/rk3399)
   DEVICE_VENDOR := FriendlyARM
