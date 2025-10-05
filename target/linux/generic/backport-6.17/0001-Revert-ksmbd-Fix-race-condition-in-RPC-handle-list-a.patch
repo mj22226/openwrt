@@ -1,0 +1,69 @@
+From 5b1d27d12e4b52af066c3d800d02c377b1f86e88 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Mon, 13 Oct 2025 23:43:40 -0400
+Subject: [PATCH] Revert "ksmbd: Fix race condition in RPC handle list access"
+
+This reverts commit 3659c6222d008cee23d8e2b0b19a64b912162118.
+---
+ fs/smb/server/mgmt/user_session.c | 26 +++++++++-----------------
+ 1 file changed, 9 insertions(+), 17 deletions(-)
+
+--- a/fs/smb/server/mgmt/user_session.c
++++ b/fs/smb/server/mgmt/user_session.c
+@@ -104,32 +104,29 @@ int ksmbd_session_rpc_open(struct ksmbd_
+ 	if (!entry)
+ 		return -ENOMEM;
+ 
++	down_read(&sess->rpc_lock);
+ 	entry->method = method;
+ 	entry->id = id = ksmbd_ipc_id_alloc();
+ 	if (id < 0)
+ 		goto free_entry;
+-
+-	down_write(&sess->rpc_lock);
+ 	old = xa_store(&sess->rpc_handle_list, id, entry, KSMBD_DEFAULT_GFP);
+-	if (xa_is_err(old)) {
+-		up_write(&sess->rpc_lock);
++	if (xa_is_err(old))
+ 		goto free_id;
+-	}
+ 
+ 	resp = ksmbd_rpc_open(sess, id);
+-	if (!resp) {
+-		xa_erase(&sess->rpc_handle_list, entry->id);
+-		up_write(&sess->rpc_lock);
+-		goto free_id;
+-	}
++	if (!resp)
++		goto erase_xa;
+ 
+-	up_write(&sess->rpc_lock);
++	up_read(&sess->rpc_lock);
+ 	kvfree(resp);
+ 	return id;
++erase_xa:
++	xa_erase(&sess->rpc_handle_list, entry->id);
+ free_id:
+ 	ksmbd_rpc_id_free(entry->id);
+ free_entry:
+ 	kfree(entry);
++	up_read(&sess->rpc_lock);
+ 	return -EINVAL;
+ }
+ 
+@@ -147,14 +144,9 @@ void ksmbd_session_rpc_close(struct ksmb
+ int ksmbd_session_rpc_method(struct ksmbd_session *sess, int id)
+ {
+ 	struct ksmbd_session_rpc *entry;
+-	int method;
+ 
+-	down_read(&sess->rpc_lock);
+ 	entry = xa_load(&sess->rpc_handle_list, id);
+-	method = entry ? entry->method : 0;
+-	up_read(&sess->rpc_lock);
+-
+-	return method;
++	return entry ? entry->method : 0;
+ }
+ 
+ void ksmbd_session_destroy(struct ksmbd_session *sess)
