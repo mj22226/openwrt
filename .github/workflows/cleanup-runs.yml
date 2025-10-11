@@ -1,7 +1,6 @@
 name: Cleanup
 on:
   push:
-  
 jobs:
   del_runs:
     runs-on: ubuntu-24.04-arm
