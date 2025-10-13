@@ -238,7 +238,6 @@ define KernelPackage/fs-ext4
   SUBMENU:=$(FS_MENU)
   TITLE:=EXT4 filesystem support
   DEPENDS := \
-    +kmod-lib-crc16 \
     +kmod-crypto-hash \
     +kmod-crypto-crc32c
   KCONFIG:= \
