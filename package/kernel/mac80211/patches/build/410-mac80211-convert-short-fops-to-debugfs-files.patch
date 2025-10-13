@@ -93,7 +93,7 @@
  	.llseek = noop_llseek,
  };
  #endif
-@@ -656,8 +664,9 @@ static ssize_t stats_ ##name## _read(str
+@@ -655,8 +663,9 @@ static ssize_t stats_ ##name## _read(str
  				      print_devstats_##name);		\
  }									\
  									\
