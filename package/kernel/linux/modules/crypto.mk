@@ -570,7 +570,6 @@ endef
 ifndef CONFIG_TARGET_uml
 define KernelPackage/crypto-lib-chacha20/x86_64
   KCONFIG+=CONFIG_CRYPTO_CHACHA20_X86_64
-  FILES+=$(LINUX_DIR)/lib/crypto/x86/chacha-x86_64.ko
 endef
 endif
 
@@ -606,6 +605,7 @@ define KernelPackage/crypto-lib-chacha20poly1305
   TITLE:=ChaCha20-Poly1305 AEAD support (8-byte nonce library version)
   KCONFIG:=CONFIG_CRYPTO_LIB_CHACHA20POLY1305
   HIDDEN:=1
+  DEPENDS:=+kmod-crypto-lib-chacha20
   FILES:= \
 	$(LINUX_DIR)/lib/crypto/libchacha20poly1305.ko \
 	$(LINUX_DIR)/lib/crypto/libpoly1305.ko
@@ -629,7 +629,6 @@ endef
 ifndef CONFIG_TARGET_uml
 define KernelPackage/crypto-lib-curve25519/x86_64
   KCONFIG+=CONFIG_CRYPTO_CURVE25519_X86
-  FILES+=$(LINUX_DIR)/arch/x86/crypto/curve25519-x86_64.ko
 endef
 endif
 
@@ -732,7 +731,9 @@ define KernelPackage/crypto-md5
 	CONFIG_CRYPTO_MD5 \
 	CONFIG_CRYPTO_MD5_OCTEON \
 	CONFIG_CRYPTO_MD5_PPC
-  FILES:=$(LINUX_DIR)/crypto/md5.ko
+  FILES:= \
+	$(LINUX_DIR)/crypto/md5.ko \
+	$(LINUX_DIR)/lib/crypto/libmd5.ko
   AUTOLOAD:=$(call AutoLoad,09,md5)
   $(call AddDepends/crypto)
 endef
