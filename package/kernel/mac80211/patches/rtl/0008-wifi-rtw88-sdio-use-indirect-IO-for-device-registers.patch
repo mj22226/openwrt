@@ -1,0 +1,42 @@
+From 58de1f91e033b1fface8d8948984583125f93736 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Thu, 24 Jul 2025 08:48:15 +0800
+Subject: [PATCH] wifi: rtw88: sdio: use indirect IO for device registers
+ before power-on
+
+The register REG_SYS_CFG1 is used to determine chip basic information
+as arguments of following flows, such as download firmware and load PHY
+parameters, so driver read the value early (before power-on).
+
+However, the direct IO is disallowed before power-on, or it causes wrong
+values, which driver recognizes a chip as a wrong type RF_1T1R, but
+actually RF_2T2R, causing driver warns:
+
+  rtw88_8822cs mmc1:0001:1: unsupported rf path (1)
+
+Fix it by using indirect IO before power-on.
+
+Reported-by: Piotr Oniszczuk <piotr.oniszczuk@gmail.com>
+Closes: https://lore.kernel.org/linux-wireless/699C22B4-A3E3-4206-97D0-22AB3348EBF6@gmail.com/T/#t
+Suggested-by: Bitterblue Smith <rtl8821cerfe2@gmail.com>
+Tested-by: Piotr Oniszczuk <piotr.oniszczuk@gmail.com>
+Reviewed-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Link: https://patch.msgid.link/20250724004815.7043-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw88/sdio.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw88/sdio.c
++++ b/drivers/net/wireless/realtek/rtw88/sdio.c
+@@ -144,6 +144,10 @@ static u32 rtw_sdio_to_io_address(struct
+ 
+ static bool rtw_sdio_use_direct_io(struct rtw_dev *rtwdev, u32 addr)
+ {
++	if (!test_bit(RTW_FLAG_POWERON, rtwdev->flags) &&
++	    !rtw_sdio_is_bus_addr(addr))
++		return false;
++
+ 	return !rtw_sdio_is_sdio30_supported(rtwdev) ||
+ 		rtw_sdio_is_bus_addr(addr);
+ }
