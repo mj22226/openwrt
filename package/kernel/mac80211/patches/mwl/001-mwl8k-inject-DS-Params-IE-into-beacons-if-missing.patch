@@ -33,7 +33,7 @@ Signed-off-by: Pawel Dembicki <paweldembicki@gmail.com>
 
 --- a/drivers/net/wireless/marvell/mwl8k.c
 +++ b/drivers/net/wireless/marvell/mwl8k.c
-@@ -2962,6 +2962,42 @@ mwl8k_cmd_rf_antenna(struct ieee80211_hw
+@@ -2966,6 +2966,42 @@ mwl8k_cmd_rf_antenna(struct ieee80211_hw
  /*
   * CMD_SET_BEACON.
   */
@@ -76,7 +76,7 @@ Signed-off-by: Pawel Dembicki <paweldembicki@gmail.com>
  struct mwl8k_cmd_set_beacon {
  	struct mwl8k_cmd_pkt_hdr header;
  	__le16 beacon_len;
-@@ -2971,17 +3007,32 @@ struct mwl8k_cmd_set_beacon {
+@@ -2975,17 +3011,32 @@ struct mwl8k_cmd_set_beacon {
  static int mwl8k_cmd_set_beacon(struct ieee80211_hw *hw,
  				struct ieee80211_vif *vif, u8 *beacon, int len)
  {
