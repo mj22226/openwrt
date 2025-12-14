@@ -156,7 +156,9 @@ define KernelPackage/libphy
   TITLE:=PHY library
   KCONFIG:=CONFIG_PHYLIB \
 	   CONFIG_PHYLIB_LEDS=y
-  FILES:=$(LINUX_DIR)/drivers/net/phy/libphy.ko
+  FILES:= \
+	$(LINUX_DIR)/drivers/net/phy/libphy.ko \
+	$(LINUX_DIR)/drivers/net/phy/mdio-bus.ko
   AUTOLOAD:=$(call AutoLoad,15,libphy,1)
 endef
 
@@ -1349,7 +1351,9 @@ define KernelPackage/ixgbe
     CONFIG_IXGBE_HWMON=y \
     CONFIG_IXGBE_DCA=n \
     CONFIG_IXGBE_DCB=y
-  FILES:=$(LINUX_DIR)/drivers/net/ethernet/intel/ixgbe/ixgbe.ko
+  FILES:= \
+	$(LINUX_DIR)/drivers/net/ethernet/intel/ixgbe/ixgbe.ko \
+	$(LINUX_DIR)/drivers/net/ethernet/intel/libie/libie_fwlog.ko
   AUTOLOAD:=$(call AutoLoad,35,ixgbe)
 endef
 
