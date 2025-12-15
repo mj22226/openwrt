@@ -1,0 +1,42 @@
+From 3795c8b31a686bdb8338f9404d18ef7a154f0d75 Mon Sep 17 00:00:00 2001
+From: David Bauer <mail@david-bauer.net>
+Date: Sun, 26 Jul 2020 13:32:59 +0200
+Subject: [PATCH] arm64: dts: rockchip: disable UHS modes for NanoPi R4S
+
+The NanoPi R4S leaves the SD card in 1.8V signalling when rebooting
+while U-Boot requires the card to be in 3.3V mode.
+
+Remove UHS support from the SD controller so the card remains in 3.3V
+mode. This reduces transfer speeds but ensures a reboot whether from
+userspace or following a kernel panic is always working.
+
+Signed-off-by: David Bauer <mail@david-bauer.net>
+
+--- a/arch/arm64/boot/dts/rockchip/rk3328-roc.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3328-roc.dtsi
+@@ -346,7 +346,6 @@
+ 	sd-uhs-sdr12;
+ 	sd-uhs-sdr25;
+ 	sd-uhs-sdr50;
+-	sd-uhs-sdr104;
+ 	vmmc-supply = <&vcc_sd>;
+ 	vqmmc-supply = <&vcc_sdio>;
+ 	status = "okay";
+--- a/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi
+@@ -629,7 +629,6 @@
+ 	non-removable;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&sdio0_bus4 &sdio0_cmd &sdio0_clk>;
+-	sd-uhs-sdr104;
+ 	status = "okay";
+ };
+ 
+@@ -641,7 +640,6 @@
+ 	disable-wp;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&sdmmc_bus4 &sdmmc_clk &sdmmc_cmd &sdmmc0_det_l>;
+-	sd-uhs-sdr104;
+ 	vmmc-supply = <&vcc3v0_sd>;
+ 	vqmmc-supply = <&vcc_sdio>;
+ 	status = "okay";
