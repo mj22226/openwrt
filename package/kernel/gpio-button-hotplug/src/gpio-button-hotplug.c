@@ -64,7 +64,7 @@ struct gpio_keys_button_data {
 	const struct gpio_keys_button *b;
 };
 
-extern u64 uevent_next_seqnum(void);
+
 
 #define BH_MAP(_code, _name)		\
 	{				\
@@ -168,7 +168,7 @@ static int button_hotplug_fill_event(struct bh_event *event)
 	if (ret)
 		return ret;
 
-	ret = bh_event_add_var(event, 0, "SEQNUM=%llu", uevent_next_seqnum());
+
 
 	return ret;
 }
@@ -191,7 +191,7 @@ static void button_hotplug_work(struct work_struct *work)
 		goto out_free_skb;
 
 	NETLINK_CB(event->skb).dst_group = 1;
-	broadcast_uevent(event->skb, 0, 1, GFP_KERNEL);
+
 
  out_free_skb:
 	if (ret) {
@@ -515,7 +515,7 @@ static int gpio_keys_button_probe(struct platform_device *pdev,
 				/* or the legacy (button->gpio is good) way? */
 				error = devm_gpio_request_one(dev,
 					button->gpio, GPIOF_IN | (
-					button->active_low ? GPIOF_ACTIVE_LOW :
+					button->active_low ? GPIOD_OUT_LOW :
 					0), desc);
 				if (error) {
 					dev_err_probe(dev, error,
@@ -681,7 +681,7 @@ static void gpio_keys_remove(struct platform_device *pdev)
 
 static struct platform_driver gpio_keys_driver = {
 	.probe	= gpio_keys_probe,
-	.remove_new = gpio_keys_remove,
+
 	.driver	= {
 		.name	= "gpio-keys",
 		.of_match_table = of_match_ptr(gpio_keys_of_match),
@@ -690,7 +690,7 @@ static struct platform_driver gpio_keys_driver = {
 
 static struct platform_driver gpio_keys_polled_driver = {
 	.probe	= gpio_keys_polled_probe,
-	.remove_new = gpio_keys_remove,
+
 	.driver	= {
 		.name	= "gpio-keys-polled",
 		.of_match_table = of_match_ptr(gpio_keys_polled_of_match),
