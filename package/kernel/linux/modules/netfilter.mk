@@ -1124,7 +1124,11 @@ define KernelPackage/nft-core
   SUBMENU:=$(NF_MENU)
   TITLE:=Netfilter nf_tables support
   DEPENDS:=+kmod-nfnetlink +kmod-nf-reject +IPV6:kmod-nf-reject6 +kmod-nf-nat +kmod-nf-log +IPV6:kmod-nf-log6 +kmod-lib-crc32c
-  FILES:=$(foreach mod,$(NFT_CORE-m),$(LINUX_DIR)/net/$(mod).ko)
+  FILES:= \
+         $(foreach mod,$(NFT_CORE-m),$(LINUX_DIR)/net/$(mod).ko) \
+         $(LINUX_DIR)/net/ipv6/netfilter/nf_reject_ipv6.ko \
+         $(LINUX_DIR)/net/netfilter/nf_tables.ko \
+         $(LINUX_DIR)/net/netfilter/nfnetlink.ko
   AUTOLOAD:=$(call AutoProbe,$(notdir $(NFT_CORE-m)))
   KCONFIG:= \
 	CONFIG_NFT_COMPAT=n \

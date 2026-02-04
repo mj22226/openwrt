@@ -574,6 +574,7 @@ define KernelPackage/ppp
 	CONFIG_PPP_ASYNC
   FILES:= \
 	$(LINUX_DIR)/drivers/net/ppp/ppp_async.ko \
+	$(LINUX_DIR)/lib/crc/crc-ccitt.ko \
 	$(LINUX_DIR)/drivers/net/ppp/ppp_generic.ko
   AUTOLOAD:=$(call AutoProbe,ppp_async)
 endef
@@ -1132,7 +1133,6 @@ $(eval $(call KernelPackage,tcp-scalable))
 define KernelPackage/ax25
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=AX25 support
-  DEPENDS:=+kmod-lib-crc16
   KCONFIG:= \
 	CONFIG_HAMRADIO=y \
 	CONFIG_AX25 \
