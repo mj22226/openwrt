@@ -515,7 +515,7 @@ static int gpio_keys_button_probe(struct platform_device *pdev,
 				/* or the legacy (button->gpio is good) way? */
 				error = devm_gpio_request_one(dev,
 					button->gpio, GPIOF_IN | (
-					button->active_low ? GPIOF_ACTIVE_LOW :
+					button->active_low ? GPIOD_OUT_LOW :
 					0), desc);
 				if (error) {
 					dev_err_probe(dev, error,
