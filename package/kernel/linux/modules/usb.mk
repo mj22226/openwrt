@@ -1388,7 +1388,7 @@ define KernelPackage/usb-net-smsc75xx
   KCONFIG:=CONFIG_USB_NET_SMSC75XX
   FILES:=$(LINUX_DIR)/drivers/$(USBNET_DIR)/smsc75xx.ko
   AUTOLOAD:=$(call AutoProbe,smsc75xx)
-  $(call AddDepends/usb-net, +kmod-lib-crc16)
+  $(call AddDepends/usb-net)
 endef
 
 define KernelPackage/usb-net-smsc75xx/description
@@ -1404,7 +1404,7 @@ define KernelPackage/usb-net-smsc95xx
   KCONFIG:=CONFIG_USB_NET_SMSC95XX
   FILES:=$(LINUX_DIR)/drivers/$(USBNET_DIR)/smsc95xx.ko
   AUTOLOAD:=$(call AutoProbe,smsc95xx)
-  $(call AddDepends/usb-net, +kmod-lib-crc16)
+  $(call AddDepends/usb-net)
 endef
 
 define KernelPackage/usb-net-smsc95xx/description
