@@ -31,7 +31,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -187,6 +187,8 @@ enum ieee80211_channel_flags {
+@@ -189,6 +189,8 @@ enum ieee80211_channel_flags {
   * @dfs_state: current state of this channel. Only relevant if radar is required
   *	on this channel.
   * @dfs_state_entered: timestamp (jiffies) when the dfs state was entered.
@@ -40,7 +40,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @dfs_cac_ms: DFS CAC time in milliseconds, this is valid for DFS channels.
   * @psd: power spectral density (in dBm)
   */
-@@ -204,6 +206,7 @@ struct ieee80211_channel {
+@@ -206,6 +208,7 @@ struct ieee80211_channel {
  	int orig_mag, orig_mpwr;
  	enum nl80211_dfs_state dfs_state;
  	unsigned long dfs_state_entered;
@@ -112,7 +112,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
 --- a/net/wireless/core.h
 +++ b/net/wireless/core.h
-@@ -481,6 +481,8 @@ void cfg80211_set_dfs_state(struct wiphy
+@@ -482,6 +482,8 @@ void cfg80211_set_dfs_state(struct wiphy
  			    enum nl80211_dfs_state dfs_state);
  
  void cfg80211_dfs_channels_update_work(struct work_struct *work);
@@ -148,7 +148,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  				c->dfs_state_entered = jiffies;
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -20967,6 +20967,9 @@ void cfg80211_ch_switch_notify(struct ne
+@@ -21102,6 +21102,9 @@ void cfg80211_ch_switch_notify(struct ne
  		break;
  	case NL80211_IFTYPE_AP:
  	case NL80211_IFTYPE_P2P_GO:
@@ -160,7 +160,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	case NL80211_IFTYPE_ADHOC:
 --- a/net/wireless/reg.c
 +++ b/net/wireless/reg.c
-@@ -2954,6 +2954,7 @@ static void reg_copy_dfs_chan_state(stru
+@@ -2963,6 +2963,7 @@ static void reg_copy_dfs_chan_state(stru
  	    dst_chan->dfs_state == NL80211_DFS_USABLE) {
  		dst_chan->dfs_state = src_chan->dfs_state;
  		dst_chan->dfs_state_entered = src_chan->dfs_state_entered;

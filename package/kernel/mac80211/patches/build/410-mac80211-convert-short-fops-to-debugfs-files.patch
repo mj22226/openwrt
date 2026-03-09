@@ -139,7 +139,7 @@
  
 --- a/net/mac80211/debugfs_netdev.c
 +++ b/net/mac80211/debugfs_netdev.c
-@@ -221,9 +221,10 @@ static ssize_t ieee80211_if_fmt_##name(
+@@ -222,9 +222,10 @@ static ssize_t ieee80211_if_fmt_##name(
  }
  
  #define _IEEE80211_IF_FILE_OPS(name, _read, _write)			\

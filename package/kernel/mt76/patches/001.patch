@@ -1,0 +1,34 @@
+From cbe2691bee4e54024b9985ef78e740d9655d92f3 Mon Sep 17 00:00:00 2001
+From: Nam Cao <namcao@linutronix.de>
+Date: Wed, 5 Feb 2025 11:43:40 +0100
+Subject: [PATCH] wifi: Switch to use hrtimer_setup()
+
+hrtimer_setup() takes the callback function pointer as argument and
+initializes the timer completely.
+
+Replace hrtimer_init() and the open coded initialization of
+hrtimer::function with the new setup mechanism.
+
+Patch was created by using Coccinelle.
+
+Signed-off-by: Nam Cao <namcao@linutronix.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lore.kernel.org/all/71fbc442aee9a9e892e475f3bbf8f368c6692a55.1738746872.git.namcao@linutronix.de
+---
+ mt76x02_usb_core.c | 4 ++--
+ drivers/net/wireless/virtual/mac80211_hwsim.c         | 6 ++----
+ 2 files changed, 4 insertions(+), 6 deletions(-)
+
+--- a/mt76x02_usb_core.c
++++ b/mt76x02_usb_core.c
+@@ -264,8 +264,8 @@ void mt76x02u_init_beacon_config(struct
+ 	};
+ 	dev->beacon_ops = &beacon_ops;
+ 
+-	hrtimer_init(&dev->pre_tbtt_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+-	dev->pre_tbtt_timer.function = mt76x02u_pre_tbtt_interrupt;
++	hrtimer_setup(&dev->pre_tbtt_timer, mt76x02u_pre_tbtt_interrupt, CLOCK_MONOTONIC,
++		      HRTIMER_MODE_REL);
+ 	INIT_WORK(&dev->pre_tbtt_work, mt76x02u_pre_tbtt_work);
+ 
+ 	mt76x02_init_beacon_config(dev);

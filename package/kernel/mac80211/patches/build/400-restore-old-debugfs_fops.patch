@@ -155,7 +155,7 @@
  		.file_struct_offset = offsetof(struct b43_dfsentry, \
  					       file_##name),	\
  	}
-@@ -700,9 +703,9 @@ void b43_debugfs_add_device(struct b43_w
+@@ -699,9 +702,9 @@ void b43_debugfs_add_device(struct b43_w
  
  #define ADD_FILE(name, mode)	\
  	do {							\

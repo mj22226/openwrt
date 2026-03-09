@@ -77,7 +77,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  					   enum nl80211_iftype iftype)
 --- a/net/wireless/core.h
 +++ b/net/wireless/core.h
-@@ -479,6 +479,8 @@ extern struct work_struct cfg80211_disco
+@@ -480,6 +480,8 @@ extern struct work_struct cfg80211_disco
  void cfg80211_set_dfs_state(struct wiphy *wiphy,
  			    const struct cfg80211_chan_def *chandef,
  			    enum nl80211_dfs_state dfs_state);
@@ -88,7 +88,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  void cfg80211_update_last_available(struct wiphy *wiphy,
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -6741,6 +6741,8 @@ static int nl80211_start_ap(struct sk_bu
+@@ -6825,6 +6825,8 @@ static int nl80211_start_ap(struct sk_bu
  		goto out;
  	}
  
