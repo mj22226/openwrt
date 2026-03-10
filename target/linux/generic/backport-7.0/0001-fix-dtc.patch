@@ -1,0 +1,1195 @@
+From 79c365177a6ad6ddb8fec8e3ad843b504f352962 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Mon, 9 Mar 2026 20:30:56 -0300
+Subject: [PATCH] fix dtc
+
+---
+ .clang-format                              |   1 -
+ Documentation/devicetree/bindings/Makefile |   1 +
+ include/linux/of.h                         |   7 -
+ scripts/Makefile.dtbs                      |   1 +
+ scripts/dtc/checks.c                       |  42 ++-
+ scripts/dtc/dt-extract-compatibles         |   1 -
+ scripts/dtc/dtc.c                          |   5 -
+ scripts/dtc/dtc.h                          |   6 -
+ scripts/dtc/flattree.c                     |   6 +-
+ scripts/dtc/libfdt/fdt_overlay.c           |   3 +-
+ scripts/dtc/libfdt/fdt_ro.c                |   4 +-
+ scripts/dtc/libfdt/libfdt.h                | 214 --------------
+ scripts/dtc/libfdt/libfdt_env.h            |  27 ++
+ scripts/dtc/libfdt/libfdt_internal.h       |  14 +-
+ scripts/dtc/livetree.c                     | 309 +++------------------
+ scripts/dtc/srcpos.c                       |  22 +-
+ scripts/dtc/treesource.c                   | 114 +++-----
+ scripts/dtc/version_gen.h                  |   2 +-
+ 18 files changed, 139 insertions(+), 640 deletions(-)
+
+--- a/.clang-format
++++ b/.clang-format
+@@ -259,7 +259,6 @@ ForEachMacros:
+   - 'for_each_collection'
+   - 'for_each_comp_order'
+   - 'for_each_compatible_node'
+-  - 'for_each_compatible_node_scoped'
+   - 'for_each_component_dais'
+   - 'for_each_component_dais_safe'
+   - 'for_each_conduit'
+--- a/Documentation/devicetree/bindings/Makefile
++++ b/Documentation/devicetree/bindings/Makefile
+@@ -56,6 +56,7 @@ DT_DOCS = $(patsubst $(srctree)/%,%,$(sh
+ 
+ override DTC_FLAGS := \
+ 	-Wno-avoid_unnecessary_addr_size \
++	-Wno-graph_child_address \
+ 	-Wno-unique_unit_address \
+ 	-Wunique_unit_address_if_enabled
+ 
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -1485,13 +1485,6 @@ static inline int of_property_read_s32(c
+ #define for_each_compatible_node(dn, type, compatible) \
+ 	for (dn = of_find_compatible_node(NULL, type, compatible); dn; \
+ 	     dn = of_find_compatible_node(dn, type, compatible))
+-
+-#define for_each_compatible_node_scoped(dn, type, compatible) \
+-	for (struct device_node *dn __free(device_node) =		\
+-	     of_find_compatible_node(NULL, type, compatible);		\
+-	     dn;							\
+-	     dn = of_find_compatible_node(dn, type, compatible))
+-
+ #define for_each_matching_node(dn, matches) \
+ 	for (dn = of_find_matching_node(NULL, matches); dn; \
+ 	     dn = of_find_matching_node(dn, matches))
+--- a/scripts/Makefile.dtbs
++++ b/scripts/Makefile.dtbs
+@@ -105,6 +105,7 @@ ifeq ($(findstring 1,$(KBUILD_EXTRA_WARN
+ DTC_FLAGS += -Wno-unit_address_vs_reg \
+              -Wno-avoid_unnecessary_addr_size \
+              -Wno-alias_paths \
++             -Wno-graph_child_address \
+              -Wno-interrupt_map \
+              -Wno-simple_bus_reg
+ else
+--- a/scripts/dtc/checks.c
++++ b/scripts/dtc/checks.c
+@@ -340,14 +340,6 @@ static void check_node_name_format(struc
+ }
+ ERROR(node_name_format, check_node_name_format, NULL, &node_name_chars);
+ 
+-static void check_node_name_not_empty(struct check *c, struct dt_info *dti,
+-				      struct node *node)
+-{
+-	if (node->basenamelen == 0 && node->parent != NULL)
+-		FAIL(c, dti, node, "Empty node name");
+-}
+-ERROR(node_name_not_empty, check_node_name_not_empty, NULL, &node_name_chars);
+-
+ static void check_node_name_vs_property_name(struct check *c,
+ 					     struct dt_info *dti,
+ 					     struct node *node)
+@@ -726,14 +718,11 @@ static void check_alias_paths(struct che
+ 			continue;
+ 		}
+ 
+-		/* This check does not work for overlays with external paths */
+-		if (!(dti->dtsflags & DTSF_PLUGIN) &&
+-		    (!prop->val.val || !get_node_by_path(dti->dt, prop->val.val))) {
++		if (!prop->val.val || !get_node_by_path(dti->dt, prop->val.val)) {
+ 			FAIL_PROP(c, dti, node, prop, "aliases property is not a valid node (%s)",
+ 				  prop->val.val);
+ 			continue;
+ 		}
+-
+ 		if (strspn(prop->name, LOWERCASE DIGITS "-") != strlen(prop->name))
+ 			FAIL(c, dti, node, "aliases property name must include only lowercase and '-'");
+ 	}
+@@ -1905,9 +1894,34 @@ static void check_graph_endpoint(struct
+ }
+ WARNING(graph_endpoint, check_graph_endpoint, NULL, &graph_nodes);
+ 
++static void check_graph_child_address(struct check *c, struct dt_info *dti,
++				      struct node *node)
++{
++	int cnt = 0;
++	struct node *child;
++
++	if (node->bus != &graph_ports_bus && node->bus != &graph_port_bus)
++		return;
++
++	for_each_child(node, child) {
++		struct property *prop = get_property(child, "reg");
++
++		/* No error if we have any non-zero unit address */
++                if (prop && propval_cell(prop) != 0 )
++			return;
++
++		cnt++;
++	}
++
++	if (cnt == 1 && node->addr_cells != -1)
++		FAIL(c, dti, node, "graph node has single child node '%s', #address-cells/#size-cells are not necessary",
++		     node->children->name);
++}
++WARNING(graph_child_address, check_graph_child_address, NULL, &graph_nodes, &graph_port, &graph_endpoint);
++
+ static struct check *check_table[] = {
+ 	&duplicate_node_names, &duplicate_property_names,
+-	&node_name_chars, &node_name_format, &node_name_not_empty, &property_name_chars,
++	&node_name_chars, &node_name_format, &property_name_chars,
+ 	&name_is_string, &name_properties, &node_name_vs_property_name,
+ 
+ 	&duplicate_label,
+@@ -1991,7 +2005,7 @@ static struct check *check_table[] = {
+ 
+ 	&alias_paths,
+ 
+-	&graph_nodes, &graph_port, &graph_endpoint,
++	&graph_nodes, &graph_child_address, &graph_port, &graph_endpoint,
+ 
+ 	&always_fail,
+ };
+--- a/scripts/dtc/dt-extract-compatibles
++++ b/scripts/dtc/dt-extract-compatibles
+@@ -72,7 +72,6 @@ def parse_compatibles(file, compat_ignor
+ 		compat_list += parse_of_functions(data, "_is_compatible")
+ 		compat_list += parse_of_functions(data, "of_find_compatible_node")
+ 		compat_list += parse_of_functions(data, "for_each_compatible_node")
+-		compat_list += parse_of_functions(data, "for_each_compatible_node_scoped")
+ 		compat_list += parse_of_functions(data, "of_get_compatible_child")
+ 
+ 	return compat_list
+--- a/scripts/dtc/dtc.c
++++ b/scripts/dtc/dtc.c
+@@ -338,14 +338,9 @@ int main(int argc, char *argv[])
+ 	if (auto_label_aliases)
+ 		generate_label_tree(dti, "aliases", false);
+ 
+-	generate_labels_from_tree(dti, "__symbols__");
+-
+ 	if (generate_symbols)
+ 		generate_label_tree(dti, "__symbols__", true);
+ 
+-	fixup_phandles(dti, "__fixups__");
+-	local_fixup_phandles(dti, "__local_fixups__");
+-
+ 	if (generate_fixups) {
+ 		generate_fixups_tree(dti, "__fixups__");
+ 		generate_local_fixups_tree(dti, "__local_fixups__");
+--- a/scripts/dtc/dtc.h
++++ b/scripts/dtc/dtc.h
+@@ -339,12 +339,9 @@ struct dt_info *build_dt_info(unsigned i
+ 			      struct reserve_info *reservelist,
+ 			      struct node *tree, uint32_t boot_cpuid_phys);
+ void sort_tree(struct dt_info *dti);
+-void generate_labels_from_tree(struct dt_info *dti, const char *name);
+ void generate_label_tree(struct dt_info *dti, const char *name, bool allocph);
+ void generate_fixups_tree(struct dt_info *dti, const char *name);
+-void fixup_phandles(struct dt_info *dti, const char *name);
+ void generate_local_fixups_tree(struct dt_info *dti, const char *name);
+-void local_fixup_phandles(struct dt_info *dti, const char *name);
+ 
+ /* Checks */
+ 
+@@ -360,9 +357,6 @@ struct dt_info *dt_from_blob(const char
+ 
+ /* Tree source */
+ 
+-void property_add_marker(struct property *prop,
+-			 enum markertype type, unsigned int offset, char *ref);
+-void add_phandle_marker(struct dt_info *dti, struct property *prop, unsigned int offset);
+ void dt_to_source(FILE *f, struct dt_info *dti);
+ struct dt_info *dt_from_source(const char *f);
+ 
+--- a/scripts/dtc/flattree.c
++++ b/scripts/dtc/flattree.c
+@@ -807,7 +807,6 @@ struct dt_info *dt_from_blob(const char
+ 	struct node *tree;
+ 	uint32_t val;
+ 	int flags = 0;
+-	unsigned int dtsflags = DTSF_V1;
+ 
+ 	f = srcfile_relative_open(fname, NULL);
+ 
+@@ -920,8 +919,5 @@ struct dt_info *dt_from_blob(const char
+ 
+ 	fclose(f);
+ 
+-	if (get_subnode(tree, "__fixups__") || get_subnode(tree, "__local_fixups__"))
+-		dtsflags |= DTSF_PLUGIN;
+-
+-	return build_dt_info(dtsflags, reservelist, tree, boot_cpuid_phys);
++	return build_dt_info(DTSF_V1, reservelist, tree, boot_cpuid_phys);
+ }
+--- a/scripts/dtc/libfdt/fdt_overlay.c
++++ b/scripts/dtc/libfdt/fdt_overlay.c
+@@ -407,8 +407,7 @@ static int overlay_fixup_phandle(void *f
+ 		const char *fixup_str = value;
+ 		uint32_t path_len, name_len;
+ 		uint32_t fixup_len;
+-		const char *sep;
+-		char *endptr;
++		char *sep, *endptr;
+ 		int poffset, ret;
+ 
+ 		fixup_end = memchr(value, '\0', len);
+--- a/scripts/dtc/libfdt/fdt_ro.c
++++ b/scripts/dtc/libfdt/fdt_ro.c
+@@ -306,8 +306,8 @@ const char *fdt_get_name(const void *fdt
+ 	const char *nameptr;
+ 	int err;
+ 
+-	if (!can_assume(VALID_DTB) && (((err = fdt_ro_probe_(fdt)) < 0)
+-	    || ((err = fdt_check_node_offset_(fdt, nodeoffset)) < 0)))
++	if (((err = fdt_ro_probe_(fdt)) < 0)
++	    || ((err = fdt_check_node_offset_(fdt, nodeoffset)) < 0))
+ 			goto fail;
+ 
+ 	nameptr = nh->name;
+--- a/scripts/dtc/libfdt/libfdt.h
++++ b/scripts/dtc/libfdt/libfdt.h
+@@ -116,20 +116,6 @@ extern "C" {
+ /* Low-level functions (you probably don't need these)                */
+ /**********************************************************************/
+ 
+-/**
+- * fdt_offset_ptr - safely get a byte range within the device tree blob
+- * @fdt:	Pointer to the device tree blob
+- * @offset:	Offset within the blob to the desired byte range
+- * @checklen:	Required length of the byte range
+- *
+- * fdt_offset_ptr() returns a pointer to the byte range of length @checklen at
+- * the given @offset within the device tree blob, after verifying that the byte
+- * range fits entirely within the blob and does not overflow.
+- *
+- * returns:
+- *	pointer to the byte range, on success
+- *	NULL, if the requested range does not fit within the blob
+- */
+ #ifndef SWIG /* This function is not useful in Python */
+ const void *fdt_offset_ptr(const void *fdt, int offset, unsigned int checklen);
+ #endif
+@@ -138,20 +124,6 @@ static inline void *fdt_offset_ptr_w(voi
+ 	return (void *)(uintptr_t)fdt_offset_ptr(fdt, offset, checklen);
+ }
+ 
+-/**
+- * fdt_next_tag - get next tag in the device tree
+- * @fdt:	Pointer to the device tree blob
+- * @offset:	Offset within the blob to start searching
+- * @nextoffset:	Pointer to variable to store the offset of the next tag
+- *
+- * fdt_next_tag() returns the tag type of the next tag in the device tree
+- * blob starting from the given @offset. If @nextoffset is non-NULL, it will
+- * be set to the offset immediately following the tag.
+- *
+- * returns:
+- *	the tag type (FDT_BEGIN_NODE, FDT_END_NODE, FDT_PROP, FDT_NOP, FDT_END),
+- *	FDT_END, if offset is out of bounds
+- */
+ uint32_t fdt_next_tag(const void *fdt, int offset, int *nextoffset);
+ 
+ /*
+@@ -362,23 +334,6 @@ int fdt_move(const void *fdt, void *buf,
+ /* Read-only functions                                                */
+ /**********************************************************************/
+ 
+-/**
+- * fdt_check_full - check device tree validity
+- * @fdt:	pointer to the device tree blob
+- * @bufsize:	size of the buffer containing the device tree
+- *
+- * fdt_check_full() checks that the given buffer contains a valid
+- * flattened device tree and that the tree structure is internally
+- * consistent. This is a more thorough check than fdt_check_header().
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_BADMAGIC,
+- *	-FDT_ERR_BADVERSION,
+- *	-FDT_ERR_BADSTATE,
+- *	-FDT_ERR_BADSTRUCTURE,
+- *	-FDT_ERR_TRUNCATED, standard meanings
+- */
+ int fdt_check_full(const void *fdt, size_t bufsize);
+ 
+ /**
+@@ -1585,90 +1540,10 @@ int fdt_create_with_flags(void *buf, int
+  */
+ int fdt_create(void *buf, int bufsize);
+ 
+-/**
+- * fdt_resize - move and resize a device tree in sequential write state
+- * @fdt:	Pointer to the device tree to resize
+- * @buf:	Buffer where resized tree should be placed
+- * @bufsize:	Size of the buffer at @buf
+- *
+- * fdt_resize() moves the device tree blob from @fdt to @buf and
+- * resizes it to fit in the new buffer size.
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_NOSPACE, if @bufsize is too small
+- *	-FDT_ERR_BADMAGIC,
+- *	-FDT_ERR_BADVERSION,
+- *	-FDT_ERR_BADSTATE, standard meanings
+- */
+ int fdt_resize(void *fdt, void *buf, int bufsize);
+-
+-/**
+- * fdt_add_reservemap_entry - add an entry to the memory reserve map
+- * @fdt:	Pointer to the device tree blob
+- * @addr:	Start address of the reserve map entry
+- * @size:	Size of the reserved region
+- *
+- * fdt_add_reservemap_entry() adds a memory reserve map entry to the
+- * device tree blob during the sequential write process. This function
+- * can only be called after fdt_create() and before fdt_finish_reservemap().
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_NOSPACE, if there is insufficient space in the blob
+- *	-FDT_ERR_BADSTATE, if not in the correct sequential write state
+- */
+ int fdt_add_reservemap_entry(void *fdt, uint64_t addr, uint64_t size);
+-
+-/**
+- * fdt_finish_reservemap - complete the memory reserve map
+- * @fdt:	Pointer to the device tree blob
+- *
+- * fdt_finish_reservemap() completes the memory reserve map section
+- * of the device tree blob during sequential write. After calling this
+- * function, no more reserve map entries can be added and the blob
+- * moves to the structure creation phase.
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_BADSTATE, if not in the correct sequential write state
+- */
+ int fdt_finish_reservemap(void *fdt);
+-
+-/**
+- * fdt_begin_node - start creation of a new node
+- * @fdt:	Pointer to the device tree blob
+- * @name:	Name of the node to create
+- *
+- * fdt_begin_node() starts the creation of a new node with the given
+- * @name during sequential write. After calling this function, properties
+- * can be added with fdt_property() and subnodes can be created with
+- * additional fdt_begin_node() calls. The node must be completed with
+- * fdt_end_node().
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_NOSPACE, if there is insufficient space in the blob
+- *	-FDT_ERR_BADSTATE, if not in the correct sequential write state
+- */
+ int fdt_begin_node(void *fdt, const char *name);
+-
+-/**
+- * fdt_property - add a property to the current node
+- * @fdt:	Pointer to the device tree blob
+- * @name:	Name of the property to add
+- * @val:	Pointer to the property value
+- * @len:	Length of the property value in bytes
+- *
+- * fdt_property() adds a property with the given @name and value to
+- * the current node during sequential write. This function can only
+- * be called between fdt_begin_node() and fdt_end_node().
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_NOSPACE, if there is insufficient space in the blob
+- *	-FDT_ERR_BADSTATE, if not currently within a node
+- */
+ int fdt_property(void *fdt, const char *name, const void *val, int len);
+ static inline int fdt_property_u32(void *fdt, const char *name, uint32_t val)
+ {
+@@ -1705,94 +1580,15 @@ int fdt_property_placeholder(void *fdt,
+ 
+ #define fdt_property_string(fdt, name, str) \
+ 	fdt_property(fdt, name, str, strlen(str)+1)
+-
+-/**
+- * fdt_end_node - complete the current node
+- * @fdt:	Pointer to the device tree blob
+- *
+- * fdt_end_node() completes the current node during sequential write.  This
+- * function must be called to close each node started with
+- * fdt_begin_node(). After calling this function, no more properties or subnodes
+- * can be added to the node.
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_BADSTATE, if not currently within a node
+- */
+ int fdt_end_node(void *fdt);
+-
+-/**
+- * fdt_finish - complete device tree creation
+- * @fdt:	Pointer to the device tree blob
+- *
+- * fdt_finish() completes the device tree creation process started with
+- * fdt_create(). This function finalizes the device tree blob and makes it ready
+- * for use. After calling this function, the blob is complete and can be used
+- * with libfdt read-only and read-write functions, but not with sequential write
+- * functions.
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_BADSTATE, if the sequential write process is incomplete
+- */
+ int fdt_finish(void *fdt);
+ 
+ /**********************************************************************/
+ /* Read-write functions                                               */
+ /**********************************************************************/
+ 
+-/**
+- * fdt_create_empty_tree - create an empty device tree
+- * @buf:	Buffer where the empty tree should be created
+- * @bufsize:	Size of the buffer at @buf
+- *
+- * fdt_create_empty_tree() creates a minimal empty device tree blob
+- * in the given buffer. The tree contains only a root node with no
+- * properties or subnodes.
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_NOSPACE, if @bufsize is too small for even an empty tree
+- */
+ int fdt_create_empty_tree(void *buf, int bufsize);
+-
+-/**
+- * fdt_open_into - move a device tree into a new buffer and make editable
+- * @fdt:	Pointer to the device tree to move
+- * @buf:	Buffer where the editable tree should be placed
+- * @bufsize:	Size of the buffer at @buf
+- *
+- * fdt_open_into() moves and reorganizes the device tree blob from @fdt
+- * into @buf, converting it to a format suitable for read-write operations.
+- * The new buffer should allow space for modifications.
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_NOSPACE, if @bufsize is too small
+- *	-FDT_ERR_BADMAGIC,
+- *	-FDT_ERR_BADVERSION,
+- *	-FDT_ERR_BADSTATE,
+- *	-FDT_ERR_BADSTRUCTURE,
+- *	-FDT_ERR_TRUNCATED, standard meanings
+- */
+ int fdt_open_into(const void *fdt, void *buf, int bufsize);
+-
+-/**
+- * fdt_pack - pack a device tree blob
+- * @fdt:	Pointer to the device tree blob
+- *
+- * fdt_pack() reorganizes the device tree blob to eliminate any free space
+- * and pack it into the minimum possible size. This is useful after making
+- * modifications that might have left gaps in the blob.
+- *
+- * returns:
+- *	0, on success
+- *	-FDT_ERR_BADMAGIC,
+- *	-FDT_ERR_BADVERSION,
+- *	-FDT_ERR_BADSTATE,
+- *	-FDT_ERR_BADSTRUCTURE,
+- *	-FDT_ERR_BADLAYOUT, standard meanings
+- */
+ int fdt_pack(void *fdt);
+ 
+ /**
+@@ -2521,16 +2317,6 @@ int fdt_overlay_target_offset(const void
+ /* Debugging / informational functions                                */
+ /**********************************************************************/
+ 
+-/**
+- * fdt_strerror - return string description of error code
+- * @errval:	Error code returned by a libfdt function
+- *
+- * fdt_strerror() returns a string description of the error code passed
+- * in @errval.
+- *
+- * returns:
+- *	pointer to a string describing the error code
+- */
+ const char *fdt_strerror(int errval);
+ 
+ #ifdef __cplusplus
+--- a/scripts/dtc/libfdt/libfdt_env.h
++++ b/scripts/dtc/libfdt/libfdt_env.h
+@@ -66,4 +66,31 @@ static inline fdt64_t cpu_to_fdt64(uint6
+ #undef CPU_TO_FDT16
+ #undef EXTRACT_BYTE
+ 
++#ifdef __APPLE__
++#include <AvailabilityMacros.h>
++
++/* strnlen() is not available on Mac OS < 10.7 */
++# if !defined(MAC_OS_X_VERSION_10_7) || (MAC_OS_X_VERSION_MAX_ALLOWED < \
++                                         MAC_OS_X_VERSION_10_7)
++
++#define strnlen fdt_strnlen
++
++/*
++ * fdt_strnlen: returns the length of a string or max_count - which ever is
++ * smallest.
++ * Input 1 string: the string whose size is to be determined
++ * Input 2 max_count: the maximum value returned by this function
++ * Output: length of the string or max_count (the smallest of the two)
++ */
++static inline size_t fdt_strnlen(const char *string, size_t max_count)
++{
++    const char *p = memchr(string, 0, max_count);
++    return p ? p - string : max_count;
++}
++
++#endif /* !defined(MAC_OS_X_VERSION_10_7) || (MAC_OS_X_VERSION_MAX_ALLOWED <
++          MAC_OS_X_VERSION_10_7) */
++
++#endif /* __APPLE__ */
++
+ #endif /* LIBFDT_ENV_H */
+--- a/scripts/dtc/libfdt/libfdt_internal.h
++++ b/scripts/dtc/libfdt/libfdt_internal.h
+@@ -11,13 +11,11 @@
+ #define FDT_TAGALIGN(x)		(FDT_ALIGN((x), FDT_TAGSIZE))
+ 
+ int32_t fdt_ro_probe_(const void *fdt);
+-#define FDT_RO_PROBE(fdt)						\
+-	{								\
+-		if (!can_assume(VALID_DTB)) {				\
+-			int32_t totalsize_;				\
+-			if ((totalsize_ = fdt_ro_probe_(fdt)) < 0)	\
+-				return totalsize_;			\
+-		}							\
++#define FDT_RO_PROBE(fdt)					\
++	{							\
++		int32_t totalsize_;				\
++		if ((totalsize_ = fdt_ro_probe_(fdt)) < 0)	\
++			return totalsize_;			\
+ 	}
+ 
+ int fdt_check_node_offset_(const void *fdt, int offset);
+@@ -94,7 +92,7 @@ static inline uint64_t fdt64_ld_(const f
+  * signature or hash check before using libfdt.
+  *
+  * For situations where security is not a concern it may be safe to enable
+- * ASSUME_PERFECT.
++ * ASSUME_SANE.
+  */
+ enum {
+ 	/*
+--- a/scripts/dtc/livetree.c
++++ b/scripts/dtc/livetree.c
+@@ -340,73 +340,20 @@ void append_to_property(struct node *nod
+ 			char *name, const void *data, int len,
+ 			enum markertype type)
+ {
+-	struct property *p;
+-
+-	p = get_property(node, name);
+-	if (!p) {
+-		p = build_property(name, empty_data, NULL);
+-		add_property(node, p);
+-	}
+-
+-	p->val = data_add_marker(p->val, type, name);
+-	p->val = data_append_data(p->val, data, len);
+-}
+-
+-static int append_unique_str_to_property(struct node *node,
+-					 char *name, const char *data, int len)
+-{
+-	struct property *p;
+-
+-	p = get_property(node, name);
+-	if (p) {
+-		const char *s;
+-
+-		if (p->val.len && p->val.val[p->val.len - 1] != '\0')
+-			/* The current content doesn't look like a string */
+-			return -1;
+-
+-		for (s = p->val.val; s < p->val.val + p->val.len; s = strchr(s, '\0') + 1) {
+-			if (strcmp(data, s) == 0)
+-				/* data already contained in node.name */
+-				return 0;
+-		}
+-	} else {
+-		p = build_property(name, empty_data, NULL);
+-		add_property(node, p);
+-	}
+-
+-	p->val = data_add_marker(p->val, TYPE_STRING, name);
+-	p->val = data_append_data(p->val, data, len);
+-
+-	return 0;
+-}
+-
+-static int append_unique_u32_to_property(struct node *node, char *name, fdt32_t value)
+-{
++	struct data d;
+ 	struct property *p;
+ 
+ 	p = get_property(node, name);
+ 	if (p) {
+-		const fdt32_t *v, *val_end = (const fdt32_t *)p->val.val + p->val.len / 4;
+-
+-		if (p->val.len % 4 != 0)
+-			/* The current content doesn't look like a u32 array */
+-			return -1;
+-
+-		for (v = (const void *)p->val.val; v < val_end; v++) {
+-			if (*v == value)
+-				/* value already contained */
+-				return 0;
+-		}
++		d = data_add_marker(p->val, type, name);
++		d = data_append_data(d, data, len);
++		p->val = d;
+ 	} else {
+-		p = build_property(name, empty_data, NULL);
++		d = data_add_marker(empty_data, type, name);
++		d = data_append_data(d, data, len);
++		p = build_property(name, d, NULL);
+ 		add_property(node, p);
+ 	}
+-
+-	p->val = data_add_marker(p->val, TYPE_UINT32, name);
+-	p->val = data_append_data(p->val, &value, 4);
+-
+-	return 0;
+ }
+ 
+ struct reserve_info *build_reserve_entry(uint64_t address, uint64_t size)
+@@ -971,12 +918,11 @@ static bool any_fixup_tree(struct dt_inf
+ 	return false;
+ }
+ 
+-static int add_fixup_entry(struct dt_info *dti, struct node *fn,
+-			   struct node *node, struct property *prop,
+-			   struct marker *m)
++static void add_fixup_entry(struct dt_info *dti, struct node *fn,
++			    struct node *node, struct property *prop,
++			    struct marker *m)
+ {
+ 	char *entry;
+-	int ret;
+ 
+ 	/* m->ref can only be a REF_PHANDLE, but check anyway */
+ 	assert(m->type == REF_PHANDLE);
+@@ -993,39 +939,32 @@ static int add_fixup_entry(struct dt_inf
+ 
+ 	xasprintf(&entry, "%s:%s:%u",
+ 			node->fullpath, prop->name, m->offset);
+-	ret = append_unique_str_to_property(fn, m->ref, entry, strlen(entry) + 1);
++	append_to_property(fn, m->ref, entry, strlen(entry) + 1, TYPE_STRING);
+ 
+ 	free(entry);
+-
+-	return ret;
+ }
+ 
+-static int generate_fixups_tree_internal(struct dt_info *dti,
+-					 struct node *fn,
+-					 struct node *node)
++static void generate_fixups_tree_internal(struct dt_info *dti,
++					  struct node *fn,
++					  struct node *node)
+ {
+ 	struct node *dt = dti->dt;
+ 	struct node *c;
+ 	struct property *prop;
+ 	struct marker *m;
+ 	struct node *refnode;
+-	int ret = 0;
+ 
+ 	for_each_property(node, prop) {
+ 		m = prop->val.markers;
+ 		for_each_marker_of_type(m, REF_PHANDLE) {
+ 			refnode = get_node_by_ref(dt, m->ref);
+ 			if (!refnode)
+-				if (add_fixup_entry(dti, fn, node, prop, m))
+-					ret = -1;
++				add_fixup_entry(dti, fn, node, prop, m);
+ 		}
+ 	}
+ 
+ 	for_each_child(node, c)
+-		if (generate_fixups_tree_internal(dti, fn, c))
+-			ret = -1;
+-
+-	return ret;
++		generate_fixups_tree_internal(dti, fn, c);
+ }
+ 
+ static bool any_local_fixup_tree(struct dt_info *dti, struct node *node)
+@@ -1050,7 +989,7 @@ static bool any_local_fixup_tree(struct
+ 	return false;
+ }
+ 
+-static int add_local_fixup_entry(struct dt_info *dti,
++static void add_local_fixup_entry(struct dt_info *dti,
+ 		struct node *lfn, struct node *node,
+ 		struct property *prop, struct marker *m,
+ 		struct node *refnode)
+@@ -1081,56 +1020,30 @@ static int add_local_fixup_entry(struct
+ 	free(compp);
+ 
+ 	value_32 = cpu_to_fdt32(m->offset);
+-	return append_unique_u32_to_property(wn, prop->name, value_32);
++	append_to_property(wn, prop->name, &value_32, sizeof(value_32), TYPE_UINT32);
+ }
+ 
+-static int generate_local_fixups_tree_internal(struct dt_info *dti,
+-					       struct node *lfn,
+-					       struct node *node)
++static void generate_local_fixups_tree_internal(struct dt_info *dti,
++						struct node *lfn,
++						struct node *node)
+ {
+ 	struct node *dt = dti->dt;
+ 	struct node *c;
+ 	struct property *prop;
+ 	struct marker *m;
+ 	struct node *refnode;
+-	int ret = 0;
+ 
+ 	for_each_property(node, prop) {
+ 		m = prop->val.markers;
+ 		for_each_marker_of_type(m, REF_PHANDLE) {
+ 			refnode = get_node_by_ref(dt, m->ref);
+ 			if (refnode)
+-				if (add_local_fixup_entry(dti, lfn, node, prop, m, refnode))
+-					ret = -1;
++				add_local_fixup_entry(dti, lfn, node, prop, m, refnode);
+ 		}
+ 	}
+ 
+ 	for_each_child(node, c)
+-		if (generate_local_fixups_tree_internal(dti, lfn, c))
+-			ret = -1;
+-
+-	return ret;
+-}
+-
+-void generate_labels_from_tree(struct dt_info *dti, const char *name)
+-{
+-	struct node *an;
+-	struct property *p;
+-
+-	an = get_subnode(dti->dt, name);
+-	if (!an)
+-		return;
+-
+-	for_each_property(an, p) {
+-		struct node *labeled_node;
+-
+-		labeled_node = get_node_by_path(dti->dt, p->val.val);
+-		if (labeled_node)
+-			add_label(&labeled_node->labels, p->name);
+-		else if (quiet < 1)
+-			fprintf(stderr, "Warning: Path %s referenced in property %s/%s missing",
+-				p->val.val, name, p->name);
+-	}
++		generate_local_fixups_tree_internal(dti, lfn, c);
+ }
+ 
+ void generate_label_tree(struct dt_info *dti, const char *name, bool allocph)
+@@ -1143,173 +1056,29 @@ void generate_label_tree(struct dt_info
+ 
+ void generate_fixups_tree(struct dt_info *dti, const char *name)
+ {
+-	if (!any_fixup_tree(dti, dti->dt))
+-		return;
+-	if (generate_fixups_tree_internal(dti, build_root_node(dti->dt, name), dti->dt))
+-		fprintf(stderr,
+-			"Warning: Preexisting data in %s malformed, some content could not be added.\n",
+-			name);
+-}
++	struct node *n = get_subnode(dti->dt, name);
+ 
+-void fixup_phandles(struct dt_info *dti, const char *name)
+-{
+-	struct node *an;
+-	struct property *fp;
++	/* Start with an empty __fixups__ node to not get duplicates */
++	if (n)
++		n->deleted = true;
+ 
+-	an = get_subnode(dti->dt, name);
+-	if (!an)
++	if (!any_fixup_tree(dti, dti->dt))
+ 		return;
+-
+-	for_each_property(an, fp) {
+-		char *fnext = fp->val.val;
+-		char *fv;
+-		unsigned int fl;
+-
+-		while ((fl = fp->val.len - (fnext - fp->val.val))) {
+-			char *propname, *soffset;
+-			struct node *n;
+-			struct property *p;
+-			long offset;
+-
+-			fv = fnext;
+-			fnext = memchr(fv, 0, fl);
+-
+-			if (!fnext) {
+-				if (quiet < 1)
+-					fprintf(stderr, "Warning: Malformed fixup entry for label %s\n",
+-						fp->name);
+-				break;
+-			}
+-			fnext += 1;
+-
+-			propname = memchr(fv, ':', fnext - 1 - fv);
+-			if (!propname) {
+-				if (quiet < 1)
+-					fprintf(stderr, "Warning: Malformed fixup entry for label %s\n",
+-						fp->name);
+-				continue;
+-			}
+-			propname++;
+-
+-			soffset = memchr(propname, ':', fnext - 1 - propname);
+-			if (!soffset) {
+-				if (quiet < 1)
+-					fprintf(stderr, "Warning: Malformed fixup entry for label %s\n",
+-						fp->name);
+-				continue;
+-			}
+-			soffset++;
+-
+-			/*
+-			 * temporarily modify the property to not have to create
+-			 * a copy for the node path.
+-			 */
+-			*(propname - 1) = '\0';
+-
+-			n = get_node_by_path(dti->dt, fv);
+-			if (!n && quiet < 1)
+-				fprintf(stderr, "Warning: Label %s references non-existing node %s\n",
+-					fp->name, fv);
+-
+-			*(propname - 1) = ':';
+-
+-			if (!n)
+-				continue;
+-
+-			/*
+-			 * temporarily modify the property to not have to create
+-			 * a copy for the property name.
+-			 */
+-			*(soffset - 1) = '\0';
+-
+-			p = get_property(n, propname);
+-
+-			if (!p && quiet < 1)
+-				fprintf(stderr, "Warning: Label %s references non-existing property %s in node %s\n",
+-					fp->name, n->fullpath, propname);
+-
+-			*(soffset - 1) = ':';
+-
+-			if (!p)
+-				continue;
+-
+-			offset = strtol(soffset, NULL, 0);
+-			if (offset < 0 || offset + 4 > p->val.len) {
+-				if (quiet < 1)
+-					fprintf(stderr,
+-						"Warning: Label %s contains invalid offset for property %s in node %s\n",
+-						fp->name, p->name, n->fullpath);
+-				continue;
+-			}
+-
+-			property_add_marker(p, REF_PHANDLE, offset, fp->name);
+-		}
+-	}
++	generate_fixups_tree_internal(dti,
++				      build_and_name_child_node(dti->dt, name),
++				      dti->dt);
+ }
+ 
+ void generate_local_fixups_tree(struct dt_info *dti, const char *name)
+ {
+-	if (!any_local_fixup_tree(dti, dti->dt))
+-		return;
+-	if (generate_local_fixups_tree_internal(dti, build_root_node(dti->dt, name), dti->dt))
+-		fprintf(stderr,
+-			"Warning: Preexisting data in %s malformed, some content could not be added.\n",
+-			name);
+-}
+-
+-static void local_fixup_phandles_node(struct dt_info *dti, struct node *lf, struct node *n)
+-{
+-	struct property *lfp;
+-	struct node *lfsubnode;
+-
+-	for_each_property(lf, lfp) {
+-		struct property *p = get_property(n, lfp->name);
+-		fdt32_t *offsets = (fdt32_t *)lfp->val.val;
+-		size_t i;
+-
+-		if (!p) {
+-			if (quiet < 1)
+-				fprintf(stderr, "Warning: Property %s in %s referenced in __local_fixups__ missing\n",
+-					lfp->name, n->fullpath);
+-			continue;
+-		}
+-
+-		/*
+-		 * Each property in the __local_fixups__ tree is a concatenation
+-		 * of offsets, so it must be a multiple of sizeof(fdt32_t).
+-		 */
+-		if (lfp->val.len % sizeof(fdt32_t)) {
+-			if (quiet < 1)
+-				fprintf(stderr, "Warning: property %s in /__local_fixups__%s malformed\n",
+-					lfp->name, n->fullpath);
+-			continue;
+-		}
+-
+-		for (i = 0; i < lfp->val.len / sizeof(fdt32_t); i++)
+-			add_phandle_marker(dti, p, dtb_ld32(offsets + i));
+-	}
+-
+-	for_each_child(lf, lfsubnode) {
+-		struct node *subnode = get_subnode(n, lfsubnode->name);
++	struct node *n = get_subnode(dti->dt, name);
+ 
+-		if (!subnode) {
+-			if (quiet < 1)
+-				fprintf(stderr, "Warning: node %s/%s referenced in __local_fixups__ missing\n",
+-					lfsubnode->name, n->fullpath);
+-			continue;
+-		}
+-
+-		local_fixup_phandles_node(dti, lfsubnode, subnode);
+-	}
+-}
+-
+-void local_fixup_phandles(struct dt_info *dti, const char *name)
+-{
+-	struct node *an;
+-
+-	an = get_subnode(dti->dt, name);
+-	if (!an)
++	/* Start with an empty __local_fixups__ node to not get duplicates */
++	if (n)
++		n->deleted = true;
++	if (!any_local_fixup_tree(dti, dti->dt))
+ 		return;
+-
+-	local_fixup_phandles_node(dti, an, dti->dt);
++	generate_local_fixups_tree_internal(dti,
++					    build_and_name_child_node(dti->dt, name),
++					    dti->dt);
+ }
+--- a/scripts/dtc/srcpos.c
++++ b/scripts/dtc/srcpos.c
+@@ -89,26 +89,6 @@ static char *shorten_to_initial_path(cha
+ }
+ 
+ /**
+- * Returns true if the given path is an absolute one.
+- *
+- * On Windows, it either needs to begin with a forward slash or with a drive
+- * letter (e.g. "C:").
+- * On all other operating systems, it must begin with a forward slash to be
+- * considered an absolute path.
+- */
+-static bool is_absolute_path(const char *path)
+-{
+-#ifdef WIN32
+-	return (
+-		path[0] == '/' ||
+-		(((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z')) && path[1] == ':')
+-	);
+-#else
+-	return (path[0] == '/');
+-#endif
+-}
+-
+-/**
+  * Try to open a file in a given directory.
+  *
+  * If the filename is an absolute path, then dirname is ignored. If it is a
+@@ -123,7 +103,7 @@ static char *try_open(const char *dirnam
+ {
+ 	char *fullname;
+ 
+-	if (!dirname || is_absolute_path(fname))
++	if (!dirname || fname[0] == '/')
+ 		fullname = xstrdup(fname);
+ 	else
+ 		fullname = join_path(dirname, fname);
+--- a/scripts/dtc/treesource.c
++++ b/scripts/dtc/treesource.c
+@@ -173,59 +173,23 @@ static struct marker **add_marker(struct
+ 	return &nm->next;
+ }
+ 
+-void property_add_marker(struct property *prop,
+-			 enum markertype type, unsigned int offset, char *ref)
++static void add_string_markers(struct property *prop)
+ {
+-	add_marker(&prop->val.markers, type, offset, ref);
+-}
+-
+-static void add_string_markers(struct property *prop, unsigned int offset, int len)
+-{
+-	int l;
+-	const char *p = prop->val.val + offset;
++	int l, len = prop->val.len;
++	const char *p = prop->val.val;
+ 	struct marker **mi = &prop->val.markers;
+ 
+ 	for (l = strlen(p) + 1; l < len; l += strlen(p + l) + 1)
+-		mi = add_marker(mi, TYPE_STRING, offset + l, NULL);
+-}
+-
+-void add_phandle_marker(struct dt_info *dti, struct property *prop, unsigned int offset)
+-{
+-	cell_t phandle;
+-	struct node *refn;
+-	char *ref;
+-
+-	if (prop->val.len < offset + 4) {
+-		if (quiet < 1)
+-			fprintf(stderr,
+-				"Warning: property %s too short to contain a phandle at offset %u\n",
+-				prop->name, offset);
+-		return;
+-	}
+-
+-	phandle = dtb_ld32(prop->val.val + offset);
+-	refn = get_node_by_phandle(dti->dt, phandle);
+-
+-	if (!refn) {
+-		if (quiet < 1)
+-			fprintf(stderr,
+-				"Warning: node referenced by phandle 0x%x in property %s not found\n",
+-				phandle, prop->name);
+-		return;
+-	}
+-
+-	if (refn->labels)
+-		ref = refn->labels->label;
+-	else
+-		ref = refn->fullpath;
+-
+-	add_marker(&prop->val.markers, REF_PHANDLE, offset, ref);
++		mi = add_marker(mi, TYPE_STRING, l, NULL);
+ }
+ 
+-static enum markertype guess_value_type(struct property *prop, unsigned int offset, int len)
++static enum markertype guess_value_type(struct property *prop)
+ {
+-	const char *p = prop->val.val + offset;
++	int len = prop->val.len;
++	const char *p = prop->val.val;
++	struct marker *m = prop->val.markers;
+ 	int nnotstring = 0, nnul = 0;
++	int nnotstringlbl = 0, nnotcelllbl = 0;
+ 	int i;
+ 
+ 	for (i = 0; i < len; i++) {
+@@ -235,49 +199,30 @@ static enum markertype guess_value_type(
+ 			nnul++;
+ 	}
+ 
+-	if ((p[len-1] == '\0') && (nnotstring == 0) && (nnul <= len - nnul)) {
++	for_each_marker_of_type(m, LABEL) {
++		if ((m->offset > 0) && (prop->val.val[m->offset - 1] != '\0'))
++			nnotstringlbl++;
++		if ((m->offset % sizeof(cell_t)) != 0)
++			nnotcelllbl++;
++	}
++
++	if ((p[len-1] == '\0') && (nnotstring == 0) && (nnul <= (len-nnul))
++	    && (nnotstringlbl == 0)) {
+ 		if (nnul > 1)
+-			add_string_markers(prop, offset, len);
++			add_string_markers(prop);
+ 		return TYPE_STRING;
+-	} else if ((len % sizeof(cell_t)) == 0) {
++	} else if (((len % sizeof(cell_t)) == 0) && (nnotcelllbl == 0)) {
+ 		return TYPE_UINT32;
+ 	}
+ 
+ 	return TYPE_UINT8;
+ }
+ 
+-static void guess_type_markers(struct property *prop)
+-{
+-	struct marker **m = &prop->val.markers;
+-	unsigned int offset = 0;
+-
+-	for (m = &prop->val.markers; *m; m = &((*m)->next)) {
+-		if (is_type_marker((*m)->type))
+-			/* assume the whole property is already marked */
+-			return;
+-
+-		if ((*m)->offset > offset) {
+-			m = add_marker(m, guess_value_type(prop, offset, (*m)->offset - offset),
+-				       offset, NULL);
+-
+-			offset = (*m)->offset;
+-		}
+-
+-		if ((*m)->type == REF_PHANDLE) {
+-			m = add_marker(m, TYPE_UINT32, offset, NULL);
+-			offset += 4;
+-		}
+-	}
+-
+-	if (offset < prop->val.len)
+-		add_marker(m, guess_value_type(prop, offset, prop->val.len - offset),
+-			   offset, NULL);
+-}
+-
+ static void write_propval(FILE *f, struct property *prop)
+ {
+ 	size_t len = prop->val.len;
+-	struct marker *m;
++	struct marker *m = prop->val.markers;
++	struct marker dummy_marker;
+ 	enum markertype emit_type = TYPE_NONE;
+ 	char *srcstr;
+ 
+@@ -296,8 +241,14 @@ static void write_propval(FILE *f, struc
+ 
+ 	fprintf(f, " =");
+ 
+-	guess_type_markers(prop);
+-	m = prop->val.markers;
++	if (!next_type_marker(m)) {
++		/* data type information missing, need to guess */
++		dummy_marker.type = guess_value_type(prop);
++		dummy_marker.next = prop->val.markers;
++		dummy_marker.offset = 0;
++		dummy_marker.ref = NULL;
++		m = &dummy_marker;
++	}
+ 
+ 	for_each_marker(m) {
+ 		size_t chunk_len = (m->next ? m->next->offset : len) - m->offset;
+@@ -418,10 +369,7 @@ void dt_to_source(FILE *f, struct dt_inf
+ {
+ 	struct reserve_info *re;
+ 
+-	fprintf(f, "/dts-v1/;\n");
+-	if (dti->dtsflags & DTSF_PLUGIN)
+-		fprintf(f, "/plugin/;\n");
+-	fprintf(f, "\n");
++	fprintf(f, "/dts-v1/;\n\n");
+ 
+ 	for (re = dti->reservelist; re; re = re->next) {
+ 		struct label *l;
+--- a/scripts/dtc/version_gen.h
++++ b/scripts/dtc/version_gen.h
+@@ -1 +1 @@
+-#define DTC_VERSION "DTC 1.7.2-ga26ef640"
++#define DTC_VERSION "DTC 1.7.2-g52f07dcc"

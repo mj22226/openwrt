@@ -174,7 +174,7 @@ static void button_hotplug_work(struct work_struct *work)
 		goto out_free_skb;
 
 	NETLINK_CB(event->skb).dst_group = 1;
-	broadcast_uevent(event->skb, 0, 1, GFP_KERNEL);
+
 
  out_free_skb:
 	if (ret) {
