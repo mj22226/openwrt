@@ -81,9 +81,7 @@ $(eval $(call KernelPackage,crypto-authenc))
 define KernelPackage/crypto-blake2b
   TITLE:=Support for BLAKE2b cryptographic hash function (RFC 7693)
   DEPENDS:=+kmod-crypto-hash
-  KCONFIG:=CONFIG_CRYPTO_BLAKE2B
-  FILES:=$(LINUX_DIR)/crypto/blake2b_generic.ko
-  AUTOLOAD:=$(call AutoLoad,09,blake2b_generic)
+  KCONFIG:=CONFIG_CRYPTO_BLAKE2B=y
   $(call AddDepends/crypto)
 endef
 
@@ -1047,7 +1045,6 @@ define KernelPackage/crypto-sha3
   TITLE:=SHA3 digest CryptoAPI module
   DEPENDS:=+kmod-crypto-hash
   KCONFIG:= CONFIG_CRYPTO_SHA3
-  FILES:=$(LINUX_DIR)/crypto/sha3_generic.ko
   AUTOLOAD:=$(call AutoLoad,09,sha3_generic)
   $(call AddDepends/crypto)
 endef

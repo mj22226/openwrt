@@ -72,7 +72,8 @@ define KernelPackage/fs-btrfs
 	CONFIG_BTRFS_FS \
 	CONFIG_BTRFS_FS_CHECK_INTEGRITY=n
   FILES:=\
-	$(LINUX_DIR)/fs/btrfs/btrfs.ko
+	$(LINUX_DIR)/fs/btrfs/btrfs.ko \
+	$(LINUX_DIR)/lib/crypto/libblake2b.ko
   AUTOLOAD:=$(call AutoLoad,30,btrfs,1)
 endef
 

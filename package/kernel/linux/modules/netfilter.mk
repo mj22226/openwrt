@@ -212,7 +212,7 @@ define KernelPackage/nf-flow
 	CONFIG_NETFILTER_INGRESS=y \
 	CONFIG_NF_FLOW_TABLE \
 	CONFIG_NF_FLOW_TABLE_HW
-  DEPENDS:=+kmod-nf-conntrack
+  DEPENDS:=+kmod-nf-conntrack +kmod-nft-core
   FILES:= $(LINUX_DIR)/net/netfilter/nf_flow_table.ko
   AUTOLOAD:=$(call AutoProbe,nf_flow_table nf_flow_table_hw)
 endef
@@ -869,7 +869,9 @@ define KernelPackage/ip6tables
   TITLE:=IPv6 modules
   DEPENDS:=@IPV6 +kmod-nf-reject6 +kmod-nf-ipt6 +kmod-ipt-core
   KCONFIG:=$(KCONFIG_IPT_IPV6)
-  FILES:=$(foreach mod,$(IPT_IPV6-m),$(LINUX_DIR)/net/$(mod).ko)
+  FILES:= \
+         $(foreach mod,$(IPT_IPV6-m),$(LINUX_DIR)/net/$(mod).ko) \
+         $(LINUX_DIR)/net/ipv6/netfilter/ip6_tables.ko
   AUTOLOAD:=$(call AutoLoad,42,$(notdir $(IPT_IPV6-m)))
 endef
 
@@ -1146,7 +1148,11 @@ define KernelPackage/nft-core
   SUBMENU:=$(NF_MENU)
   TITLE:=Netfilter nf_tables support
   DEPENDS:=+kmod-nfnetlink +kmod-nf-reject +IPV6:kmod-nf-reject6 +kmod-nf-nat +kmod-nf-log +IPV6:kmod-nf-log6 +LINUX_6_12:kmod-lib-crc32c
-  FILES:=$(foreach mod,$(NFT_CORE-m),$(LINUX_DIR)/net/$(mod).ko)
+  FILES:= \
+	$(foreach mod,$(NFT_CORE-m),$(LINUX_DIR)/net/$(mod).ko) \
+	$(LINUX_DIR)/net/ipv6/netfilter/nf_reject_ipv6.ko \
+	$(LINUX_DIR)/net/netfilter/nf_tables.ko \
+	$(LINUX_DIR)/net/netfilter/nfnetlink.ko
   AUTOLOAD:=$(call AutoProbe,$(notdir $(NFT_CORE-m)))
   KCONFIG:= \
 	CONFIG_NFT_COMPAT=n \

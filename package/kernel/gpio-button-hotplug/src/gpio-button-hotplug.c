@@ -64,7 +64,7 @@ struct gpio_keys_button_data {
 	const struct gpio_keys_button *b;
 };
 
-extern u64 uevent_next_seqnum(void);
+
 
 #define BH_MAP(_code, _name)		\
 	{				\
@@ -168,7 +168,6 @@ static int button_hotplug_fill_event(struct bh_event *event)
 	if (ret)
 		return ret;
 
-	ret = bh_event_add_var(event, 0, "SEQNUM=%llu", uevent_next_seqnum());
 
 	return ret;
 }
@@ -191,7 +190,7 @@ static void button_hotplug_work(struct work_struct *work)
 		goto out_free_skb;
 
 	NETLINK_CB(event->skb).dst_group = 1;
-	broadcast_uevent(event->skb, 0, 1, GFP_KERNEL);
+
 
  out_free_skb:
 	if (ret) {
