@@ -1,0 +1,39 @@
+From 8ac9de4c7b8363dce32367bc410eb93132e58530 Mon Sep 17 00:00:00 2001
+From: Fedor Pchelkin <pchelkin@ispras.ru>
+Date: Fri, 20 Feb 2026 12:47:30 +0300
+Subject: [PATCH] wifi: rtw88: check for PCI upstream bridge existence
+
+pci_upstream_bridge() returns NULL if the device is on a root bus.  If
+8821CE is installed in the system with such a PCI topology, the probing
+routine will crash.  This has probably been unnoticed as 8821CE is mostly
+supplied in laptops where there is a PCI-to-PCI bridge located upstream
+from the device.  However the card might be installed on a system with
+different configuration.
+
+Check if the bridge does exist for the specific workaround to be applied.
+
+Found by Linux Verification Center (linuxtesting.org) with Svace static
+analysis tool.
+
+Fixes: 24f5e38a13b5 ("rtw88: Disable PCIe ASPM while doing NAPI poll on 8821CE")
+Cc: stable@vger.kernel.org
+Signed-off-by: Fedor Pchelkin <pchelkin@ispras.ru>
+Acked-by: Ping-Ke Shih <pkshih@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Link: https://patch.msgid.link/20260220094730.49791-1-pchelkin@ispras.ru
+---
+ drivers/net/wireless/realtek/rtw88/pci.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/realtek/rtw88/pci.c
++++ b/drivers/net/wireless/realtek/rtw88/pci.c
+@@ -1804,7 +1804,8 @@ int rtw_pci_probe(struct pci_dev *pdev,
+ 	}
+ 
+ 	/* Disable PCIe ASPM L1 while doing NAPI poll for 8821CE */
+-	if (rtwdev->chip->id == RTW_CHIP_TYPE_8821C && bridge->vendor == PCI_VENDOR_ID_INTEL)
++	if (rtwdev->chip->id == RTW_CHIP_TYPE_8821C &&
++	    bridge && bridge->vendor == PCI_VENDOR_ID_INTEL)
+ 		rtwpci->rx_no_aspm = true;
+ 
+ 	rtw_pci_phy_cfg(rtwdev);

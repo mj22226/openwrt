@@ -76,7 +76,7 @@
  /* Allow hardware encryption to be disabled. */
  static bool modparam_nohwcrypt;
  module_param_named(nohwcrypt, modparam_nohwcrypt, bool, 0444);
-@@ -136,6 +142,27 @@ static int rt2800soc_resume(struct platf
+@@ -153,6 +159,27 @@ static int rt2800soc_resume(struct platf
  }
  #endif /* CONFIG_PM */
  
@@ -104,7 +104,7 @@
  static const struct ieee80211_ops rt2800soc_mac80211_ops = {
  	.add_chanctx = ieee80211_emulate_add_chanctx,
  	.remove_chanctx = ieee80211_emulate_remove_chanctx,
-@@ -183,6 +210,9 @@ static const struct rt2800_ops rt2800soc
+@@ -200,6 +227,9 @@ static const struct rt2800_ops rt2800soc
  	.drv_init_registers	= rt2800mmio_init_registers,
  	.drv_get_txwi		= rt2800mmio_get_txwi,
  	.drv_get_dma_done	= rt2800mmio_get_dma_done,

@@ -59,7 +59,7 @@ JIRA: SWWLAN-136577
  
  MODULE_AUTHOR("Broadcom Corporation");
  MODULE_DESCRIPTION("Broadcom 802.11 wireless LAN fullmac driver.");
-@@ -274,6 +276,8 @@ int brcmf_c_preinit_dcmds(struct brcmf_i
+@@ -273,6 +275,8 @@ int brcmf_c_preinit_dcmds(struct brcmf_i
  	char *clmver;
  	char *ptr;
  	s32 err;
@@ -68,7 +68,7 @@ JIRA: SWWLAN-136577
  
  	if (is_valid_ether_addr(ifp->mac_addr)) {
  		/* set mac address */
-@@ -433,6 +437,41 @@ int brcmf_c_preinit_dcmds(struct brcmf_i
+@@ -432,6 +436,41 @@ int brcmf_c_preinit_dcmds(struct brcmf_i
  		goto done;
  	}
  
@@ -205,7 +205,7 @@ JIRA: SWWLAN-136577
  				    void *data);
 --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c
 +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/pcie.c
-@@ -2214,7 +2214,7 @@ static void brcmf_pcie_setup(struct devi
+@@ -2213,7 +2213,7 @@ static void brcmf_pcie_setup(struct devi
  
  	init_waitqueue_head(&devinfo->mbdata_resp_wait);
  
@@ -518,7 +518,7 @@ JIRA: SWWLAN-136577
  	/* ready */
  	return;
  
-@@ -4649,3 +4860,40 @@ int brcmf_sdio_sleep(struct brcmf_sdio *
+@@ -4650,3 +4861,40 @@ int brcmf_sdio_sleep(struct brcmf_sdio *
  
  	return ret;
  }
