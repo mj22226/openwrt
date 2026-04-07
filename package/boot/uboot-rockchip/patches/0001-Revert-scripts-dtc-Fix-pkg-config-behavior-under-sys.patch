@@ -1,0 +1,22 @@
+From 029251c2ec578ebb40f1edb65a1e8d5974bccf8c Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Mon, 6 Apr 2026 22:04:31 -0300
+Subject: [PATCH 1/3] Revert "scripts/dtc: Fix pkg-config behavior under
+ sysroot"
+
+This reverts commit 807bcd844afeadbfe47ac132524cc7e3b699bc46.
+---
+ scripts/dtc/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/scripts/dtc/Makefile
++++ b/scripts/dtc/Makefile
+@@ -17,7 +17,7 @@ fdtoverlay-objs	:= $(libfdt) fdtoverlay.
+ # Source files need to get at the userspace version of libfdt_env.h to compile
+ HOST_EXTRACFLAGS := -I$(srctree)/$(src)/libfdt
+ 
+-ifeq ($(wildcard $(PKG_CONFIG_SYSROOT_DIR)/usr/include/yaml.h),)
++ifeq ($(wildcard /usr/include/yaml.h),)
+ HOST_EXTRACFLAGS += -DNO_YAML
+ else
+ dtc-objs	+= yamltree.o
