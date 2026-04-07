@@ -1,0 +1,15 @@
+From 8255c79d50fb547467f06605e85c636f4333a4dd Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Mon, 6 Apr 2026 22:20:02 -0300
+Subject: [PATCH 2/3] Revert "pylibfdt: add requirements.txt for setuptools"
+
+This reverts commit 487ab1c991d77b0236b30f55d7c2f89e3b948ec1.
+---
+ scripts/dtc/pylibfdt/requirements.txt | 1 -
+ 1 file changed, 1 deletion(-)
+ delete mode 100644 scripts/dtc/pylibfdt/requirements.txt
+
+--- a/scripts/dtc/pylibfdt/requirements.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-setuptools==78.1.1
