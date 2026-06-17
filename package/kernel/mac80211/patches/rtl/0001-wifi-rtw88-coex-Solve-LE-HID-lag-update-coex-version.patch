@@ -1,0 +1,216 @@
+From 76a7422a2c4bc9854e41ee2a8b2a3511d6896140 Mon Sep 17 00:00:00 2001
+From: Ching-Te Ku <ku920601@realtek.com>
+Date: Fri, 13 Feb 2026 13:34:45 +0800
+Subject: [PATCH] wifi: rtw88: coex: Solve LE-HID lag & update coex version to
+ 26020420
+
+When Wi-Fi enters power save, the register value can not be read
+correctly. If mechanism take the wrong information to make decision,
+it will run with wrong parameters. It leads Bluetooth low-energy
+HID lag. Add logic to isolate the wrong register state.
+
+BTCOEX Version: 26020420-2020
+Desired_BT_Coex_Ver: 0x20
+Desired_WL_FW_Ver: 9.9.X
+
+Signed-off-by: Ching-Te Ku <ku920601@realtek.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Link: https://patch.msgid.link/20260213053445.19384-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw88/coex.c     | 44 ++++++++++++-------
+ drivers/net/wireless/realtek/rtw88/main.h     |  1 +
+ drivers/net/wireless/realtek/rtw88/rtw8703b.c |  5 +++
+ drivers/net/wireless/realtek/rtw88/rtw8723d.c |  5 +++
+ drivers/net/wireless/realtek/rtw88/rtw8821a.c |  7 ++-
+ drivers/net/wireless/realtek/rtw88/rtw8821c.c |  7 ++-
+ drivers/net/wireless/realtek/rtw88/rtw8822b.c |  5 +++
+ drivers/net/wireless/realtek/rtw88/rtw8822c.c |  5 ++-
+ 8 files changed, 61 insertions(+), 18 deletions(-)
+
+--- a/drivers/net/wireless/realtek/rtw88/coex.c
++++ b/drivers/net/wireless/realtek/rtw88/coex.c
+@@ -485,6 +485,13 @@ static void rtw_coex_monitor_bt_ctr(stru
+ 		"[BTCoex], Hi-Pri Rx/Tx: %d/%d, Lo-Pri Rx/Tx: %d/%d\n",
+ 		coex_stat->hi_pri_rx, coex_stat->hi_pri_tx,
+ 		coex_stat->lo_pri_rx, coex_stat->lo_pri_tx);
++
++	if (coex_stat->wl_under_lps || coex_stat->wl_under_ips ||
++	    (coex_stat->hi_pri_rx > 60000 && coex_stat->hi_pri_tx == 60000 &&
++	     coex_stat->lo_pri_rx > 60000 && coex_stat->lo_pri_tx == 60000))
++		coex_stat->bt_ctr_ok = false;
++	else
++		coex_stat->bt_ctr_ok = true;
+ }
+ 
+ static void rtw_coex_monitor_bt_enable(struct rtw_dev *rtwdev)
+@@ -1959,14 +1966,18 @@ static void rtw_coex_action_bt_hid(struc
+ 	struct rtw_coex *coex = &rtwdev->coex;
+ 	struct rtw_coex_stat *coex_stat = &coex->stat;
+ 	struct rtw_efuse *efuse = &rtwdev->efuse;
++	bool is_bt_ctr_hi = false, is_toggle_table = false;
+ 	u8 table_case, tdma_case;
+ 	u32 slot_type = 0;
+-	bool bt_multi_link_remain = false, is_toggle_table = false;
+ 
+ 	rtw_dbg(rtwdev, RTW_DBG_COEX, "[BTCoex], %s()\n", __func__);
+ 	rtw_coex_set_ant_path(rtwdev, false, COEX_SET_ANT_2G);
+ 	rtw_coex_set_rf_para(rtwdev, chip->wl_rf_para_rx[0]);
+ 
++	if (coex_stat->bt_ctr_ok &&
++	    coex_stat->lo_pri_rx + coex_stat->lo_pri_tx > 360)
++		is_bt_ctr_hi = true;
++
+ 	if (efuse->share_ant) {
+ 		/* Shared-Ant */
+ 		if (coex_stat->bt_ble_exist) {
+@@ -1980,28 +1991,31 @@ static void rtw_coex_action_bt_hid(struc
+ 			}
+ 		} else {
+ 			/* Legacy HID  */
+-			if (coex_stat->bt_profile_num == 1 &&
+-			    (coex_stat->bt_multi_link ||
+-			    (coex_stat->lo_pri_rx +
+-			     coex_stat->lo_pri_tx > 360) ||
+-			     coex_stat->bt_slave ||
+-			     bt_multi_link_remain)) {
+-				slot_type = TDMA_4SLOT;
+-				table_case = 12;
+-				tdma_case = 20;
+-			} else if (coex_stat->bt_a2dp_active) {
++			if (coex_stat->bt_a2dp_active) {
+ 				table_case = 9;
+ 				tdma_case = 18;
++			} else if (coex_stat->bt_profile_num == 1 &&
++				   (coex_stat->bt_multi_link &&
++				    (is_bt_ctr_hi || coex_stat->bt_slave ||
++				     coex_stat->bt_multi_link_remain))) {
++				if (coex_stat->wl_gl_busy &&
++				    (coex_stat->wl_rx_rate <= 3 ||
++				     coex_stat->wl_rts_rx_rate <= 3))
++					table_case = 13;
++				else
++					table_case = 12;
++
++				tdma_case = 26;
+ 			} else if (coex_stat->bt_418_hid_exist &&
+ 				   coex_stat->wl_gl_busy) {
+ 				is_toggle_table = true;
+ 				slot_type = TDMA_4SLOT;
+-				table_case = 9;
+-				tdma_case = 24;
++				table_case = 32;
++				tdma_case = 27;
+ 			} else if (coex_stat->bt_ble_hid_exist &&
+ 				   coex_stat->wl_gl_busy) {
+-				table_case = 32;
+-				tdma_case = 9;
++				table_case = 36;
++				tdma_case = 0;
+ 			} else {
+ 				table_case = 9;
+ 				tdma_case = 9;
+--- a/drivers/net/wireless/realtek/rtw88/main.h
++++ b/drivers/net/wireless/realtek/rtw88/main.h
+@@ -1475,6 +1475,7 @@ struct rtw_coex_stat {
+ 	bool bt_game_hid_exist;
+ 	bool bt_hid_handle_cnt;
+ 	bool bt_mailbox_reply;
++	bool bt_ctr_ok;
+ 
+ 	bool wl_under_lps;
+ 	bool wl_under_ips;
+--- a/drivers/net/wireless/realtek/rtw88/rtw8703b.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8703b.c
+@@ -1794,6 +1794,11 @@ static const struct coex_table_para tabl
+ 	{0x66556aaa, 0x6a5a6aaa}, /* case-30 */
+ 	{0xffffffff, 0x5aaa5aaa},
+ 	{0x56555555, 0x5a5a5aaa},
++	{0xdaffdaff, 0xdaffdaff},
++	{0xddffddff, 0xddffddff},
++	{0xe5555555, 0xe5555555}, /* case-35 */
++	{0xea5a5a5a, 0xea5a5a5a},
++	{0xea6a6a6a, 0xea6a6a6a},
+ };
+ 
+ /* Shared-Antenna TDMA */
+--- a/drivers/net/wireless/realtek/rtw88/rtw8723d.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8723d.c
+@@ -1459,6 +1459,11 @@ static const struct coex_table_para tabl
+ 	{0x66556aaa, 0x6a5a6aaa}, /* case-30 */
+ 	{0xffffffff, 0x5aaa5aaa},
+ 	{0x56555555, 0x5a5a5aaa},
++	{0xdaffdaff, 0xdaffdaff},
++	{0xddffddff, 0xddffddff},
++	{0xe5555555, 0xe5555555}, /* case-35 */
++	{0xea5a5a5a, 0xea5a5a5a},
++	{0xea6a6a6a, 0xea6a6a6a},
+ };
+ 
+ /* Non-Shared-Antenna Coex Table */
+--- a/drivers/net/wireless/realtek/rtw88/rtw8821a.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8821a.c
+@@ -998,7 +998,12 @@ static const struct coex_table_para tabl
+ 	{0x66556655, 0x66556655},
+ 	{0x66556aaa, 0x6a5a6aaa}, /* case-30 */
+ 	{0xffffffff, 0x5aaa5aaa},
+-	{0x56555555, 0x5a5a5aaa}
++	{0x56555555, 0x5a5a5aaa},
++	{0xdaffdaff, 0xdaffdaff},
++	{0xddffddff, 0xddffddff},
++	{0xe5555555, 0xe5555555}, /* case-35 */
++	{0xea5a5a5a, 0xea5a5a5a},
++	{0xea6a6a6a, 0xea6a6a6a},
+ };
+ 
+ /* Non-Shared-Antenna Coex Table */
+--- a/drivers/net/wireless/realtek/rtw88/rtw8821c.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8821c.c
+@@ -1727,7 +1727,12 @@ static const struct coex_table_para tabl
+ 	{0x66556655, 0x66556655},
+ 	{0x66556aaa, 0x6a5a6aaa}, /* case-30 */
+ 	{0xffffffff, 0x5aaa5aaa},
+-	{0x56555555, 0x5a5a5aaa}
++	{0x56555555, 0x5a5a5aaa},
++	{0xdaffdaff, 0xdaffdaff},
++	{0xddffddff, 0xddffddff},
++	{0xe5555555, 0xe5555555}, /* case-35 */
++	{0xea5a5a5a, 0xea5a5a5a},
++	{0xea6a6a6a, 0xea6a6a6a},
+ };
+ 
+ /* Non-Shared-Antenna Coex Table */
+--- a/drivers/net/wireless/realtek/rtw88/rtw8822b.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8822b.c
+@@ -2217,6 +2217,11 @@ static const struct coex_table_para tabl
+ 	{0x66556aaa, 0x6a5a6aaa}, /* case-30 */
+ 	{0xffffffff, 0x5aaa5aaa},
+ 	{0x56555555, 0x5a5a5aaa},
++	{0xdaffdaff, 0xdaffdaff},
++	{0xddffddff, 0xddffddff},
++	{0xe5555555, 0xe5555555}, /* case-35 */
++	{0xea5a5a5a, 0xea5a5a5a},
++	{0xea6a6a6a, 0xea6a6a6a},
+ };
+ 
+ /* Non-Shared-Antenna Coex Table */
+--- a/drivers/net/wireless/realtek/rtw88/rtw8822c.c
++++ b/drivers/net/wireless/realtek/rtw88/rtw8822c.c
+@@ -5035,6 +5035,9 @@ static const struct coex_table_para tabl
+ 	{0x56555555, 0x5a5a5aaa},
+ 	{0xdaffdaff, 0xdaffdaff},
+ 	{0xddffddff, 0xddffddff},
++	{0xe5555555, 0xe5555555}, /* case-35 */
++	{0xea5a5a5a, 0xea5a5a5a},
++	{0xea6a6a6a, 0xea6a6a6a},
+ };
+ 
+ /* Non-Shared-Antenna Coex Table */
+@@ -5401,7 +5404,7 @@ const struct rtw_chip_info rtw8822c_hw_s
+ 	.max_sched_scan_ssids = 4,
+ #endif
+ 	.max_scan_ie_len = (RTW_PROBE_PG_CNT - 1) * TX_PAGE_SIZE,
+-	.coex_para_ver = 0x22020720,
++	.coex_para_ver = 0x26020420,
+ 	.bt_desired_ver = 0x20,
+ 	.scbd_support = true,
+ 	.new_scbd10_def = true,

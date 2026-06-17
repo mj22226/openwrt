@@ -1,0 +1,49 @@
+From cb07d554267c5ef5a5f1a1e967b117003d6d0ba1 Mon Sep 17 00:00:00 2001
+From: Ping-Ke Shih <pkshih@realtek.com>
+Date: Tue, 24 Mar 2026 09:10:01 +0800
+Subject: [PATCH] wifi: rtw88: validate RX rate to prevent out-of-bound
+
+The reported RX rate might be unexpected, causing kernel warns:
+
+  Rate marked as a VHT rate but data is invalid: MCS: 0, NSS: 0
+  WARNING: net/mac80211/rx.c:5491 at ieee80211_rx_list+0x183/0x1020 [mac80211]
+
+As the RX rate can be index of an array under certain conditions, validate
+it to prevent accessing array out-of-bound potentially.
+
+Tested on HP Notebook P3S95EA#ACB (kernel 6.19.9-1-cachyos):
+
+  - No WARNING: net/mac80211/rx.c:5491 observed after the v2 patch.
+The unexpected `NSS: 0, MCS: 0` VHT rate warnings are successfully
+mitigated.
+  - The system remains fully stable through prolonged idle periods,
+high network load, active Bluetooth A2DP usage, and multiple deep
+suspend/resume cycles.
+  - Zero h2c timeouts or firmware lps state errors observed in dmesg.
+
+Reported-by: Oleksandr Havrylov <goainwo@gmail.com>
+Closes: https://lore.kernel.org/linux-wireless/CALdGYqSMUPnPfW-_q1RgYr0_SjoXUejAaJJr-o+jpwCk1S7ndQ@mail.gmail.com/
+Tested-by: Oleksandr Havrylov <goainwo@gmail.com>
+Signed-off-by: Ping-Ke Shih <pkshih@realtek.com>
+Link: https://patch.msgid.link/20260324011001.5742-1-pkshih@realtek.com
+---
+ drivers/net/wireless/realtek/rtw88/rx.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+--- a/drivers/net/wireless/realtek/rtw88/rx.c
++++ b/drivers/net/wireless/realtek/rtw88/rx.c
+@@ -295,6 +295,14 @@ void rtw_rx_query_rx_desc(struct rtw_dev
+ 
+ 	pkt_stat->tsf_low = le32_get_bits(rx_desc->w5, RTW_RX_DESC_W5_TSFL);
+ 
++	if (unlikely(pkt_stat->rate >= DESC_RATE_MAX)) {
++		rtw_dbg(rtwdev, RTW_DBG_UNEXP,
++			"unexpected RX rate=0x%x\n", pkt_stat->rate);
++
++		pkt_stat->rate = DESC_RATE1M;
++		pkt_stat->bw = RTW_CHANNEL_WIDTH_20;
++	}
++
+ 	/* drv_info_sz is in unit of 8-bytes */
+ 	pkt_stat->drv_info_sz *= 8;
+ 
