@@ -1,0 +1,101 @@
+CONFIG_TARGET_rockchip=y
+CONFIG_TARGET_rockchip_armv8=y
+CONFIG_TARGET_MULTI_PROFILE=y
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-m4=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_friendlyarm_nanopi-m4=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-m4-2gb=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_friendlyarm_nanopi-m4-2gb=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-m4v2=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_friendlyarm_nanopi-m4v2=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r2s=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_friendlyarm_nanopi-r2s=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r6c=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_friendlyarm_nanopi-r6c=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r6s=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_friendlyarm_nanopi-r6s=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_hugsun_hugsun-x99=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_hugsun_hugsun-x99=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-3a=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_radxa_rock-3a=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-pi-4a=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_radxa_rock-pi-4a=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_sinovoip_bpi-r2-pro=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_sinovoip_bpi-r2-pro=""
+CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_xunlong_orangepi-5-plus=y
+CONFIG_TARGET_DEVICE_PACKAGES_rockchip_armv8_DEVICE_xunlong_orangepi-5-plus=""
+CONFIG_DEVEL=y
+CONFIG_TARGET_PER_DEVICE_ROOTFS=y
+CONFIG_AUTOREMOVE=y
+CONFIG_BUILD_LOG=y
+# CONFIG_KERNEL_PREEMPT_NONE is not set
+CONFIG_KERNEL_PREEMPT_VOLUNTARY=y
+# CONFIG_KERNEL_WERROR is not set
+CONFIG_PACKAGE_blkdiscard=m
+CONFIG_PACKAGE_iwinfo=m
+CONFIG_PACKAGE_kmod-button-hotplug=m
+CONFIG_PACKAGE_kmod-rtw88-8822cs=m
+CONFIG_PACKAGE_kmod-rtw88-sdio=m
+CONFIG_PACKAGE_trusted-firmware-a-rk3528=y
+CONFIG_PACKAGE_trusted-firmware-a-rk3566=y
+CONFIG_PACKAGE_trusted-firmware-a-rk3576=y
+CONFIG_PACKAGE_trusted-firmware-a-rk3576-tpl=y
+CONFIG_SRC_TREE_OVERRIDE=y
+CONFIG_TARGET_ALL_PROFILES=y
+# CONFIG_DRIVER_11BE_SUPPORT is not set
+# CONFIG_PACKAGE_brcmfmac-nvram-4356-sdio is not set
+# CONFIG_PACKAGE_cypress-firmware-4356-sdio is not set
+# CONFIG_PACKAGE_iwlwifi-firmware-ax210 is not set
+# CONFIG_PACKAGE_kmod-ata-ahci is not set
+# CONFIG_PACKAGE_kmod-hwmon-pwmfan is not set
+# CONFIG_PACKAGE_kmod-iwlwifi is not set
+# CONFIG_PACKAGE_kmod-pps is not set
+# CONFIG_PACKAGE_kmod-ptp is not set
+# CONFIG_PACKAGE_kmod-rtw88-8723ds is not set
+# CONFIG_PACKAGE_kmod-rtw88-8723du is not set
+# CONFIG_PACKAGE_kmod-rtw89-8852be is not set
+# CONFIG_PACKAGE_rtl8723de-firmware is not set
+# CONFIG_PACKAGE_rtl8852be-firmware is not set
+# CONFIG_PACKAGE_trusted-firmware-a-rk3308 is not set
+# CONFIG_PACKAGE_trusted-firmware-a-rk3308-tpl-rock-pi-s is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_hinlink_h28k is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_armsom_sige7 is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_firefly_roc-rk3328-cc is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopc-t4 is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopc-t6 is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r2c is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r2c-plus is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r3s is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r4s-enterprise is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r5c is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r5s is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_friendlyarm_nanopi-r76s is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_linkease_easepi-r1 is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_lunzn_fastrhino-r66s is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_pine64_rock64 is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_pine64_rockpro64 is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_cm3-io is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_e20c is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_e25 is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_e52c is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-2a is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-2f is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-3b is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-3c is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-4c-plus is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-4d is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-4se is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-5-itx is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-5a is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-5b is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-5b-plus is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-5c is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-5t is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-pi-e is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-pi-e-v3 is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_rock-pi-s is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_zero-3e is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_radxa_zero-3w is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_xunlong_orangepi-r1-plus is not set
+# CONFIG_TARGET_DEVICE_rockchip_armv8_DEVICE_xunlong_orangepi-r1-plus-lts is not set
