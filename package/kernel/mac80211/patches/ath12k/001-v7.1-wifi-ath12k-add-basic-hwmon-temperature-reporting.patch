@@ -101,7 +101,7 @@ Signed-off-by: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
  struct ath12k_hw {
 --- a/drivers/net/wireless/ath/ath12k/mac.c
 +++ b/drivers/net/wireless/ath/ath12k/mac.c
-@@ -14063,6 +14063,10 @@ static void ath12k_mac_setup(struct ath1
+@@ -14067,6 +14067,10 @@ static void ath12k_mac_setup(struct ath1
  	init_completion(&ar->mlo_setup_done);
  	init_completion(&ar->completed_11d_scan);
  	init_completion(&ar->regd_update_completed);
