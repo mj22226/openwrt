@@ -372,10 +372,8 @@ define KernelPackage/ath12k
   +kmod-crypto-michael-mic +kmod-qrtr-mhi \
   +kmod-qcom-qmi-helpers +@DRIVER_11BE_SUPPORT \
   +ATH12K_THERMAL:kmod-hwmon-core +ATH12K_THERMAL:kmod-thermal
-  FILES:= \
-	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath12k/ath12k.ko \
-	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath12k/wifi7/ath12k_wifi7.ko
-  AUTOLOAD:=$(call AutoProbe,ath12k ath12k_wifi7)
+  FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath12k/ath12k.ko
+  AUTOLOAD:=$(call AutoProbe,ath12k)
 endef
 
 define KernelPackage/ath12k/description
