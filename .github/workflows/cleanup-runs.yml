@@ -4,7 +4,6 @@ on:
 jobs:
   del_runs:
     runs-on: ubuntu-26.04-arm
-    
     steps:
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@main
