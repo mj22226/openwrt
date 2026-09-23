@@ -112,7 +112,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
 --- a/net/wireless/core.h
 +++ b/net/wireless/core.h
-@@ -490,6 +490,8 @@ void cfg80211_set_cac_state(struct wiphy
+@@ -498,6 +498,8 @@ void cfg80211_set_cac_state(struct wiphy
  			    bool cac_ongoing);
  
  void cfg80211_dfs_channels_update_work(struct work_struct *work);
