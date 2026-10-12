@@ -52,13 +52,30 @@ endef
 $(eval $(call KernelPackage,nf-conncount))
 
 
+define KernelPackage/iptables
+  SUBMENU:=$(NF_MENU)
+  TITLE:=Iptables legacy
+  KCONFIG:= \
+	CONFIG_IP_NF_IPTABLES_LEGACY \
+	CONFIG_NETFILTER_XTABLES \
+	CONFIG_NETFILTER_XTABLES_LEGACY=y \
+	CONFIG_IP6_NF_IPTABLES_LEGACY \
+	CONFIG_BRIDGE_NF_EBTABLES_LEGACY
+  HIDDEN:=1
+  FILES:= \
+	$(LINUX_DIR)/net/ipv4/netfilter/ip_tables.ko \
+	$(LINUX_DIR)/net/netfilter/x_tables.ko
+  AUTOLOAD:=$(call AutoProbe,$(notdir ip_tables x_tables))
+endef
+
+$(eval $(call KernelPackage,iptables))
+
+
 define KernelPackage/nf-ipt
   SUBMENU:=$(NF_MENU)
   TITLE:=Iptables core
-  KCONFIG:= \
-	$(KCONFIG_NF_IPT) \
-	CONFIG_IP_NF_IPTABLES_LEGACY \
-	CONFIG_NETFILTER_XTABLES_LEGACY=y
+  KCONFIG:=$(KCONFIG_NF_IPT)
+  DEPENDS:=+kmod-iptables
   FILES:=$(foreach mod,$(NF_IPT-m),$(LINUX_DIR)/net/$(mod).ko)
   AUTOLOAD:=$(call AutoProbe,$(notdir $(NF_IPT-m)))
 endef
@@ -69,9 +86,7 @@ $(eval $(call KernelPackage,nf-ipt))
 define KernelPackage/nf-ipt6
   SUBMENU:=$(NF_MENU)
   TITLE:=Ip6tables core
-  KCONFIG:= \
-	$(KCONFIG_NF_IPT6) \
-	CONFIG_IP6_NF_IPTABLES_LEGACY
+  KCONFIG:=$(KCONFIG_NF_IPT6)
   FILES:=$(foreach mod,$(NF_IPT6-m),$(LINUX_DIR)/net/$(mod).ko)
   AUTOLOAD:=$(call AutoProbe,$(notdir $(NF_IPT6-m)))
   DEPENDS:=+kmod-nf-ipt +kmod-nf-log
@@ -1004,7 +1019,9 @@ define KernelPackage/ip6tables
   TITLE:=IPv6 modules
   DEPENDS:=@IPV6 +kmod-nf-reject6 +kmod-nf-ipt6 +kmod-ipt-core
   KCONFIG:=$(KCONFIG_IPT_IPV6)
-  FILES:=$(foreach mod,$(IPT_IPV6-m),$(LINUX_DIR)/net/$(mod).ko)
+  FILES:= \
+      $(foreach mod,$(IPT_IPV6-m),$(LINUX_DIR)/net/$(mod).ko) \
+      $(LINUX_DIR)/net/ipv6/netfilter/ip6_tables.ko
   AUTOLOAD:=$(call AutoLoad,42,$(notdir $(IPT_IPV6-m)))
 endef
 
@@ -1070,9 +1087,7 @@ define KernelPackage/ebtables
   TITLE:=Bridge firewalling modules
   DEPENDS:=+kmod-ipt-core
   FILES:=$(foreach mod,$(EBTABLES-m),$(LINUX_DIR)/net/$(mod).ko)
-  KCONFIG:= \
-	$(KCONFIG_EBTABLES) \
-	CONFIG_BRIDGE_NF_EBTABLES_LEGACY
+  KCONFIG:=$(KCONFIG_EBTABLES)
   AUTOLOAD:=$(call AutoProbe,$(notdir $(EBTABLES-m)))
 endef
 
