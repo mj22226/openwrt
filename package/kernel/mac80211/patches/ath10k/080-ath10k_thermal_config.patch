@@ -37,7 +37,7 @@
  void ath10k_thermal_event_temperature(struct ath10k *ar, int temperature);
 --- a/local-symbols
 +++ b/local-symbols
-@@ -153,6 +153,7 @@ ATH10K_DEBUG=
+@@ -154,6 +154,7 @@ ATH10K_DEBUG=
  ATH10K_DEBUGFS=
  ATH10K_LEDS=
  ATH10K_SPECTRAL=

@@ -46,7 +46,7 @@ Signed-off-by: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
  	timer_delete_sync(&ab->rx_replenish_retry);
  	ath11k_ce_cleanup_pipes(ab);
  }
-@@ -795,6 +800,8 @@ static const struct ath11k_hif_ops ath11
+@@ -826,6 +831,8 @@ static const struct ath11k_hif_ops ath11
  	.map_service_to_pipe = ath11k_ahb_map_service_to_pipe,
  	.power_down = ath11k_ahb_power_down,
  	.power_up = ath11k_ahb_power_up,

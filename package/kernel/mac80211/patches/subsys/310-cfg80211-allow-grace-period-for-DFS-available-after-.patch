@@ -112,7 +112,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
 --- a/net/wireless/core.h
 +++ b/net/wireless/core.h
-@@ -490,6 +490,8 @@ void cfg80211_set_cac_state(struct wiphy
+@@ -501,6 +501,8 @@ void cfg80211_set_cac_state(struct wiphy
  			    bool cac_ongoing);
  
  void cfg80211_dfs_channels_update_work(struct work_struct *work);
@@ -148,7 +148,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  				c->dfs_state_entered = jiffies;
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -22526,6 +22526,9 @@ void cfg80211_ch_switch_notify(struct ne
+@@ -22574,6 +22574,9 @@ void cfg80211_ch_switch_notify(struct ne
  		break;
  	case NL80211_IFTYPE_AP:
  	case NL80211_IFTYPE_P2P_GO:
@@ -160,7 +160,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	case NL80211_IFTYPE_ADHOC:
 --- a/net/wireless/reg.c
 +++ b/net/wireless/reg.c
-@@ -2970,6 +2970,7 @@ static void reg_copy_dfs_chan_state(stru
+@@ -3004,6 +3004,7 @@ static void reg_copy_dfs_chan_state(stru
  	    dst_chan->dfs_state == NL80211_DFS_USABLE) {
  		dst_chan->dfs_state = src_chan->dfs_state;
  		dst_chan->dfs_state_entered = src_chan->dfs_state_entered;
