@@ -102,7 +102,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  };
  
  /* policy for the key attributes */
-@@ -7882,7 +7883,7 @@ static int nl80211_fill_link_station(str
+@@ -7883,7 +7884,7 @@ static int nl80211_fill_link_station(str
  		goto nla_put_failure;					\
  	} while (0)
  
@@ -111,7 +111,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	if (!link_sinfoattr)
  		goto nla_put_failure;
  
-@@ -7948,8 +7949,8 @@ static int nl80211_fill_link_station(str
+@@ -7949,8 +7950,8 @@ static int nl80211_fill_link_station(str
  	PUT_LINK_SINFO(BEACON_LOSS, beacon_loss_count, u32);
  
  	if (link_sinfo->filled & BIT_ULL(NL80211_STA_INFO_BSS_PARAM)) {
@@ -122,7 +122,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		if (!bss_param)
  			goto nla_put_failure;
  
-@@ -7991,8 +7992,7 @@ static int nl80211_fill_link_station(str
+@@ -7992,8 +7993,7 @@ static int nl80211_fill_link_station(str
  		struct nlattr *tidsattr;
  		int tid;
  
@@ -132,7 +132,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		if (!tidsattr)
  			goto nla_put_failure;
  
-@@ -8005,7 +8005,7 @@ static int nl80211_fill_link_station(str
+@@ -8006,7 +8006,7 @@ static int nl80211_fill_link_station(str
  			if (!tidstats->filled)
  				continue;
  
@@ -141,7 +141,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  			if (!tidattr)
  				goto nla_put_failure;
  
-@@ -8476,21 +8476,74 @@ static void cfg80211_sta_set_mld_sinfo(s
+@@ -8477,21 +8477,74 @@ static void cfg80211_sta_set_mld_sinfo(s
  	sinfo->filled &= ~BIT_ULL(NL80211_STA_INFO_CHAIN_SIGNAL_AVG);
  }
  
@@ -217,7 +217,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	if (err)
  		return err;
  	/* nl80211_prepare_wdev_dump acquired it in the successful case */
-@@ -8502,6 +8555,9 @@ static int nl80211_dump_station(struct s
+@@ -8503,6 +8556,9 @@ static int nl80211_dump_station(struct s
  			err = -ENOMEM;
  			goto out_err;
  		}
@@ -227,7 +227,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		cb->args[2] = (long)ctx;
  	}
  
-@@ -8517,34 +8573,53 @@ static int nl80211_dump_station(struct s
+@@ -8518,34 +8574,53 @@ static int nl80211_dump_station(struct s
  
  	while (true) {
  		void *hdr;
@@ -298,7 +298,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  			goto out_err_release;
  		}
  
-@@ -8558,18 +8633,49 @@ static int nl80211_dump_station(struct s
+@@ -8559,18 +8634,49 @@ static int nl80211_dump_station(struct s
  				ctx->sinfo.generation)) {
  			genlmsg_cancel(skb, hdr);
  			err = skb->len;

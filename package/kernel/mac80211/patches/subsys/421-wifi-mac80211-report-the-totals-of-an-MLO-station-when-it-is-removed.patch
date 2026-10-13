@@ -49,7 +49,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static void __sta_info_destroy_part2(struct sta_info *sta, bool recalc)
  {
  	struct ieee80211_local *local = sta->local;
-@@ -1627,7 +1642,7 @@ static void __sta_info_destroy_part2(str
+@@ -1629,7 +1644,7 @@ static void __sta_info_destroy_part2(str
  
  	sinfo = kzalloc_obj(*sinfo);
  	if (sinfo)
@@ -60,7 +60,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		ret = drv_sta_state(local, sdata, sta, IEEE80211_STA_NONE,
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -21839,6 +21839,9 @@ void cfg80211_del_sta_sinfo(struct wirel
+@@ -21840,6 +21840,9 @@ void cfg80211_del_sta_sinfo(struct wirel
  		return;
  	}
  

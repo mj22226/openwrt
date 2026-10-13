@@ -64,7 +64,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -8476,16 +8476,19 @@ static void cfg80211_sta_set_mld_sinfo(s
+@@ -8477,16 +8477,19 @@ static void cfg80211_sta_set_mld_sinfo(s
  	sinfo->filled &= ~BIT_ULL(NL80211_STA_INFO_CHAIN_SIGNAL_AVG);
  }
  
@@ -89,7 +89,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  
  	err = nl80211_prepare_wdev_dump(cb, &rdev, &wdev, NULL);
  	if (err)
-@@ -8493,6 +8496,15 @@ static int nl80211_dump_station(struct s
+@@ -8494,6 +8497,15 @@ static int nl80211_dump_station(struct s
  	/* nl80211_prepare_wdev_dump acquired it in the successful case */
  	__acquire(&rdev->wiphy.mtx);
  
@@ -105,7 +105,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	if (!wdev->netdev && wdev->iftype != NL80211_IFTYPE_NAN) {
  		err = -EINVAL;
  		goto out_err;
-@@ -8503,55 +8515,83 @@ static int nl80211_dump_station(struct s
+@@ -8504,55 +8516,83 @@ static int nl80211_dump_station(struct s
  		goto out_err;
  	}
  
@@ -221,7 +221,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  static int nl80211_get_station(struct sk_buff *skb, struct genl_info *info)
  {
  	struct cfg80211_registered_device *rdev = info->user_ptr[0];
-@@ -19516,6 +19556,14 @@ static const struct genl_ops nl80211_ops
+@@ -19517,6 +19557,14 @@ static const struct genl_ops nl80211_ops
  		/* can be retrieved by unprivileged users */
  		.internal_flags = IFLAGS(NL80211_FLAG_NEED_WIPHY),
  	},
@@ -236,7 +236,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  };
  
  static const struct genl_small_ops nl80211_small_ops[] = {
-@@ -19616,13 +19664,6 @@ static const struct genl_small_ops nl802
+@@ -19617,13 +19665,6 @@ static const struct genl_small_ops nl802
  					 NL80211_FLAG_MLO_VALID_LINK_ID),
  	},
  	{
