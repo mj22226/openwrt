@@ -39,7 +39,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -8486,6 +8486,8 @@ struct nl80211_dump_station_ctx {
+@@ -8487,6 +8487,8 @@ struct nl80211_dump_station_ctx {
  	int link_idx;
  	enum nl80211_dump_station_phase phase;
  	bool dump_link_stats;
@@ -48,7 +48,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	u8 mac_addr[ETH_ALEN];
  	struct station_info sinfo;
  };
-@@ -8555,10 +8557,22 @@ static int nl80211_dump_station(struct s
+@@ -8556,10 +8558,22 @@ static int nl80211_dump_station(struct s
  			err = -ENOMEM;
  			goto out_err;
  		}
@@ -72,7 +72,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	}
  
  	if (!wdev->netdev && wdev->iftype != NL80211_IFTYPE_NAN) {
-@@ -8566,7 +8580,12 @@ static int nl80211_dump_station(struct s
+@@ -8567,7 +8581,12 @@ static int nl80211_dump_station(struct s
  		goto out_err;
  	}
  
@@ -86,7 +86,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		err = -EOPNOTSUPP;
  		goto out_err;
  	}
-@@ -8587,8 +8606,22 @@ static int nl80211_dump_station(struct s
+@@ -8588,8 +8607,22 @@ static int nl80211_dump_station(struct s
  				}
  			}
  

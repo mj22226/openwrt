@@ -35,7 +35,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -8045,14 +8045,10 @@ static int nl80211_send_station(struct s
+@@ -8046,14 +8046,10 @@ static int nl80211_send_station(struct s
  				u32 seq, int flags,
  				struct cfg80211_registered_device *rdev,
  				struct wireless_dev *wdev,
@@ -51,7 +51,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  
  	hdr = nl80211hdr_put(msg, portid, seq, flags, cmd);
  	if (!hdr) {
-@@ -8270,45 +8266,11 @@ static int nl80211_send_station(struct s
+@@ -8271,45 +8267,11 @@ static int nl80211_send_station(struct s
  			goto nla_put_failure;
  	}
  
@@ -98,7 +98,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	cfg80211_sinfo_release_content(sinfo);
  	genlmsg_cancel(msg, hdr);
  	return -EMSGSIZE;
-@@ -8561,7 +8523,7 @@ static int nl80211_dump_station(struct s
+@@ -8562,7 +8524,7 @@ static int nl80211_dump_station(struct s
  				NETLINK_CB(cb->skb).portid,
  				cb->nlh->nlmsg_seq, NLM_F_MULTI,
  				rdev, wdev, mac_addr,
@@ -107,7 +107,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  			goto out;
  
  		sta_idx++;
-@@ -8625,7 +8587,7 @@ static int nl80211_get_station(struct sk
+@@ -8626,7 +8588,7 @@ static int nl80211_get_station(struct sk
  
  	if (nl80211_send_station(msg, NL80211_CMD_NEW_STATION,
  				 info->snd_portid, info->snd_seq, 0,
@@ -116,7 +116,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		nlmsg_free(msg);
  		return -ENOBUFS;
  	}
-@@ -21647,7 +21609,7 @@ void cfg80211_new_sta(struct wireless_de
+@@ -21648,7 +21610,7 @@ void cfg80211_new_sta(struct wireless_de
  		return;
  
  	if (nl80211_send_station(msg, NL80211_CMD_NEW_STATION, 0, 0, 0,
@@ -125,7 +125,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		nlmsg_free(msg);
  		return;
  	}
-@@ -21677,7 +21639,7 @@ void cfg80211_del_sta_sinfo(struct wirel
+@@ -21678,7 +21640,7 @@ void cfg80211_del_sta_sinfo(struct wirel
  	}
  
  	if (nl80211_send_station(msg, NL80211_CMD_DEL_STATION, 0, 0, 0,

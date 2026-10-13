@@ -15,7 +15,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/net/mac80211/chan.c
 +++ b/net/mac80211/chan.c
-@@ -2305,12 +2305,12 @@ int _ieee80211_link_use_channel(struct i
+@@ -2337,12 +2337,12 @@ int _ieee80211_link_use_channel(struct i
  					   radar_detect_width, -1);
  	if (ret < 0) {
  		/* Let's check if evacuating a NAN channel will help */

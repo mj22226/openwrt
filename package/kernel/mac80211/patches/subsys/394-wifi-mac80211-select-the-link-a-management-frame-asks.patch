@@ -38,7 +38,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/net/mac80211/offchannel.c
 +++ b/net/mac80211/offchannel.c
-@@ -926,6 +926,7 @@ int ieee80211_mgmt_tx(struct wiphy *wiph
+@@ -933,6 +933,7 @@ int ieee80211_mgmt_tx(struct wiphy *wiph
  		/* Check all the links first */
  		for (i = 0; i < ARRAY_SIZE(sdata->vif.link_conf); i++) {
  			struct ieee80211_bss_conf *conf;
@@ -46,7 +46,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  			conf = rcu_dereference(sdata->vif.link_conf[i]);
  			if (!conf)
-@@ -935,12 +936,18 @@ int ieee80211_mgmt_tx(struct wiphy *wiph
+@@ -942,12 +943,18 @@ int ieee80211_mgmt_tx(struct wiphy *wiph
  			if (!chanctx_conf)
  				continue;
  
