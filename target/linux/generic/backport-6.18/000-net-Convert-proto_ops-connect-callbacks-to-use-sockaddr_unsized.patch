@@ -451,14 +451,14 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	struct sock *sk = sock->sk;
 --- a/net/bluetooth/rfcomm/core.c
 +++ b/net/bluetooth/rfcomm/core.c
-@@ -808,7 +808,7 @@ static struct rfcomm_session *rfcomm_ses
+@@ -864,7 +864,7 @@ static struct socket *rfcomm_session_con
  	addr.l2_psm    = cpu_to_le16(L2CAP_PSM_RFCOMM);
  	addr.l2_cid    = 0;
  	addr.l2_bdaddr_type = BDADDR_BREDR;
 -	*err = kernel_connect(sock, (struct sockaddr *) &addr, sizeof(addr), O_NONBLOCK);
 +	*err = kernel_connect(sock, (struct sockaddr_unsized *)&addr, sizeof(addr), O_NONBLOCK);
- 	if (*err == 0 || *err == -EINPROGRESS)
- 		return s;
+ 	if (*err && *err != -EINPROGRESS)
+ 		goto failed;
  
 --- a/net/bluetooth/rfcomm/sock.c
 +++ b/net/bluetooth/rfcomm/sock.c
@@ -869,7 +869,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	if (ret == -EINPROGRESS)
 --- a/net/rose/af_rose.c
 +++ b/net/rose/af_rose.c
-@@ -785,7 +785,8 @@ out_release:
+@@ -799,7 +799,8 @@ out_release:
  	return err;
  }
  
