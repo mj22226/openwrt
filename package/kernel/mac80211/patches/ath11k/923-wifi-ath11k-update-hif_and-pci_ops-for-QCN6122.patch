@@ -11,7 +11,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
 ---
 --- a/drivers/net/wireless/ath/ath11k/ahb.c
 +++ b/drivers/net/wireless/ath/ath11k/ahb.c
-@@ -768,6 +768,18 @@ static int ath11k_ahb_hif_resume(struct
+@@ -799,6 +799,18 @@ static int ath11k_ahb_hif_resume(struct
  	return 0;
  }
  
@@ -30,7 +30,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  static const struct ath11k_hif_ops ath11k_ahb_hif_ops_ipq8074 = {
  	.start = ath11k_ahb_start,
  	.stop = ath11k_ahb_stop,
-@@ -800,6 +812,24 @@ static const struct ath11k_hif_ops ath11
+@@ -831,6 +843,24 @@ static const struct ath11k_hif_ops ath11
  	.ce_irq_disable = ath11k_pci_disable_ce_irqs_except_wake_irq,
  };
  
@@ -55,7 +55,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  static int ath11k_core_get_rproc(struct ath11k_base *ab)
  {
  	struct ath11k_ahb *ab_ahb = ath11k_ahb_priv(ab);
-@@ -1132,6 +1162,10 @@ static int ath11k_ahb_probe(struct platf
+@@ -1163,6 +1193,10 @@ static int ath11k_ahb_probe(struct platf
  		hif_ops = &ath11k_ahb_hif_ops_wcn6750;
  		pci_ops = &ath11k_ahb_pci_ops_wcn6750;
  		break;
