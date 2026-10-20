@@ -12,7 +12,7 @@ Signed-off-by: Marty Jones <mj8263788@gmail.com>
 
 --- a/arch/arm64/boot/dts/rockchip/Makefile
 +++ b/arch/arm64/boot/dts/rockchip/Makefile
-@@ -66,6 +66,7 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-na
+@@ -67,6 +67,7 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-na
  dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-nanopc-t4-hd702e.dtbo
  dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-nanopi-m4.dtb
  dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3399-nanopi-m4b.dtb
