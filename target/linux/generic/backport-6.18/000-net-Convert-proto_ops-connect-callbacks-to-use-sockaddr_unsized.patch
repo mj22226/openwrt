@@ -529,7 +529,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  		dout("connect %s EINPROGRESS sk_state = %u\n",
 --- a/net/core/sock.c
 +++ b/net/core/sock.c
-@@ -3436,7 +3436,7 @@ int sock_no_bind(struct socket *sock, st
+@@ -3439,7 +3439,7 @@ int sock_no_bind(struct socket *sock, st
  }
  EXPORT_SYMBOL(sock_no_bind);
  
@@ -654,7 +654,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	if (err < 0)
 --- a/net/iucv/af_iucv.c
 +++ b/net/iucv/af_iucv.c
-@@ -681,7 +681,7 @@ static int iucv_sock_autobind(struct soc
+@@ -684,7 +684,7 @@ static int iucv_sock_autobind(struct soc
  	return err;
  }
  
@@ -663,7 +663,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  {
  	DECLARE_SOCKADDR(struct sockaddr_iucv *, sa, addr);
  	struct sock *sk = sock->sk;
-@@ -727,7 +727,7 @@ done:
+@@ -730,7 +730,7 @@ done:
  }
  
  /* Connect an unconnected socket */
@@ -892,7 +892,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	struct sockaddr_rxrpc *srx = (struct sockaddr_rxrpc *)addr;
 --- a/net/sctp/socket.c
 +++ b/net/sctp/socket.c
-@@ -4830,7 +4830,7 @@ static int sctp_connect(struct sock *sk,
+@@ -4839,7 +4839,7 @@ static int sctp_connect(struct sock *sk,
  	return err;
  }
  
@@ -901,7 +901,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  		      int addr_len, int flags)
  {
  	if (addr_len < sizeof(uaddr->sa_family))
-@@ -4839,7 +4839,7 @@ int sctp_inet_connect(struct socket *soc
+@@ -4848,7 +4848,7 @@ int sctp_inet_connect(struct socket *soc
  	if (uaddr->sa_family == AF_UNSPEC)
  		return -EOPNOTSUPP;
  
@@ -1054,7 +1054,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	struct sockaddr_un *sunaddr = (struct sockaddr_un *)uaddr;
 --- a/net/vmw_vsock/af_vsock.c
 +++ b/net/vmw_vsock/af_vsock.c
-@@ -997,7 +997,7 @@ vsock_bind(struct socket *sock, struct s
+@@ -1029,7 +1029,7 @@ vsock_bind(struct socket *sock, struct s
  
  	sk = sock->sk;
  
@@ -1063,7 +1063,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  		return -EINVAL;
  
  	lock_sock(sk);
-@@ -1345,7 +1345,7 @@ out:
+@@ -1377,7 +1377,7 @@ out:
  }
  
  static int vsock_dgram_connect(struct socket *sock,
@@ -1072,7 +1072,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  {
  	int err;
  	struct sock *sk;
-@@ -1545,7 +1545,7 @@ static void vsock_connect_timeout(struct
+@@ -1577,7 +1577,7 @@ static void vsock_connect_timeout(struct
  	sock_put(sk);
  }
  

@@ -1544,7 +1544,9 @@ define KernelPackage/ice
     CONFIG_ICE_HWMON=y \
     CONFIG_ICE_HWTS=n \
     CONFIG_ICE_SWITCHDEV=y
-  FILES:=$(LINUX_DIR)/drivers/net/ethernet/intel/ice/ice.ko
+  FILES:= \
+	$(LINUX_DIR)/drivers/net/ethernet/intel/ice/ice.ko \
+	$(LINUX_DIR)/drivers/net/ethernet/intel/libeth/libeth_xdp.ko
   AUTOLOAD:=$(call AutoProbe,ice)
 endef
 
