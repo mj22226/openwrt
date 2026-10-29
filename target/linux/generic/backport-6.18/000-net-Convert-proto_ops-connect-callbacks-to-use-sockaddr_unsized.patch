@@ -418,7 +418,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	DEFINE_WAIT(wait);
 --- a/net/ax25/af_ax25.c
 +++ b/net/ax25/af_ax25.c
-@@ -1175,7 +1175,7 @@ out:
+@@ -1228,7 +1228,7 @@ out:
   *	FIXME: nonblock behaviour looks like it may have a bug.
   */
  static int __must_check ax25_connect(struct socket *sock,
@@ -440,7 +440,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	struct sockaddr_iso *sa = (struct sockaddr_iso *)addr;
 --- a/net/bluetooth/l2cap_sock.c
 +++ b/net/bluetooth/l2cap_sock.c
-@@ -179,7 +179,7 @@ done:
+@@ -181,7 +181,7 @@ done:
  	return err;
  }
  
@@ -779,7 +779,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	int err = 0;
 --- a/net/netrom/af_netrom.c
 +++ b/net/netrom/af_netrom.c
-@@ -632,8 +632,8 @@ static int nr_bind(struct socket *sock,
+@@ -635,8 +635,8 @@ static int nr_bind(struct socket *sock,
  	return 0;
  }
  
@@ -869,7 +869,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  	if (ret == -EINPROGRESS)
 --- a/net/rose/af_rose.c
 +++ b/net/rose/af_rose.c
-@@ -799,7 +799,8 @@ out_release:
+@@ -801,7 +801,8 @@ out_release:
  	return err;
  }
  
