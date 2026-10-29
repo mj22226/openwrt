@@ -25,7 +25,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -1919,7 +1919,7 @@ static int ieee80211_start_ap(struct wip
+@@ -1923,7 +1923,7 @@ static int ieee80211_start_ap(struct wip
  	}
  
  	tsf = drv_get_tsf(local, sdata);
@@ -45,7 +45,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  IEEE80211_IF_FILE(num_mcast_sta_vlan, u.vlan.num_mcast_sta, ATOMIC);
  
  static ssize_t ieee80211_if_fmt_num_buffered_multicast(
-@@ -704,7 +704,7 @@ static ssize_t ieee80211_if_parse_tsf(
+@@ -710,7 +710,7 @@ static ssize_t ieee80211_if_parse_tsf(
  		}
  	}
  
@@ -54,7 +54,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	return buflen;
  }
  IEEE80211_IF_FILE_RW(tsf);
-@@ -854,7 +854,6 @@ static void add_ap_files(struct ieee8021
+@@ -863,7 +863,6 @@ static void add_ap_files(struct ieee8021
  {
  	DEBUGFS_ADD(num_mcast_sta);
  	DEBUGFS_ADD(num_sta_ps);
@@ -62,7 +62,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	DEBUGFS_ADD(num_buffered_multicast);
  	DEBUGFS_ADD_MODE(tkip_mic_test, 0200);
  	DEBUGFS_ADD_MODE(multicast_to_unicast, 0600);
-@@ -992,6 +991,9 @@ static void add_link_files(struct ieee80
+@@ -1001,6 +1000,9 @@ static void add_link_files(struct ieee80
  	case NL80211_IFTYPE_STATION:
  		DEBUGFS_ADD_MODE(dentry, smps, 0600);
  		break;
@@ -83,7 +83,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  struct ieee80211_link_data {
-@@ -2872,7 +2874,7 @@ void ieee80211_dfs_radar_detected_work(s
+@@ -2867,7 +2869,7 @@ void ieee80211_dfs_radar_detected_work(s
  int ieee80211_send_action_csa(struct ieee80211_sub_if_data *sdata,
  			      struct cfg80211_csa_settings *csa_settings);
  void ieee80211_recalc_sb_count(struct ieee80211_sub_if_data *sdata, u64 tsf);
@@ -105,7 +105,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	netif_carrier_on(sdata->dev);
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -5228,6 +5228,10 @@ static void __ieee80211_beacon_add_tim(s
+@@ -5280,6 +5280,10 @@ static void __ieee80211_beacon_add_tim(s
  	bool mcast_traffic = false, have_bits = false;
  	struct ieee80211_bss_conf *link_conf = link->conf;
  	bool s1g = ieee80211_get_link_sband(link)->band == NL80211_BAND_S1GHZ;
@@ -116,7 +116,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	/* Generate bitmap for TIM only if there are any STAs in power save
  	 * mode. */
-@@ -5238,19 +5242,19 @@ static void __ieee80211_beacon_add_tim(s
+@@ -5290,19 +5294,19 @@ static void __ieee80211_beacon_add_tim(s
  					  IEEE80211_MAX_AID + 1);
  
  	if (!is_template) {
@@ -141,7 +141,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		mcast_traffic = true;
  
  	ps->dtim_bc_mc = mcast_traffic;
-@@ -6353,6 +6357,7 @@ ieee80211_get_buffered_bc(struct ieee802
+@@ -6397,6 +6401,7 @@ ieee80211_get_buffered_bc(struct ieee802
  	struct ps_data *ps;
  	struct ieee80211_tx_info *info;
  	struct ieee80211_chanctx_conf *chanctx_conf;
@@ -149,7 +149,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	sdata = vif_to_sdata(vif);
  
-@@ -6370,13 +6375,15 @@ ieee80211_get_buffered_bc(struct ieee802
+@@ -6414,13 +6419,15 @@ ieee80211_get_buffered_bc(struct ieee802
  			goto out;
  
  		ps = &sdata->u.ap.ps;
@@ -168,7 +168,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	while (1) {
 --- a/net/mac80211/util.c
 +++ b/net/mac80211/util.c
-@@ -4094,25 +4094,30 @@ int ieee80211_parse_p2p_noa(const struct
+@@ -4112,25 +4112,30 @@ int ieee80211_parse_p2p_noa(const struct
  }
  EXPORT_SYMBOL(ieee80211_parse_p2p_noa);
  
@@ -207,7 +207,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	} else {
  		return;
  	}
-@@ -4130,7 +4135,7 @@ void ieee80211_recalc_dtim(struct ieee80
+@@ -4148,7 +4153,7 @@ void ieee80211_recalc_dtim(struct ieee80
  	else
  		dtim_count = dtim_period - bcns_from_dtim;
  

@@ -23,7 +23,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -4240,6 +4240,43 @@ struct cfg80211_tclas {
+@@ -4260,6 +4260,43 @@ struct cfg80211_tclas {
  };
  
  /**

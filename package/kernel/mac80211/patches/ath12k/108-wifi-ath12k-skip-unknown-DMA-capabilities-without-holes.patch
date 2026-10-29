@@ -28,7 +28,7 @@ Signed-off-by: Satoshi Ikeuchi <satosan.ikm@gmail.com>
 
 --- a/drivers/net/wireless/ath/ath12k/wmi.c
 +++ b/drivers/net/wireless/ath/ath12k/wmi.c
-@@ -4917,7 +4917,7 @@ static int ath12k_wmi_dma_ring_caps(stru
+@@ -4942,7 +4942,7 @@ static int ath12k_wmi_dma_ring_caps(stru
  	struct ath12k_wmi_dma_ring_caps_params *dma_caps;
  	struct ath12k_dbring_cap *dir_buff_caps;
  	int ret;
@@ -37,7 +37,7 @@ Signed-off-by: Satoshi Ikeuchi <satosan.ikm@gmail.com>
  
  	dma_caps_parse->n_dma_ring_caps = 0;
  	dma_caps = (struct ath12k_wmi_dma_ring_caps_params *)ptr;
-@@ -4942,27 +4942,28 @@ static int ath12k_wmi_dma_ring_caps(stru
+@@ -4967,27 +4967,28 @@ static int ath12k_wmi_dma_ring_caps(stru
  		return ret;
  
  	dir_buff_caps = ab->db_caps;

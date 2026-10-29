@@ -13,7 +13,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -8104,6 +8104,15 @@ unsigned int cfg80211_classify8021d(stru
+@@ -8125,6 +8125,15 @@ unsigned int cfg80211_classify8021d(stru
  				    struct cfg80211_qos_map *qos_map);
  
  /**
@@ -31,7 +31,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @eid: element ID
 --- a/net/wireless/util.c
 +++ b/net/wireless/util.c
-@@ -1014,19 +1014,30 @@ unsigned int cfg80211_classify8021d(stru
+@@ -1083,19 +1083,30 @@ unsigned int cfg80211_classify8021d(stru
  		return 0;
  	}
  
@@ -66,7 +66,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  				ret = i;
  				goto out;
  			}
-@@ -1037,7 +1048,7 @@ unsigned int cfg80211_classify8021d(stru
+@@ -1106,7 +1117,7 @@ unsigned int cfg80211_classify8021d(stru
  	 * Most Significant Bits (MSBs) of the DSCP are used as the
  	 * corresponding L2 markings.
  	 */
@@ -75,7 +75,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	/* Handle specific DSCP values for which the default mapping (as
  	 * described above) doesn't adhere to the intended usage of the DSCP
-@@ -1050,7 +1061,7 @@ unsigned int cfg80211_classify8021d(stru
+@@ -1119,7 +1130,7 @@ unsigned int cfg80211_classify8021d(stru
  	 * - Real-Time Interactive: CS4
  	 * - Signaling: CS5
  	 */
@@ -84,7 +84,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	case 10:
  	case 12:
  	case 14:
-@@ -1095,7 +1106,7 @@ unsigned int cfg80211_classify8021d(stru
+@@ -1164,7 +1175,7 @@ unsigned int cfg80211_classify8021d(stru
  out:
  	return array_index_nospec(ret, IEEE80211_NUM_TIDS);
  }

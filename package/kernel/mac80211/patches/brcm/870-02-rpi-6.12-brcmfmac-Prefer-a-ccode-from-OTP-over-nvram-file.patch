@@ -14,15 +14,15 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 
 --- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
 +++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/cfg80211.c
-@@ -9,6 +9,7 @@
- #include <linux/etherdevice.h>
+@@ -10,6 +10,7 @@
  #include <linux/module.h>
+ #include <linux/unaligned.h>
  #include <linux/vmalloc.h>
 +#include <linux/ctype.h>
  #include <net/cfg80211.h>
  #include <net/netlink.h>
  #include <uapi/linux/if_arp.h>
-@@ -8272,31 +8273,45 @@ static void brcmf_cfg80211_reg_notifier(
+@@ -8293,31 +8294,45 @@ static void brcmf_cfg80211_reg_notifier(
  	struct brcmf_if *ifp = brcmf_get_ifp(cfg->pub, 0);
  	struct brcmf_pub *drvr = cfg->pub;
  	struct brcmf_fil_country_le ccreq;

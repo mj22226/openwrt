@@ -59,7 +59,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  #define IEEE80211_ADV_TTLM_SAFETY_BUFFER_MS (100 * USEC_PER_MSEC)
  #define IEEE80211_ADV_TTLM_ST_UNDERFLOW 0xff00
-@@ -2842,15 +2843,21 @@ void ieee80211_send_nullfunc(struct ieee
+@@ -2840,15 +2841,21 @@ void ieee80211_send_nullfunc(struct ieee
  	ieee80211_tx_skb(sdata, skb);
  }
  
@@ -85,7 +85,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	skb = dev_alloc_skb(local->hw.extra_tx_headroom + 30);
  	if (!skb)
-@@ -2867,11 +2874,42 @@ void ieee80211_send_4addr_nullfunc(struc
+@@ -2865,11 +2872,42 @@ void ieee80211_send_4addr_nullfunc(struc
  	memcpy(nullfunc->addr3, sdata->vif.cfg.ap_addr, ETH_ALEN);
  	memcpy(nullfunc->addr4, sdata->vif.addr, ETH_ALEN);
  
@@ -130,7 +130,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  /* spectrum management related things */
  static void ieee80211_csa_switch_work(struct wiphy *wiphy,
  				      struct wiphy_work *work)
-@@ -4744,6 +4782,9 @@ static void ieee80211_set_disassoc(struc
+@@ -4742,6 +4780,9 @@ static void ieee80211_set_disassoc(struc
  	wiphy_work_cancel(sdata->local->hw.wiphy,
  			  &ifmgd->teardown_ttlm_work);
  
@@ -140,7 +140,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	/* if disconnection happens in the middle of the ML reconfiguration
  	 * flow, cfg80211 must called to release the BSS references obtained
  	 * when the flow started.
-@@ -9471,6 +9512,8 @@ void ieee80211_sta_setup_sdata(struct ie
+@@ -9523,6 +9564,8 @@ void ieee80211_sta_setup_sdata(struct ie
  			ieee80211_teardown_ttlm_work);
  	wiphy_hrtimer_work_init(&ifmgd->uhr_omp.status_work,
  				ieee80211_uhr_omp_req_status_wk);
@@ -149,7 +149,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	ifmgd->flags = 0;
  	ifmgd->powersave = sdata->wdev.ps;
-@@ -10787,6 +10830,8 @@ void ieee80211_mgd_stop(struct ieee80211
+@@ -10837,6 +10880,8 @@ void ieee80211_mgd_stop(struct ieee80211
  				  &ifmgd->tdls_peer_del_work);
  	wiphy_hrtimer_work_cancel(sdata->local->hw.wiphy,
  				  &ifmgd->uhr_omp.status_work);
@@ -157,10 +157,10 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +				  &ifmgd->nullfunc_4addr_work);
  
  	if (ifmgd->assoc_data)
- 		ieee80211_destroy_assoc_data(sdata, ASSOC_TIMEOUT);
+ 		ieee80211_destroy_assoc_data(sdata, ASSOC_TIMEOUT, NULL);
 --- a/net/mac80211/status.c
 +++ b/net/mac80211/status.c
-@@ -753,6 +753,23 @@ ieee80211_handle_uhr_omp_status(struct i
+@@ -756,6 +756,23 @@ ieee80211_handle_uhr_omp_status(struct i
  				 us_to_ktime(sdata->u.mgd.uhr_omp.timeout_us));
  }
  
@@ -184,7 +184,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static void ieee80211_report_used_skb(struct ieee80211_local *local,
  				      struct sk_buff *skb, bool dropped,
  				      ktime_t ack_hwtstamp)
-@@ -836,6 +853,9 @@ static void ieee80211_report_used_skb(st
+@@ -839,6 +856,9 @@ static void ieee80211_report_used_skb(st
  		case IEEE80211_STATUS_TYPE_UHR_OMP:
  			ieee80211_handle_uhr_omp_status(sdata, acked);
  			break;

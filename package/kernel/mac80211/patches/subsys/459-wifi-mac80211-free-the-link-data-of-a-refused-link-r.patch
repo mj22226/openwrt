@@ -24,7 +24,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/net/mac80211/mlme.c
 +++ b/net/mac80211/mlme.c
-@@ -4517,8 +4517,8 @@ static void ieee80211_ml_reconf_reset(st
+@@ -4515,8 +4515,8 @@ static void ieee80211_ml_reconf_reset(st
  		sdata->u.mgd.reconf.add_links_data;
  
  	if (!ieee80211_vif_is_mld(&sdata->vif) ||

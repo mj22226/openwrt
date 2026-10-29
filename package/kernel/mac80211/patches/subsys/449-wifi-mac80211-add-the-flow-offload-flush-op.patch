@@ -21,7 +21,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -5119,6 +5119,27 @@ struct ieee80211_ops {
+@@ -5131,6 +5131,27 @@ struct ieee80211_ops {
  			   struct ieee80211_sta *sta,
  			   struct cfg80211_scs_desc * const *desc,
  			   struct cfg80211_scs_result *res, u8 n_desc);
