@@ -31,7 +31,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -285,7 +285,7 @@ static int ieee80211_change_iface(struct
+@@ -289,7 +289,7 @@ static int ieee80211_change_iface(struct
  		if (!ifmgd->associated)
  			return 0;
  
@@ -53,7 +53,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  			goto do_survey;
 --- a/net/mac80211/iface.c
 +++ b/net/mac80211/iface.c
-@@ -1035,7 +1035,7 @@ static int ieee80211_netdev_fill_forward
+@@ -1064,7 +1064,7 @@ static int ieee80211_netdev_fill_forward
  			}
  		}
  

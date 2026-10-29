@@ -76,7 +76,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  		if (ret) {
  			wiphy_warn(local->hw.wiphy,
-@@ -512,6 +521,7 @@ void ieee80211_remain_on_channel_expired
+@@ -519,6 +528,7 @@ void ieee80211_remain_on_channel_expired
  
  	trace_api_remain_on_channel_expired(local);
  
@@ -84,7 +84,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	wiphy_work_queue(hw->wiphy, &local->hw_roc_done);
  }
  EXPORT_SYMBOL_GPL(ieee80211_remain_on_channel_expired);
-@@ -533,6 +543,9 @@ ieee80211_coalesce_hw_started_roc(struct
+@@ -540,6 +550,9 @@ ieee80211_coalesce_hw_started_roc(struct
  	if (!cur_roc->hw_begun && new_roc->duration > cur_roc->duration)
  		return false;
  
@@ -94,7 +94,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	remaining = cur_roc->start_time +
  		    msecs_to_jiffies(cur_roc->duration) -
  		    now;
-@@ -625,6 +638,7 @@ static int ieee80211_start_roc_work(stru
+@@ -632,6 +645,7 @@ static int ieee80211_start_roc_work(stru
  			/* otherwise actually kick it off here
  			 * (for error handling)
  			 */

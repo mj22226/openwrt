@@ -182,7 +182,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  /* policy for the key attributes */
-@@ -19280,6 +19292,90 @@ nl80211_set_ttlm(struct sk_buff *skb, st
+@@ -19281,6 +19293,90 @@ nl80211_set_ttlm(struct sk_buff *skb, st
  	return rdev_set_ttlm(rdev, dev, &params);
  }
  
@@ -273,7 +273,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static int nl80211_assoc_ml_reconf(struct sk_buff *skb, struct genl_info *info)
  {
  	struct cfg80211_registered_device *rdev = info->user_ptr[0];
-@@ -20584,6 +20680,12 @@ static const struct genl_small_ops nl802
+@@ -20585,6 +20681,12 @@ static const struct genl_small_ops nl802
  		.internal_flags = IFLAGS(NL80211_FLAG_NEED_NETDEV_UP),
  	},
  	{
@@ -286,7 +286,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		.cmd = NL80211_CMD_ASSOC_MLO_RECONF,
  		.doit = nl80211_assoc_ml_reconf,
  		.flags = GENL_UNS_ADMIN_PERM,
-@@ -21561,6 +21663,125 @@ void cfg80211_crit_update_done(struct ne
+@@ -21562,6 +21664,125 @@ void cfg80211_crit_update_done(struct ne
  }
  EXPORT_SYMBOL(cfg80211_crit_update_done);
  
@@ -414,7 +414,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
 --- a/net/wireless/rdev-ops.h
 +++ b/net/wireless/rdev-ops.h
-@@ -1593,6 +1593,34 @@ rdev_set_ttlm(struct cfg80211_registered
+@@ -1596,6 +1596,34 @@ rdev_set_ttlm(struct cfg80211_registered
  	return ret;
  }
  

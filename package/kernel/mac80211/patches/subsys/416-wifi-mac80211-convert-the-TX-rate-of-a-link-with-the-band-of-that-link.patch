@@ -27,7 +27,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -964,9 +964,9 @@ static int ieee80211_config_default_beac
+@@ -968,9 +968,9 @@ static int ieee80211_config_default_beac
  	return 0;
  }
  
@@ -40,7 +40,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
  	rinfo->flags = 0;
  	if (rate->flags & IEEE80211_TX_RC_MCS) {
-@@ -977,11 +977,9 @@ void sta_set_rate_info_tx(struct sta_inf
+@@ -981,11 +981,9 @@ void sta_set_rate_info_tx(struct sta_inf
  		rinfo->mcs = ieee80211_rate_get_vht_mcs(rate);
  		rinfo->nss = ieee80211_rate_get_vht_nss(rate);
  	} else {
@@ -54,7 +54,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  			rinfo->legacy = sband->bitrates[rate->idx].bitrate;
  	}
  	if (rate->flags & IEEE80211_TX_RC_40_MHZ_WIDTH)
-@@ -996,6 +994,14 @@ void sta_set_rate_info_tx(struct sta_inf
+@@ -1000,6 +998,14 @@ void sta_set_rate_info_tx(struct sta_inf
  		rinfo->flags |= RATE_INFO_FLAGS_SHORT_GI;
  }
  
@@ -71,7 +71,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
 --- a/net/mac80211/sta_info.c
 +++ b/net/mac80211/sta_info.c
-@@ -3009,8 +3009,9 @@ static void sta_set_link_sinfo(struct st
+@@ -3011,8 +3011,9 @@ static void sta_set_link_sinfo(struct st
  
  	if (!(link_sinfo->filled & BIT_ULL(NL80211_STA_INFO_TX_BITRATE)) &&
  	    ieee80211_rate_valid(&link_sta_info->tx_stats.last_rate)) {

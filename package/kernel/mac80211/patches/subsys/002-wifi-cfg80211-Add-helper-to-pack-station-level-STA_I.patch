@@ -17,7 +17,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -8041,32 +8041,15 @@ nla_put_failure:
+@@ -8042,32 +8042,15 @@ nla_put_failure:
  	return -EMSGSIZE;
  }
  
@@ -55,7 +55,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  
  #define PUT_SINFO(attr, memb, type) do {				\
  	BUILD_BUG_ON(sizeof(type) == sizeof(u64));			\
-@@ -8157,8 +8140,7 @@ static int nl80211_send_station(struct s
+@@ -8158,8 +8141,7 @@ static int nl80211_send_station(struct s
  	PUT_SINFO_U64(T_OFFSET, t_offset);
  
  	if (sinfo->filled & BIT_ULL(NL80211_STA_INFO_BSS_PARAM)) {
@@ -65,7 +65,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		if (!bss_param)
  			goto nla_put_failure;
  
-@@ -8200,8 +8182,7 @@ static int nl80211_send_station(struct s
+@@ -8201,8 +8183,7 @@ static int nl80211_send_station(struct s
  		struct nlattr *tidsattr;
  		int tid;
  
@@ -75,7 +75,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		if (!tidsattr)
  			goto nla_put_failure;
  
-@@ -8214,7 +8195,7 @@ static int nl80211_send_station(struct s
+@@ -8215,7 +8196,7 @@ static int nl80211_send_station(struct s
  			if (!tidstats->filled)
  				continue;
  
@@ -84,7 +84,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  			if (!tidattr)
  				goto nla_put_failure;
  
-@@ -8244,6 +8225,37 @@ static int nl80211_send_station(struct s
+@@ -8245,6 +8226,37 @@ static int nl80211_send_station(struct s
  	}
  
  	nla_nest_end(msg, sinfoattr);

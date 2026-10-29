@@ -44,7 +44,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	spinlock_t handle_wake_tx_queue_lock;
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -4176,7 +4176,7 @@ struct ieee80211_txq *ieee80211_next_txq
+@@ -4206,7 +4206,7 @@ struct ieee80211_txq *ieee80211_next_txq
  
  	spin_lock_bh(&local->active_txq_lock[ac]);
  
@@ -53,7 +53,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  		goto out;
  
   begin:
-@@ -4380,12 +4380,12 @@ void ieee80211_txq_schedule_start(struct
+@@ -4431,12 +4431,12 @@ void ieee80211_txq_schedule_start(struct
  
  	spin_lock_bh(&local->active_txq_lock[ac]);
  

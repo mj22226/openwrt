@@ -50,7 +50,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  /* 802.11h */
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -5755,6 +5755,9 @@ void ieee80211_report_low_ack(struct iee
+@@ -5756,6 +5756,9 @@ void ieee80211_report_low_ack(struct iee
   *	to countdown counters.  This array can contain zero values which
   *	should be ignored.
   * @mbssid_off: position of the multiple bssid element
@@ -60,7 +60,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   */
  struct ieee80211_mutable_offsets {
  	u16 tim_offset;
-@@ -5762,6 +5765,7 @@ struct ieee80211_mutable_offsets {
+@@ -5763,6 +5766,7 @@ struct ieee80211_mutable_offsets {
  
  	u16 cntdwn_counter_offs[IEEE80211_MAX_CNTDWN_COUNTERS_NUM];
  	u16 mbssid_off;
@@ -68,7 +68,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  /**
-@@ -5968,6 +5972,36 @@ bool ieee80211_beacon_cntdwn_is_complete
+@@ -5969,6 +5973,36 @@ bool ieee80211_beacon_cntdwn_is_complete
  void ieee80211_color_change_finish(struct ieee80211_vif *vif, u8 link_id);
  
  /**
@@ -107,7 +107,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @vif: &struct ieee80211_vif pointer from the add_interface callback.
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -1467,6 +1467,40 @@ static void ieee80211_update_ap_bandwidt
+@@ -1471,6 +1471,40 @@ static void ieee80211_update_ap_bandwidt
  	ieee80211_recalc_chanctx_min_def(local, chanctx);
  }
  
@@ -148,7 +148,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static int
  ieee80211_assign_beacon(struct ieee80211_sub_if_data *sdata,
  			struct ieee80211_link_data *link,
-@@ -1482,6 +1516,7 @@ ieee80211_assign_beacon(struct ieee80211
+@@ -1486,6 +1520,7 @@ ieee80211_assign_beacon(struct ieee80211
  	int size, err;
  	u64 _changed = BSS_CHANGED_BEACON;
  	struct ieee80211_bss_conf *link_conf = link->conf;
@@ -156,7 +156,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	old = sdata_dereference(link->u.ap.beacon, sdata);
  
-@@ -1599,9 +1634,17 @@ ieee80211_assign_beacon(struct ieee80211
+@@ -1603,9 +1638,17 @@ ieee80211_assign_beacon(struct ieee80211
  		_changed |= BSS_CHANGED_FTM_RESPONDER;
  	}
  
@@ -174,7 +174,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (old)
  		kfree_rcu(old, rcu_head);
  
-@@ -2078,6 +2121,9 @@ static int ieee80211_stop_ap(struct wiph
+@@ -2085,6 +2128,9 @@ static int ieee80211_stop_ap(struct wiph
  	RCU_INIT_POINTER(link->u.ap.fils_discovery, NULL);
  	RCU_INIT_POINTER(link->u.ap.unsol_bcast_probe_resp, NULL);
  	RCU_INIT_POINTER(link->u.ap.s1g_short_beacon, NULL);
@@ -184,7 +184,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	kfree_rcu(old_beacon, rcu_head);
  	if (old_probe_resp)
  		kfree_rcu(old_probe_resp, rcu_head);
-@@ -4373,6 +4419,7 @@ cfg80211_beacon_dup(struct cfg80211_beac
+@@ -4387,6 +4433,7 @@ cfg80211_beacon_dup(struct cfg80211_beac
  
  	/* might copy -1, meaning no changes requested */
  	new_beacon->ftm_responder = beacon->ftm_responder;
@@ -192,7 +192,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (beacon->lci) {
  		new_beacon->lci_len = beacon->lci_len;
  		new_beacon->lci = pos;
-@@ -5706,6 +5753,67 @@ void ieee80211_color_change_finish(struc
+@@ -5720,6 +5767,67 @@ void ieee80211_color_change_finish(struc
  }
  EXPORT_SYMBOL_GPL(ieee80211_color_change_finish);
  
@@ -371,7 +371,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		wiphy_hrtimer_work_cancel(link->sdata->local->hw.wiphy,
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -5668,6 +5668,46 @@ ieee80211_beacon_add_mbssid(struct sk_bu
+@@ -5706,6 +5706,46 @@ ieee80211_beacon_add_mbssid(struct sk_bu
  			     beacon->mbssid_ies->elem[i].len);
  }
  
@@ -418,7 +418,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static struct sk_buff *
  __ieee80211_beacon_get_ap(struct ieee80211_hw *hw,
  			  struct ieee80211_vif *vif,
-@@ -5709,6 +5749,8 @@ __ieee80211_beacon_get_ap(struct ieee802
+@@ -5747,6 +5787,8 @@ __ieee80211_beacon_get_ap(struct ieee802
  	skb_put_data(skb, beacon->head, beacon->head_len);
  
  	ieee80211_beacon_add_tim(sdata, link, &ap->ps, skb, is_template);

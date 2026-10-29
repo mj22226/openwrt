@@ -114,7 +114,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	ieee80211_tx_info_clear_status(txi);
  
  	/* frame was transmitted at most favorable rate at first attempt */
-@@ -2410,7 +2446,7 @@ void mac80211_hwsim_tx_frame(struct ieee
+@@ -2416,7 +2452,7 @@ void mac80211_hwsim_tx_frame(struct ieee
  	}
  
  	if (_portid || hwsim_virtio_enabled)
@@ -123,7 +123,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	data->tx_pkts++;
  	data->tx_bytes += skb->len;
-@@ -6339,6 +6375,7 @@ static int hwsim_tx_info_frame_received_
+@@ -6345,6 +6381,7 @@ static int hwsim_tx_info_frame_received_
  	u64 ret_skb_cookie;
  	struct sk_buff *skb, *tmp;
  	const u8 *src;
@@ -131,7 +131,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	unsigned int hwsim_flags;
  	int i;
  	unsigned long flags;
-@@ -6373,8 +6410,7 @@ static int hwsim_tx_info_frame_received_
+@@ -6379,8 +6416,7 @@ static int hwsim_tx_info_frame_received_
  	skb_queue_walk_safe(&data2->pending, skb, tmp) {
  		uintptr_t skb_cookie;
  
@@ -141,7 +141,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  		if (skb_cookie == ret_skb_cookie) {
  			__skb_unlink(skb, &data2->pending);
-@@ -6398,6 +6434,7 @@ static int hwsim_tx_info_frame_received_
+@@ -6404,6 +6440,7 @@ static int hwsim_tx_info_frame_received_
  
  	/* now send back TX status */
  	txi = IEEE80211_SKB_CB(skb);
@@ -149,7 +149,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	ieee80211_tx_info_clear_status(txi);
  
-@@ -6421,6 +6458,7 @@ static int hwsim_tx_info_frame_received_
+@@ -6427,6 +6464,7 @@ static int hwsim_tx_info_frame_received_
  	if (hwsim_flags & HWSIM_TX_CTL_NO_ACK)
  		txi->flags |= IEEE80211_TX_STAT_NOACK_TRANSMITTED;
  

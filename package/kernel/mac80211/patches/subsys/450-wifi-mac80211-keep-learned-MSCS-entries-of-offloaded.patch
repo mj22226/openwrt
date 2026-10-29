@@ -25,7 +25,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -5140,6 +5140,23 @@ struct ieee80211_ops {
+@@ -5141,6 +5141,23 @@ struct ieee80211_ops {
  				   struct ieee80211_sta *sta,
  				   const struct cfg80211_flow_key *key,
  				   u32 fields);

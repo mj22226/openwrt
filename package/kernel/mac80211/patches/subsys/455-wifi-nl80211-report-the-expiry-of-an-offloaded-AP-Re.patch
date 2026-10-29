@@ -37,7 +37,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  void cfg80211_links_removed(struct net_device *dev, u16 link_mask);
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -21969,23 +21969,32 @@ void cfg80211_links_removed(struct net_d
+@@ -21970,23 +21970,32 @@ void cfg80211_links_removed(struct net_d
  	struct wiphy *wiphy = wdev->wiphy;
  	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wiphy);
  	struct sk_buff *msg;

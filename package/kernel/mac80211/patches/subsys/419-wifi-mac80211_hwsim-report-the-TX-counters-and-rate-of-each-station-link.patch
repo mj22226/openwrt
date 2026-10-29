@@ -138,7 +138,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	/* wmediumd mode check */
  	_portid = READ_ONCE(data->wmediumd);
  
-@@ -3030,6 +3071,7 @@ static int mac80211_hwsim_sta_add(struct
+@@ -3036,6 +3077,7 @@ static int mac80211_hwsim_sta_add(struct
  		     sta->valid_links);
  		sp->active_links_rx = sta->valid_links;
  	}
@@ -146,7 +146,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	spin_lock_init(&sp->nan_sched.lock);
  
-@@ -3740,15 +3782,59 @@ static int mac80211_hwsim_change_sta_lin
+@@ -3746,15 +3788,59 @@ static int mac80211_hwsim_change_sta_lin
  					   u16 old_links, u16 new_links)
  {
  	struct hwsim_sta_priv *sp = (void *)sta->drv_priv;
@@ -206,7 +206,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static int mac80211_hwsim_send_pmsr_ftm_request_peer(struct sk_buff *msg,
  						     struct cfg80211_pmsr_ftm_request_peer *request)
  {
-@@ -4513,6 +4599,7 @@ static const struct ieee80211_ops mac802
+@@ -4519,6 +4605,7 @@ static const struct ieee80211_ops mac802
  	HWSIM_CHANCTX_OPS
  	.change_vif_links = mac80211_hwsim_change_vif_links,
  	.change_sta_links = mac80211_hwsim_change_sta_links,
