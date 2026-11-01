@@ -68,6 +68,7 @@ define KernelPackage/fs-btrfs
   DEPENDS:=+kmod-lib-lzo +kmod-lib-zlib-inflate +kmod-lib-zlib-deflate +kmod-lib-raid6 +kmod-lib-xor +kmod-lib-zstd +kmod-crypto-blake2b +kmod-crypto-xxhash
   KCONFIG:=CONFIG_BTRFS_FS
   FILES:=\
+	$(LINUX_DIR)/lib/crypto/libblake2b.ko \
 	$(LINUX_DIR)/fs/btrfs/btrfs.ko
   AUTOLOAD:=$(call AutoLoad,30,btrfs,1)
 endef
@@ -362,7 +363,8 @@ define KernelPackage/fs-ksmbd
 	CONFIG_SMB_SERVER_CHECK_CAP_NET_ADMIN=n \
 	CONFIG_SMB_SERVER_KERBEROS5=n
   FILES:= \
-	 $(LINUX_DIR)/fs/smb/server/ksmbd.ko
+	 $(LINUX_DIR)/fs/smb/server/ksmbd.ko \
+	 $(LINUX_DIR)/fs/smb/common/smb_compress.ko
   AUTOLOAD:=$(call AutoLoad,41,ksmbd)
 endef
 
