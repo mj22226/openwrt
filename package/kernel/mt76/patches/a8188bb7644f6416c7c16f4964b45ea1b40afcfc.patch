@@ -1,0 +1,107 @@
+From a8188bb7644f6416c7c16f4964b45ea1b40afcfc Mon Sep 17 00:00:00 2001
+From: Benjamin Berg <benjamin.berg@intel.com>
+Date: Tue, 15 Sep 2026 15:19:28 +0200
+Subject: [PATCH] wifi: mac80211: change public RX API to use link stations
+
+If a station is passed then the link ID also needs to be known. As such,
+it is a more natural API to simply pass the link station directly rather
+than pushing the link information into the RX status.
+
+Furthermore, having the link ID in the RX status is not actually correct
+because the link IDs are VIF specific and there may be multiple VIFs. In
+the case of a station this relationship is clear, but then one may as
+well use the link station.
+
+This patch only changes the API and emulates the old (incorrect)
+behaviour for now. The mac80211 RX code will be updated in later
+patches.
+
+Signed-off-by: Benjamin Berg <benjamin.berg@intel.com>
+Link: https://patch.msgid.link/20260915151925.06f41565116a.I4a2d45609e94b52654b10ec572e59a45d09c41f4@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+---
+ drivers/net/wireless/ath/ath11k/dp_rx.c       |  2 +-
+ drivers/net/wireless/ath/ath12k/dp_mon.c      |  2 --
+ drivers/net/wireless/ath/ath12k/dp_rx.c       | 20 ++++++++++++---
+ drivers/net/wireless/ath/ath12k/hw.h          | 20 ++++++++-------
+ drivers/net/wireless/ath/ath12k/wifi7/dp_rx.c | 20 +++++++--------
+ drivers/net/wireless/ath/ath12k/wifi7/dp_rx.h | 12 ++++-----
+ drivers/net/wireless/ath/ath12k/wifi7/hw.c    |  6 ++---
+ drivers/net/wireless/ath/ath12k/wmi.c         |  6 -----
+ drivers/net/wireless/intel/iwlwifi/mld/rx.c   |  7 +-----
+ drivers/net/wireless/intel/iwlwifi/mvm/rx.c   |  2 +-
+ drivers/net/wireless/intel/iwlwifi/mvm/rxmq.c |  6 ++---
+ mac80211.c | 25 +++++++++++--------
+ drivers/net/wireless/realtek/rtw89/core.c     |  7 ------
+ .../wireless/virtual/mac80211_hwsim_main.c    |  3 ---
+ include/net/mac80211.h                        | 16 +++++++++---
+ net/mac80211/rx.c                             | 20 +++++++++++----
+ 16 files changed, 92 insertions(+), 82 deletions(-)
+
+--- a/mac80211.c
++++ b/mac80211.c
+@@ -1258,11 +1258,12 @@ EXPORT_SYMBOL(mt76_rx_signal);
+ static void
+ mt76_rx_convert(struct mt76_dev *dev, struct sk_buff *skb,
+ 		struct ieee80211_hw **hw,
+-		struct ieee80211_sta **sta)
++		struct ieee80211_link_sta **link_sta)
+ {
+ 	struct ieee80211_rx_status *status = IEEE80211_SKB_RXCB(skb);
+ 	struct ieee80211_hdr *hdr = mt76_skb_get_hdr(skb);
+ 	struct mt76_rx_status mstat;
++	struct ieee80211_sta *sta;
+ 
+ 	mstat = *((struct mt76_rx_status *)skb->cb);
+ 	memset(status, 0, sizeof(*status));
+@@ -1303,12 +1304,14 @@ mt76_rx_convert(struct mt76_dev *dev, st
+ 	memcpy(status->chain_signal, mstat.chain_signal,
+ 	       sizeof(mstat.chain_signal));
+ 
+-	if (mstat.wcid) {
+-		status->link_valid = mstat.wcid->link_valid;
+-		status->link_id = mstat.wcid->link_id;
+-	}
++	sta = wcid_to_sta(mstat.wcid);
++	if (!sta)
++		*link_sta = NULL;
++	else if (mstat.wcid->link_valid)
++		*link_sta = rcu_dereference(sta->link[mstat.wcid->link_id]);
++	else
++		*link_sta = &sta->deflink;
+ 
+-	*sta = wcid_to_sta(mstat.wcid);
+ 	*hw = mt76_phy_hw(dev, mstat.phy_idx);
+ }
+ 
+@@ -1538,7 +1541,7 @@ mt76_check_sta(struct mt76_dev *dev, str
+ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
+ 		      struct napi_struct *napi)
+ {
+-	struct ieee80211_sta *sta;
++	struct ieee80211_link_sta *link_sta;
+ 	struct ieee80211_hw *hw;
+ 	struct sk_buff *skb, *tmp;
+ 	LIST_HEAD(list);
+@@ -1549,8 +1552,8 @@ void mt76_rx_complete(struct mt76_dev *d
+ 
+ 		mt76_check_ccmp_pn(skb);
+ 		skb_shinfo(skb)->frag_list = NULL;
+-		mt76_rx_convert(dev, skb, &hw, &sta);
+-		ieee80211_rx_list(hw, sta, skb, &list);
++		mt76_rx_convert(dev, skb, &hw, &link_sta);
++		ieee80211_rx_list(hw, link_sta, skb, &list);
+ 
+ 		/* subsequent amsdu frames */
+ 		while (nskb) {
+@@ -1558,8 +1561,8 @@ void mt76_rx_complete(struct mt76_dev *d
+ 			nskb = nskb->next;
+ 			skb->next = NULL;
+ 
+-			mt76_rx_convert(dev, skb, &hw, &sta);
+-			ieee80211_rx_list(hw, sta, skb, &list);
++			mt76_rx_convert(dev, skb, &hw, &link_sta);
++			ieee80211_rx_list(hw, link_sta, skb, &list);
+ 		}
+ 	}
+ 	spin_unlock(&dev->rx_lock);

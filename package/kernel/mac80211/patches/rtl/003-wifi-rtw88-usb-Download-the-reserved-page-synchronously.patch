@@ -54,7 +54,7 @@ Link: https://lore.kernel.org/linux-wireless/20261013033737.6761-1-pepe.schlehof
 
 --- a/drivers/net/wireless/realtek/rtw88/usb.c
 +++ b/drivers/net/wireless/realtek/rtw88/usb.c
-@@ -389,6 +389,51 @@ static int rtw_usb_write_port(struct rtw
+@@ -396,6 +396,51 @@ static int rtw_usb_write_port(struct rtw
  	return ret;
  }
  
@@ -106,7 +106,7 @@ Link: https://lore.kernel.org/linux-wireless/20261013033737.6761-1-pepe.schlehof
  static bool rtw_usb_tx_agg_skb(struct rtw_usb *rtwusb, struct sk_buff_head *list)
  {
  	struct rtw_dev *rtwdev = rtwusb->rtwdev;
-@@ -501,13 +546,13 @@ static void rtw_usb_write_port_complete(
+@@ -508,13 +553,13 @@ static void rtw_usb_write_port_complete(
  
  static int rtw_usb_write_data(struct rtw_dev *rtwdev,
  			      struct rtw_tx_pkt_info *pkt_info,
@@ -122,7 +122,7 @@ Link: https://lore.kernel.org/linux-wireless/20261013033737.6761-1-pepe.schlehof
  
  	size = pkt_info->tx_pkt_size;
  	qsel = pkt_info->qsel;
-@@ -523,12 +568,16 @@ static int rtw_usb_write_data(struct rtw
+@@ -530,12 +575,16 @@ static int rtw_usb_write_data(struct rtw
  	rtw_tx_fill_tx_desc(rtwdev, pkt_info, skb);
  	rtw_tx_fill_txdesc_checksum(rtwdev, pkt_info, skb->data);
  
@@ -143,7 +143,7 @@ Link: https://lore.kernel.org/linux-wireless/20261013033737.6761-1-pepe.schlehof
  
  	return ret;
  }
-@@ -544,7 +593,8 @@ static int rtw_usb_write_data_rsvd_page(
+@@ -551,7 +600,8 @@ static int rtw_usb_write_data_rsvd_page(
  	pkt_info.offset = chip->tx_pkt_desc_sz;
  	pkt_info.ls = true;
  
@@ -153,7 +153,7 @@ Link: https://lore.kernel.org/linux-wireless/20261013033737.6761-1-pepe.schlehof
  }
  
  static int rtw_usb_write_data_h2c(struct rtw_dev *rtwdev, u8 *buf, u32 size)
-@@ -554,7 +604,7 @@ static int rtw_usb_write_data_h2c(struct
+@@ -561,7 +611,7 @@ static int rtw_usb_write_data_h2c(struct
  	pkt_info.tx_pkt_size = size;
  	pkt_info.qsel = TX_DESC_QSEL_H2C;
  
@@ -161,4 +161,4 @@ Link: https://lore.kernel.org/linux-wireless/20261013033737.6761-1-pepe.schlehof
 +	return rtw_usb_write_data(rtwdev, &pkt_info, buf, false);
  }
  
- static u8 rtw_usb_tx_queue_mapping_to_qsel(struct sk_buff *skb)
+ static bool rtw_usb_bmc_needs_dtim(struct sk_buff *skb)
