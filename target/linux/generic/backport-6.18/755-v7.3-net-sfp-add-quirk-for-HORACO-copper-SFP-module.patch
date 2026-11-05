@@ -16,9 +16,9 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/drivers/net/phy/sfp.c
 +++ b/drivers/net/phy/sfp.c
-@@ -593,6 +593,9 @@ static const struct sfp_quirk sfp_quirks
- 
- 	SFP_QUIRK_F("YV", "SFP+ONU-XGSPON", sfp_fixup_potron),
+@@ -596,6 +596,9 @@ static const struct sfp_quirk sfp_quirks
+ 	// HORACO HC-10GE-113C uses Rollball protocol to talk to the PHY.
+ 	SFP_QUIRK_F("OEM", "HC-10GE-113C", sfp_fixup_rollball),
  
 +	// HORACO HC-10GE-113C uses Rollball protocol to talk to the PHY.
 +	SFP_QUIRK_F("OEM", "HC-10GE-113C", sfp_fixup_rollball),
