@@ -12,7 +12,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -4673,6 +4673,8 @@ struct ieee80211_prep_tx_info {
+@@ -4674,6 +4674,8 @@ struct ieee80211_prep_tx_info {
   * @set_sar_specs: Update the SAR (TX power) settings.
   * @sta_set_decap_offload: Called to notify the driver when a station is allowed
   *	to use rx decapsulation offload
@@ -21,7 +21,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @add_twt_setup: Update hw with TWT agreement parameters received from the peer.
   *	This callback allows the hw to check if requested parameters
   *	are supported and if there is enough room for a new agreement.
-@@ -5087,6 +5089,9 @@ struct ieee80211_ops {
+@@ -5088,6 +5090,9 @@ struct ieee80211_ops {
  	void (*sta_set_decap_offload)(struct ieee80211_hw *hw,
  				      struct ieee80211_vif *vif,
  				      struct ieee80211_sta *sta, bool enabled);
@@ -33,7 +33,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  			      struct ieee80211_twt_setup *twt);
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -2585,8 +2585,12 @@ static int sta_apply_parameters(struct i
+@@ -2592,8 +2592,12 @@ static int sta_apply_parameters(struct i
  	if (ieee80211_vif_is_mesh(&sdata->vif))
  		sta_apply_mesh_params(local, sta, params);
  

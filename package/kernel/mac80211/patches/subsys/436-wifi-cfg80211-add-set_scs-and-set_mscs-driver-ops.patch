@@ -65,7 +65,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  				    struct cfg80211_chan_def *chandef);
 --- a/net/wireless/core.c
 +++ b/net/wireless/core.c
-@@ -968,6 +968,16 @@ int wiphy_register(struct wiphy *wiphy)
+@@ -979,6 +979,16 @@ int wiphy_register(struct wiphy *wiphy)
  		    rdev->ops->update_connect_params))
  		return -EINVAL;
  
@@ -84,7 +84,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/net/wireless/rdev-ops.h
 +++ b/net/wireless/rdev-ops.h
-@@ -1185,6 +1185,38 @@ static inline int rdev_set_qos_map(struc
+@@ -1188,6 +1188,38 @@ static inline int rdev_set_qos_map(struc
  	return ret;
  }
  

@@ -35,7 +35,7 @@
  	.llseek = default_llseek,
  };
  
-@@ -220,8 +223,9 @@ static ssize_t aql_pending_read(struct f
+@@ -222,8 +225,9 @@ static ssize_t aql_pending_read(struct f
  				       buf, len);
  }
  
@@ -46,7 +46,7 @@
  	.llseek = default_llseek,
  };
  
-@@ -299,9 +303,10 @@ static ssize_t aql_txq_limit_write(struc
+@@ -308,9 +312,10 @@ static ssize_t aql_txq_limit_write(struc
  	return count;
  }
  
@@ -58,7 +58,7 @@
  	.llseek = default_llseek,
  };
  
-@@ -335,9 +340,10 @@ static ssize_t aql_enable_write(struct f
+@@ -344,9 +349,10 @@ static ssize_t aql_enable_write(struct f
  	return count;
  }
  
@@ -70,7 +70,7 @@
  	.llseek = default_llseek,
  };
  
-@@ -373,9 +379,10 @@ static ssize_t force_tx_status_write(str
+@@ -382,9 +388,10 @@ static ssize_t force_tx_status_write(str
  	return count;
  }
  
@@ -82,7 +82,7 @@
  	.llseek = default_llseek,
  };
  
-@@ -400,8 +407,9 @@ static ssize_t reset_write(struct file *
+@@ -409,8 +416,9 @@ static ssize_t reset_write(struct file *
  	return count;
  }
  
@@ -93,7 +93,7 @@
  	.llseek = noop_llseek,
  };
  #endif
-@@ -629,8 +637,9 @@ static ssize_t stats_ ##name## _read(str
+@@ -638,8 +646,9 @@ static ssize_t stats_ ##name## _read(str
  				      print_devstats_##name);		\
  }									\
  									\

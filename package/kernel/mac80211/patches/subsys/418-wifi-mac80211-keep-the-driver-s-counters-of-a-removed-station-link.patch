@@ -115,7 +115,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	}
  
  	/*
-@@ -3444,7 +3470,7 @@ void ieee80211_sta_free_link(struct sta_
+@@ -3446,7 +3472,7 @@ void ieee80211_sta_free_link(struct sta_
  
  	WARN_ON(!test_sta_flag(sta, WLAN_STA_INSERTED));
  
@@ -124,7 +124,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  }
  
  int ieee80211_sta_activate_link(struct sta_info *sta, unsigned int link_id)
-@@ -3485,7 +3511,7 @@ int ieee80211_sta_activate_link(struct s
+@@ -3487,7 +3513,7 @@ int ieee80211_sta_activate_link(struct s
  				   old_links, new_links);
  	if (ret) {
  		sta->sta.valid_links = old_links;
@@ -133,7 +133,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		return ret;
  	}
  
-@@ -3495,20 +3521,60 @@ hash:
+@@ -3497,20 +3523,60 @@ hash:
  	return 0;
  }
  

@@ -76,7 +76,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @match: an SCS descriptor matched the MSDU
 --- a/net/wireless/core.h
 +++ b/net/wireless/core.h
-@@ -646,6 +646,8 @@ int cfg80211_parse_tclas(const u8 *elems
+@@ -654,6 +654,8 @@ int cfg80211_parse_tclas(const u8 *elems
  			 struct cfg80211_tclas *out, u8 n_tclas,
  			 enum cfg80211_tclas_processing *processing);
  int cfg80211_parse_tclas_mask(const u8 *elems, size_t len, u32 *fields);
