@@ -192,7 +192,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  cfg80211-$(CPTCFG_CFG80211_WEXT) += wext-compat.o wext-sme.o
 --- a/net/wireless/core.h
 +++ b/net/wireless/core.h
-@@ -641,6 +641,12 @@ struct cfg80211_colocated_ap {
+@@ -649,6 +649,12 @@ struct cfg80211_colocated_ap {
  	s8 psd_20;
  };
  

@@ -47,7 +47,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	void	(*adv_ttlm_cancel)(struct wiphy *wiphy, struct net_device *dev,
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -19715,6 +19715,38 @@ static int nl80211_set_hw_timestamp(stru
+@@ -19716,6 +19716,38 @@ static int nl80211_set_hw_timestamp(stru
  }
  
  static int
@@ -86,7 +86,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  nl80211_set_ttlm(struct sk_buff *skb, struct genl_info *info)
  {
  	struct cfg80211_ttlm_params params = {};
-@@ -19722,6 +19754,9 @@ nl80211_set_ttlm(struct sk_buff *skb, st
+@@ -19723,6 +19755,9 @@ nl80211_set_ttlm(struct sk_buff *skb, st
  	struct net_device *dev = info->user_ptr[1];
  	struct wireless_dev *wdev = dev->ieee80211_ptr;
  
@@ -98,7 +98,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		return -EOPNOTSUPP;
 --- a/net/wireless/rdev-ops.h
 +++ b/net/wireless/rdev-ops.h
-@@ -1610,6 +1610,22 @@ rdev_set_hw_timestamp(struct cfg80211_re
+@@ -1613,6 +1613,22 @@ rdev_set_hw_timestamp(struct cfg80211_re
  }
  
  static inline int

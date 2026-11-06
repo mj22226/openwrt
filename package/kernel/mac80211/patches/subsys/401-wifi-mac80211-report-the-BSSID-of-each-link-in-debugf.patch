@@ -19,7 +19,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/net/mac80211/debugfs_netdev.c
 +++ b/net/mac80211/debugfs_netdev.c
-@@ -735,6 +735,7 @@ static ssize_t ieee80211_if_parse_active
+@@ -744,6 +744,7 @@ static ssize_t ieee80211_if_parse_active
  IEEE80211_IF_FILE_RW(active_links);
  
  IEEE80211_IF_LINK_FILE(addr, conf->addr, MAC);
@@ -27,7 +27,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  #ifdef CPTCFG_MAC80211_MESH
  IEEE80211_IF_FILE(estab_plinks, u.mesh.estab_plinks, ATOMIC);
-@@ -1060,6 +1061,11 @@ void ieee80211_link_debugfs_add(struct i
+@@ -1069,6 +1070,11 @@ void ieee80211_link_debugfs_add(struct i
  				   link->sdata->vif.debugfs_dir);
  
  	DEBUGFS_ADD(link->debugfs_dir, addr);

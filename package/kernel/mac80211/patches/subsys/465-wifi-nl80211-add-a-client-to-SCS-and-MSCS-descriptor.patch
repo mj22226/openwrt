@@ -104,7 +104,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  static const struct nla_policy
-@@ -18338,6 +18341,23 @@ static u16 nl80211_scs_status(int err)
+@@ -18339,6 +18342,23 @@ static u16 nl80211_scs_status(int err)
  	}
  }
  
@@ -128,7 +128,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static void nl80211_free_scs_desc(struct cfg80211_scs_desc **desc,
  				  unsigned int n)
  {
-@@ -18359,6 +18379,7 @@ nl80211_parse_scs_desc(struct nlattr *at
+@@ -18360,6 +18380,7 @@ nl80211_parse_scs_desc(struct nlattr *at
  	const struct ieee80211_qos_char_elem *qos_char = NULL;
  	struct nlattr *qos_attr, *tclas_attr;
  	struct cfg80211_scs_desc *desc;
@@ -136,7 +136,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	bool wants_up = true;
  	int n_tclas = 0;
  	bool remove;
-@@ -18376,6 +18397,11 @@ nl80211_parse_scs_desc(struct nlattr *at
+@@ -18377,6 +18398,11 @@ nl80211_parse_scs_desc(struct nlattr *at
  		return ERR_PTR(-EINVAL);
  	}
  
@@ -148,7 +148,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	remove = nla_get_u8(tb[NL80211_SCS_DESC_ATTR_REQ_TYPE]) ==
  		 NL80211_SCS_REQ_REMOVE;
  
-@@ -18412,6 +18438,7 @@ nl80211_parse_scs_desc(struct nlattr *at
+@@ -18413,6 +18439,7 @@ nl80211_parse_scs_desc(struct nlattr *at
  	desc->id = nla_get_u8(tb[NL80211_SCS_DESC_ATTR_ID]);
  	desc->req_type = nla_get_u8(tb[NL80211_SCS_DESC_ATTR_REQ_TYPE]);
  	desc->up = nla_get_u8_default(tb[NL80211_SCS_DESC_ATTR_UP], 0);
@@ -156,7 +156,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	desc->n_tclas = n_tclas;
  
  	if (!err && tclas_attr) {
-@@ -18639,6 +18666,12 @@ static int nl80211_set_mscs(struct sk_bu
+@@ -18640,6 +18667,12 @@ static int nl80211_set_mscs(struct sk_bu
  		return -EINVAL;
  	}
  
@@ -169,7 +169,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	desc.req_type = nla_get_u8(tb[NL80211_MSCS_DESC_ATTR_REQ_TYPE]);
  	remove = desc.req_type == NL80211_SCS_REQ_REMOVE;
  
-@@ -18673,6 +18706,11 @@ static int nl80211_set_mscs(struct sk_bu
+@@ -18674,6 +18707,11 @@ static int nl80211_set_mscs(struct sk_bu
  
  	err = rdev_set_mscs(rdev, dev,
  			    nla_data(info->attrs[NL80211_ATTR_MAC]), &desc);

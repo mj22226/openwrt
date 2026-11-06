@@ -25,7 +25,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/net/mac80211/rx.c
 +++ b/net/mac80211/rx.c
-@@ -5362,6 +5362,17 @@ static bool ieee80211_rx_for_interface(s
+@@ -5368,6 +5368,17 @@ static bool ieee80211_rx_for_interface(s
  	return ieee80211_prepare_and_rx_handle(rx, skb, consume);
  }
  
@@ -43,7 +43,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  /*
   * This is the actual Rx frames handler. as it belongs to Rx path it must
   * be called with rcu_read_lock protection.
-@@ -5427,6 +5438,7 @@ static void __ieee80211_rx_handle_packet
+@@ -5433,6 +5444,7 @@ static void __ieee80211_rx_handle_packet
  		ieee80211_scan_rx(local, skb);
  
  	if (ieee80211_is_data(fc)) {
@@ -51,7 +51,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		struct sta_info *sta, *prev_sta;
  		int link_id = -1;
  
-@@ -5512,6 +5524,27 @@ static void __ieee80211_rx_handle_packet
+@@ -5518,6 +5530,27 @@ static void __ieee80211_rx_handle_packet
  				return;
  			goto out;
  		}
