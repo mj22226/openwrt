@@ -27,7 +27,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -4279,21 +4279,46 @@ bool cfg80211_flow_key_build(const struc
+@@ -4299,21 +4299,46 @@ bool cfg80211_flow_key_build(const struc
  /**
   * struct cfg80211_scs_desc - one SCS descriptor
   *
@@ -76,7 +76,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @match: an SCS descriptor matched the MSDU
 --- a/net/wireless/core.h
 +++ b/net/wireless/core.h
-@@ -646,6 +646,8 @@ int cfg80211_parse_tclas(const u8 *elems
+@@ -657,6 +657,8 @@ int cfg80211_parse_tclas(const u8 *elems
  			 struct cfg80211_tclas *out, u8 n_tclas,
  			 enum cfg80211_tclas_processing *processing);
  int cfg80211_parse_tclas_mask(const u8 *elems, size_t len, u32 *fields);
@@ -186,7 +186,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +}
 --- a/include/uapi/linux/nl80211.h
 +++ b/include/uapi/linux/nl80211.h
-@@ -6199,6 +6199,23 @@ enum nl80211_tx_power_setting {
+@@ -6202,6 +6202,23 @@ enum nl80211_tx_power_setting {
  };
  
  /**

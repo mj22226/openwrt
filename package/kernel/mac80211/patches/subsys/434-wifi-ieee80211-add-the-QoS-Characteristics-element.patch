@@ -12,7 +12,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/linux/ieee80211-eht.h
 +++ b/include/linux/ieee80211-eht.h
-@@ -1277,4 +1277,129 @@ static inline u32 ieee80211_eml_trans_ti
+@@ -1369,4 +1369,129 @@ static inline u32 ieee80211_eml_trans_ti
  				 _data + ieee80211_mle_common_size(_data),\
  				 _len - ieee80211_mle_common_size(_data))
  
@@ -144,7 +144,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #endif /* LINUX_IEEE80211_EHT_H */
 --- a/include/linux/ieee80211.h
 +++ b/include/linux/ieee80211.h
-@@ -1817,6 +1817,7 @@ enum ieee80211_eid_ext {
+@@ -1828,6 +1828,7 @@ enum ieee80211_eid_ext {
  	WLAN_EID_EXT_EHT_MULTI_LINK = 107,
  	WLAN_EID_EXT_EHT_CAPABILITY = 108,
  	WLAN_EID_EXT_TID_TO_LINK_MAPPING = 109,

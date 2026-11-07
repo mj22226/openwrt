@@ -26,7 +26,7 @@ Signed-off-by: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
 
 --- a/drivers/net/wireless/ath/ath11k/core.c
 +++ b/drivers/net/wireless/ath/ath11k/core.c
-@@ -2447,8 +2447,7 @@ void ath11k_core_pre_reconfigure_recover
+@@ -2449,8 +2449,7 @@ void ath11k_core_pre_reconfigure_recover
  		complete(&ar->thermal.wmi_sync);
  
  		wake_up(&ar->dp.tx_empty_waitq);

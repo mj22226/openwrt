@@ -23,8 +23,8 @@
  	.llseek = default_llseek,
  };
  
-@@ -190,9 +192,10 @@ static ssize_t airtime_flags_write(struc
- 	return count;
+@@ -177,9 +179,10 @@ static ssize_t airtime_flags_write(struc
+ 	return ret ? : count;
  }
  
 -static const struct debugfs_short_fops airtime_flags_ops = {
@@ -35,7 +35,7 @@
  	.llseek = default_llseek,
  };
  
-@@ -220,8 +223,9 @@ static ssize_t aql_pending_read(struct f
+@@ -209,8 +212,9 @@ static ssize_t aql_pending_read(struct f
  				       buf, len);
  }
  
@@ -46,7 +46,7 @@
  	.llseek = default_llseek,
  };
  
-@@ -299,9 +303,10 @@ static ssize_t aql_txq_limit_write(struc
+@@ -295,9 +299,10 @@ static ssize_t aql_txq_limit_write(struc
  	return count;
  }
  
@@ -58,7 +58,7 @@
  	.llseek = default_llseek,
  };
  
-@@ -335,9 +340,10 @@ static ssize_t aql_enable_write(struct f
+@@ -331,9 +336,10 @@ static ssize_t aql_enable_write(struct f
  	return count;
  }
  
@@ -70,7 +70,7 @@
  	.llseek = default_llseek,
  };
  
-@@ -373,9 +379,10 @@ static ssize_t force_tx_status_write(str
+@@ -369,9 +375,10 @@ static ssize_t force_tx_status_write(str
  	return count;
  }
  
@@ -82,7 +82,7 @@
  	.llseek = default_llseek,
  };
  
-@@ -400,8 +407,9 @@ static ssize_t reset_write(struct file *
+@@ -396,8 +403,9 @@ static ssize_t reset_write(struct file *
  	return count;
  }
  
@@ -93,7 +93,7 @@
  	.llseek = noop_llseek,
  };
  #endif
-@@ -629,8 +637,9 @@ static ssize_t stats_ ##name## _read(str
+@@ -625,8 +633,9 @@ static ssize_t stats_ ##name## _read(str
  				      print_devstats_##name);		\
  }									\
  									\

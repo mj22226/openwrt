@@ -48,7 +48,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -1864,6 +1864,49 @@ struct cfg80211_ttlm_params {
+@@ -1884,6 +1884,49 @@ struct cfg80211_ttlm_params {
  };
  
  /**
@@ -98,7 +98,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * struct station_parameters - station parameters
   *
   * Used to change and create a new station.
-@@ -5250,6 +5293,16 @@ struct mgmt_frame_regs {
+@@ -5272,6 +5315,16 @@ struct mgmt_frame_regs {
   *
   * @set_hw_timestamp: Enable/disable HW timestamping of TM/FTM frames.
   * @set_ttlm: set the TID to link mapping.
@@ -115,7 +115,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @set_epcs: Enable/Disable EPCS for station mode.
   * @get_radio_mask: get bitmask of radios in use.
   *	(invoked with the wiphy mutex held)
-@@ -5636,6 +5689,10 @@ struct cfg80211_ops {
+@@ -5658,6 +5711,10 @@ struct cfg80211_ops {
  				    struct cfg80211_set_hw_timestamp *hwts);
  	int	(*set_ttlm)(struct wiphy *wiphy, struct net_device *dev,
  			    struct cfg80211_ttlm_params *params);
@@ -126,7 +126,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	u32	(*get_radio_mask)(struct wiphy *wiphy, struct net_device *dev);
  	int     (*assoc_ml_reconf)(struct wiphy *wiphy, struct net_device *dev,
  				   struct cfg80211_ml_reconf_req *req);
-@@ -7298,6 +7355,7 @@ struct wireless_dev {
+@@ -7319,6 +7376,7 @@ struct wireless_dev {
  			struct cfg80211_chan_def preset_chandef;
  			u8 ssid[IEEE80211_MAX_SSID_LEN];
  			u8 ssid_len;
@@ -134,7 +134,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		} ap;
  		struct {
  			struct cfg80211_internal_bss *current_bss;
-@@ -10765,6 +10823,19 @@ void cfg80211_crit_update_done(struct ne
+@@ -10791,6 +10849,19 @@ void cfg80211_crit_update_done(struct ne
  			       u32 crit_update_id);
  
  /**
@@ -182,7 +182,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  /* policy for the key attributes */
-@@ -19280,6 +19292,90 @@ nl80211_set_ttlm(struct sk_buff *skb, st
+@@ -19321,6 +19333,90 @@ nl80211_set_ttlm(struct sk_buff *skb, st
  	return rdev_set_ttlm(rdev, dev, &params);
  }
  
@@ -273,7 +273,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static int nl80211_assoc_ml_reconf(struct sk_buff *skb, struct genl_info *info)
  {
  	struct cfg80211_registered_device *rdev = info->user_ptr[0];
-@@ -20584,6 +20680,12 @@ static const struct genl_small_ops nl802
+@@ -20625,6 +20721,12 @@ static const struct genl_small_ops nl802
  		.internal_flags = IFLAGS(NL80211_FLAG_NEED_NETDEV_UP),
  	},
  	{
@@ -286,7 +286,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		.cmd = NL80211_CMD_ASSOC_MLO_RECONF,
  		.doit = nl80211_assoc_ml_reconf,
  		.flags = GENL_UNS_ADMIN_PERM,
-@@ -21561,6 +21663,125 @@ void cfg80211_crit_update_done(struct ne
+@@ -21605,6 +21707,125 @@ void cfg80211_crit_update_done(struct ne
  }
  EXPORT_SYMBOL(cfg80211_crit_update_done);
  
@@ -414,7 +414,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
 --- a/net/wireless/rdev-ops.h
 +++ b/net/wireless/rdev-ops.h
-@@ -1593,6 +1593,34 @@ rdev_set_ttlm(struct cfg80211_registered
+@@ -1596,6 +1596,34 @@ rdev_set_ttlm(struct cfg80211_registered
  	return ret;
  }
  
@@ -558,7 +558,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/include/uapi/linux/nl80211.h
 +++ b/include/uapi/linux/nl80211.h
-@@ -1465,6 +1465,42 @@
+@@ -1467,6 +1467,42 @@
   *	the critical update has an ID. See
   *	%NL80211_EXT_FEATURE_BEACON_CRIT_UPDATE.
   *
@@ -601,7 +601,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @NL80211_CMD_MAX: highest used command number
   * @__NL80211_CMD_AFTER_LAST: internal use
   */
-@@ -1748,6 +1784,11 @@ enum nl80211_commands {
+@@ -1750,6 +1786,11 @@ enum nl80211_commands {
  	NL80211_CMD_UPDATE_BEACON,
  	NL80211_CMD_CRIT_UPDATE_DONE,
  
@@ -613,7 +613,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	/* add new commands above here */
  
  	/* used to define NL80211_CMD_MAX below */
-@@ -3246,6 +3287,23 @@ enum nl80211_commands {
+@@ -3249,6 +3290,23 @@ enum nl80211_commands {
   *	%NL80211_CMD_CRIT_UPDATE_DONE. See
   *	%NL80211_EXT_FEATURE_BEACON_CRIT_UPDATE.
   *
@@ -637,7 +637,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @NUM_NL80211_ATTR: total number of nl80211_attrs available
   * @NL80211_ATTR_MAX: highest attribute number currently defined
   * @__NL80211_ATTR_AFTER_LAST: internal use
-@@ -3854,6 +3912,12 @@ enum nl80211_attrs {
+@@ -3857,6 +3915,12 @@ enum nl80211_attrs {
  	NL80211_ATTR_ASSOC_PROTECTED_TWT,
  	NL80211_ATTR_CRIT_UPDATE_ID,
  
@@ -650,7 +650,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	/* add attributes here, update the policy in nl80211.c */
  
  	__NL80211_ATTR_AFTER_LAST,
-@@ -7201,6 +7265,16 @@ enum nl80211_feature_flags {
+@@ -7207,6 +7271,16 @@ enum nl80211_feature_flags {
   *	ID of the current critical update. The driver does not track the flag
   *	of a nontransmitted BSSID and reports no event for it.
   *
@@ -667,7 +667,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @NUM_NL80211_EXT_FEATURES: number of extended features.
   * @MAX_NL80211_EXT_FEATURES: highest extended feature index.
   */
-@@ -7286,6 +7360,7 @@ enum nl80211_ext_feature_index {
+@@ -7293,6 +7367,7 @@ enum nl80211_ext_feature_index {
  	NL80211_EXT_FEATURE_FAST_ROAM_OFFLOAD,
  	NL80211_EXT_FEATURE_UPDATE_BEACON,
  	NL80211_EXT_FEATURE_BEACON_CRIT_UPDATE,

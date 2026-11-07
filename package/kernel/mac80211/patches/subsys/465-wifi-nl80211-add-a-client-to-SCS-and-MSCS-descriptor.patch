@@ -34,7 +34,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -4287,6 +4287,10 @@ bool cfg80211_flow_key_build(const struc
+@@ -4307,6 +4307,10 @@ bool cfg80211_flow_key_build(const struc
   * @id: SCSID, 1 to 255
   * @up: user priority to assign to a matching MSDU
   * @qos_char_len: length of @qos_char
@@ -45,7 +45,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @n_tclas: number of entries in @tclas
   * @tclas: the classifier
   */
-@@ -4297,6 +4301,7 @@ struct cfg80211_scs_desc {
+@@ -4317,6 +4321,7 @@ struct cfg80211_scs_desc {
  	u8 id;
  	u8 up;
  	u16 qos_char_len;
@@ -53,7 +53,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	u8 n_tclas;
  	struct cfg80211_tclas tclas[] __counted_by(n_tclas);
  };
-@@ -4318,6 +4323,11 @@ struct cfg80211_scs_result {
+@@ -4338,6 +4343,11 @@ struct cfg80211_scs_result {
   * @up_limit: ceiling for the assigned user priority, 0 to 7
   * @stream_timeout: minimum lifetime of a learned value, in TUs
   * @fields: classifier parameters, a bitmap of &enum cfg80211_flow_field
@@ -65,7 +65,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   */
  struct cfg80211_mscs_desc {
  	enum nl80211_scs_req_type req_type;
-@@ -4325,6 +4335,8 @@ struct cfg80211_mscs_desc {
+@@ -4345,6 +4355,8 @@ struct cfg80211_mscs_desc {
  	u8 up_limit;
  	u32 stream_timeout;
  	u32 fields;
@@ -74,7 +74,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  /**
-@@ -5437,7 +5449,9 @@ struct mgmt_frame_regs {
+@@ -5458,7 +5470,9 @@ struct mgmt_frame_regs {
   *	a status code in the result entry of the same index. A declined add
   *	or change leaves the previous classification of that SCSID in force.
   *	A negative return fails the request as a whole.
@@ -104,7 +104,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  static const struct nla_policy
-@@ -18338,6 +18341,23 @@ static u16 nl80211_scs_status(int err)
+@@ -18378,6 +18381,23 @@ static u16 nl80211_scs_status(int err)
  	}
  }
  
@@ -128,7 +128,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static void nl80211_free_scs_desc(struct cfg80211_scs_desc **desc,
  				  unsigned int n)
  {
-@@ -18359,6 +18379,7 @@ nl80211_parse_scs_desc(struct nlattr *at
+@@ -18399,6 +18419,7 @@ nl80211_parse_scs_desc(struct nlattr *at
  	const struct ieee80211_qos_char_elem *qos_char = NULL;
  	struct nlattr *qos_attr, *tclas_attr;
  	struct cfg80211_scs_desc *desc;
@@ -136,7 +136,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	bool wants_up = true;
  	int n_tclas = 0;
  	bool remove;
-@@ -18376,6 +18397,11 @@ nl80211_parse_scs_desc(struct nlattr *at
+@@ -18416,6 +18437,11 @@ nl80211_parse_scs_desc(struct nlattr *at
  		return ERR_PTR(-EINVAL);
  	}
  
@@ -148,7 +148,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	remove = nla_get_u8(tb[NL80211_SCS_DESC_ATTR_REQ_TYPE]) ==
  		 NL80211_SCS_REQ_REMOVE;
  
-@@ -18412,6 +18438,7 @@ nl80211_parse_scs_desc(struct nlattr *at
+@@ -18452,6 +18478,7 @@ nl80211_parse_scs_desc(struct nlattr *at
  	desc->id = nla_get_u8(tb[NL80211_SCS_DESC_ATTR_ID]);
  	desc->req_type = nla_get_u8(tb[NL80211_SCS_DESC_ATTR_REQ_TYPE]);
  	desc->up = nla_get_u8_default(tb[NL80211_SCS_DESC_ATTR_UP], 0);
@@ -156,7 +156,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	desc->n_tclas = n_tclas;
  
  	if (!err && tclas_attr) {
-@@ -18639,6 +18666,12 @@ static int nl80211_set_mscs(struct sk_bu
+@@ -18679,6 +18706,12 @@ static int nl80211_set_mscs(struct sk_bu
  		return -EINVAL;
  	}
  
@@ -169,7 +169,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	desc.req_type = nla_get_u8(tb[NL80211_MSCS_DESC_ATTR_REQ_TYPE]);
  	remove = desc.req_type == NL80211_SCS_REQ_REMOVE;
  
-@@ -18673,6 +18706,11 @@ static int nl80211_set_mscs(struct sk_bu
+@@ -18713,6 +18746,11 @@ static int nl80211_set_mscs(struct sk_bu
  
  	err = rdev_set_mscs(rdev, dev,
  			    nla_data(info->attrs[NL80211_ATTR_MAC]), &desc);
@@ -183,7 +183,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/include/uapi/linux/nl80211.h
 +++ b/include/uapi/linux/nl80211.h
-@@ -6259,6 +6259,12 @@ enum nl80211_scs_req_type {
+@@ -6262,6 +6262,12 @@ enum nl80211_scs_req_type {
   * @NL80211_SCS_DESC_ATTR_QOS_CHAR: the whole QoS Characteristics element
   *	(binary), header included, as received over the air
   * @NL80211_SCS_DESC_ATTR_STATUS: IEEE status code (u16), kernel to userspace
@@ -196,7 +196,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   *
   * @__NL80211_SCS_DESC_ATTR_AFTER_LAST: internal use
   * @NL80211_SCS_DESC_ATTR_MAX: highest attribute
-@@ -6271,6 +6277,7 @@ enum nl80211_scs_desc_attr {
+@@ -6274,6 +6280,7 @@ enum nl80211_scs_desc_attr {
  	NL80211_SCS_DESC_ATTR_TCLAS,
  	NL80211_SCS_DESC_ATTR_QOS_CHAR,
  	NL80211_SCS_DESC_ATTR_STATUS,
@@ -204,7 +204,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	__NL80211_SCS_DESC_ATTR_AFTER_LAST,
  	NL80211_SCS_DESC_ATTR_MAX = __NL80211_SCS_DESC_ATTR_AFTER_LAST - 1
-@@ -6291,6 +6298,15 @@ enum nl80211_scs_desc_attr {
+@@ -6294,6 +6301,15 @@ enum nl80211_scs_desc_attr {
   * @NL80211_MSCS_DESC_ATTR_TCLAS_MASK: one or more TCLAS Mask elements
   *	(binary), as received over the air. Required for add and change,
   *	rejected for remove.
@@ -220,7 +220,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   *
   * @__NL80211_MSCS_DESC_ATTR_AFTER_LAST: internal use
   * @NL80211_MSCS_DESC_ATTR_MAX: highest attribute
-@@ -6302,6 +6318,8 @@ enum nl80211_mscs_desc_attr {
+@@ -6305,6 +6321,8 @@ enum nl80211_mscs_desc_attr {
  	NL80211_MSCS_DESC_ATTR_UP_LIMIT,
  	NL80211_MSCS_DESC_ATTR_STREAM_TIMEOUT,
  	NL80211_MSCS_DESC_ATTR_TCLAS_MASK,
