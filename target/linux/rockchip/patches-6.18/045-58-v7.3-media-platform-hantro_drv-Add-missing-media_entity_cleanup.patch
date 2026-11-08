@@ -19,7 +19,7 @@ Signed-off-by: Hans Verkuil <hverkuil+cisco@kernel.org>
 
 --- a/drivers/media/platform/verisilicon/hantro_drv.c
 +++ b/drivers/media/platform/verisilicon/hantro_drv.c
-@@ -771,8 +771,10 @@ static int hantro_register_entity(struct
+@@ -763,8 +763,10 @@ static int hantro_register_entity(struct
  		return ret;
  
  	ret = media_device_register_entity(mdev, entity);
@@ -31,7 +31,7 @@ Signed-off-by: Hans Verkuil <hverkuil+cisco@kernel.org>
  
  	return 0;
  }
-@@ -860,12 +862,13 @@ err_rm_links0:
+@@ -852,12 +854,13 @@ err_rm_links0:
  
  err_rel_entity2:
  	media_device_unregister_entity(&func->sink);
@@ -47,7 +47,7 @@ Signed-off-by: Hans Verkuil <hverkuil+cisco@kernel.org>
  	return ret;
  }
  
-@@ -878,6 +881,9 @@ static void hantro_detach_func(struct ha
+@@ -870,6 +873,9 @@ static void hantro_detach_func(struct ha
  	media_device_unregister_entity(&func->sink);
  	media_device_unregister_entity(&func->proc);
  	media_device_unregister_entity(&func->vdev.entity);

@@ -123,7 +123,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
  
 --- a/drivers/media/platform/verisilicon/hantro_drv.c
 +++ b/drivers/media/platform/verisilicon/hantro_drv.c
-@@ -640,7 +640,7 @@ static int hantro_open(struct file *filp
+@@ -632,7 +632,7 @@ static int hantro_open(struct file *filp
  	 * helper functions used here.
  	 */
  
