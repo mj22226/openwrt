@@ -32,7 +32,7 @@ Signed-off-by: Jonas Karlman <jonas@kwiboo.se>
  
  	struct regmap *grf;
  	void __iomem *regs;
-@@ -1727,15 +1727,11 @@ static int rockchip_thermal_probe(struct
+@@ -1726,15 +1726,11 @@ static int rockchip_thermal_probe(struct
  		return dev_err_probe(&pdev->dev, PTR_ERR(thermal->reset),
  				     "failed to get tsadc reset.\n");
  
@@ -53,7 +53,7 @@ Signed-off-by: Jonas Karlman <jonas@kwiboo.se>
  
  	rockchip_thermal_reset_controller(thermal->reset);
  
-@@ -1816,8 +1812,7 @@ static int __maybe_unused rockchip_therm
+@@ -1815,8 +1811,7 @@ static int __maybe_unused rockchip_therm
  
  	thermal->chip->control(thermal->regs, false);
  
@@ -63,7 +63,7 @@ Signed-off-by: Jonas Karlman <jonas@kwiboo.se>
  
  	pinctrl_pm_select_sleep_state(dev);
  
-@@ -1833,16 +1828,10 @@ static int __maybe_unused rockchip_therm
+@@ -1832,16 +1827,10 @@ static int __maybe_unused rockchip_therm
  	int error;
  	int i;
  
