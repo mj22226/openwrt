@@ -21,7 +21,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -1131,6 +1131,10 @@ enum mac80211_tx_info_flags {
+@@ -1137,6 +1137,10 @@ enum mac80211_tx_info_flags {
   *	operation on the interface.
   * @IEEE80211_TX_CTRL_STREAM_CLASSIFIED: SCS or MSCS set the priority of this
   *	frame, so it does not follow from the frame contents.
@@ -32,7 +32,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @IEEE80211_TX_CTRL_MLO_LINK: If not @IEEE80211_LINK_UNSPECIFIED, this
   *	frame should be transmitted on the specific link. This really is
   *	only relevant for frames that do not have data present, and is
-@@ -1153,6 +1157,7 @@ enum mac80211_tx_control_flags {
+@@ -1159,6 +1163,7 @@ enum mac80211_tx_control_flags {
  	IEEE80211_TX_CTRL_MCAST_MLO_FIRST_TX	= BIT(9),
  	IEEE80211_TX_CTRL_DONT_USE_RATE_MASK	= BIT(10),
  	IEEE80211_TX_CTRL_STREAM_CLASSIFIED	= BIT(11),

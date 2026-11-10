@@ -16,7 +16,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -633,7 +633,7 @@ ieee80211_tx_h_select_key(struct ieee802
+@@ -618,7 +618,7 @@ ieee80211_tx_h_select_key(struct ieee802
  	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(tx->skb);
  	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)tx->skb->data;
  

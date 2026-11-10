@@ -29,7 +29,7 @@ Signed-off-by: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
 
 --- a/drivers/net/wireless/ath/ath11k/ahb.c
 +++ b/drivers/net/wireless/ath/ath11k/ahb.c
-@@ -1271,6 +1271,7 @@ static void ath11k_ahb_remove(struct pla
+@@ -1302,6 +1302,7 @@ static void ath11k_ahb_remove(struct pla
  		ath11k_ahb_power_down(ab, false);
  		ath11k_debugfs_soc_destroy(ab);
  		ath11k_qmi_deinit_service(ab);

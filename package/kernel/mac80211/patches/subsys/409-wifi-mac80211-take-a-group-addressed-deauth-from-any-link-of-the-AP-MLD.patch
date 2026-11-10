@@ -27,7 +27,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/net/mac80211/mlme.c
 +++ b/net/mac80211/mlme.c
-@@ -5678,6 +5678,27 @@ const char *ieee80211_get_reason_code_st
+@@ -5684,6 +5684,27 @@ const char *ieee80211_get_reason_code_st
  	}
  }
  
@@ -55,7 +55,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static void ieee80211_rx_mgmt_deauth(struct ieee80211_sub_if_data *sdata,
  				     struct ieee80211_mgmt *mgmt, size_t len)
  {
-@@ -11845,9 +11866,11 @@ void ieee80211_sta_rx_queued_frame(struc
+@@ -11895,9 +11916,11 @@ void ieee80211_sta_rx_queued_frame(struc
  		ieee80211_rx_mgmt_auth(sdata, mgmt, skb->len);
  		break;
  	case IEEE80211_STYPE_DEAUTH:

@@ -15,7 +15,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -4258,6 +4258,46 @@ struct cfg80211_flow_info {
+@@ -4278,6 +4278,46 @@ struct cfg80211_flow_info {
  	u16 l3_off;
  };
  
