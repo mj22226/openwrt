@@ -30,7 +30,7 @@ Signed-off-by: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
 
 --- a/drivers/net/wireless/ath/ath11k/wmi.c
 +++ b/drivers/net/wireless/ath/ath11k/wmi.c
-@@ -5136,6 +5136,15 @@ static int ath11k_service_ready_ext_even
+@@ -5130,6 +5130,15 @@ static int ath11k_service_ready_ext_even
  
  err:
  	kfree(svc_rdy_ext.mac_phy_caps);

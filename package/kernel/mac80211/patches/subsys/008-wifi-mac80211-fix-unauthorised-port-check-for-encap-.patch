@@ -21,7 +21,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -3872,6 +3872,38 @@ static bool ieee80211_xmit_fast(struct i
+@@ -3901,6 +3901,38 @@ static bool ieee80211_xmit_fast(struct i
  	return true;
  }
  
@@ -60,7 +60,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  struct sk_buff *ieee80211_tx_dequeue(struct ieee80211_hw *hw,
  				     struct ieee80211_txq *txq)
  {
-@@ -3938,20 +3970,8 @@ begin:
+@@ -3967,20 +3999,8 @@ begin:
  
  	if (txq->sta) {
  		tx.sta = container_of(txq->sta, struct sta_info, sta);

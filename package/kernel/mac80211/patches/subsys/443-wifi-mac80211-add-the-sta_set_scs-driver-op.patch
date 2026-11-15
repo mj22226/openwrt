@@ -22,7 +22,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -5091,6 +5091,34 @@ struct ieee80211_ops {
+@@ -5092,6 +5092,34 @@ struct ieee80211_ops {
  			  struct cfg80211_pmsr_request *request);
  	void (*abort_pmsr)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
  			   struct cfg80211_pmsr_request *request);

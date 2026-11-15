@@ -17,7 +17,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/net/mac80211/rx.c
 +++ b/net/mac80211/rx.c
-@@ -3731,7 +3731,7 @@ ieee80211_rx_h_action(struct ieee80211_r
+@@ -3737,7 +3737,7 @@ ieee80211_rx_h_action(struct ieee80211_r
  			break;
  		if (!rx->sta)
  			break;

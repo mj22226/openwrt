@@ -341,7 +341,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	}
  	spin_unlock(&hwsim_radio_lock);
  
-@@ -2849,6 +3052,10 @@ static int mac80211_hwsim_config(struct
+@@ -2855,6 +3058,10 @@ static int mac80211_hwsim_config(struct
  	}
  	mutex_unlock(&data->mutex);
  
@@ -352,7 +352,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	for (idx = 0; idx < ARRAY_SIZE(data->link_data); idx++) {
  		struct mac80211_hwsim_link_data *link_data =
  			&data->link_data[idx];
-@@ -3171,21 +3378,130 @@ static int mac80211_hwsim_conf_tx(struct
+@@ -3177,21 +3384,130 @@ static int mac80211_hwsim_conf_tx(struct
  	return 0;
  }
  
@@ -487,7 +487,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	/*
  	 * Magically conjured dummy values --- this is only ok for simulated hardware.
  	 *
-@@ -3579,6 +3895,7 @@ static int mac80211_hwsim_add_chanctx(st
+@@ -3585,6 +3901,7 @@ static int mac80211_hwsim_add_chanctx(st
  				      struct ieee80211_chanctx_conf *ctx)
  {
  	hwsim_set_chanctx_magic(ctx);
@@ -495,7 +495,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	wiphy_dbg(hw->wiphy,
  		  "add channel context control: %d MHz/width: %d/cfreqs:%d/%d MHz\n",
  		  ctx->def.chan->center_freq, ctx->def.width,
-@@ -3602,6 +3919,7 @@ static void mac80211_hwsim_change_chanct
+@@ -3608,6 +3925,7 @@ static void mac80211_hwsim_change_chanct
  					  u32 changed)
  {
  	hwsim_check_chanctx_magic(ctx);
@@ -503,7 +503,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	wiphy_dbg(hw->wiphy,
  		  "change channel context control: %d MHz/width: %d/cfreqs:%d/%d MHz\n",
  		  ctx->def.chan->center_freq, ctx->def.width,
-@@ -3689,6 +4007,8 @@ static int mac80211_hwsim_switch_vif_cha
+@@ -3695,6 +4013,8 @@ static int mac80211_hwsim_switch_vif_cha
  		case CHANCTX_SWMODE_SWAP_CONTEXTS:
  			hwsim_set_chanctx_magic(vifs[i].new_ctx);
  			hwsim_clear_chanctx_magic(vifs[i].old_ctx);
@@ -512,7 +512,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  			break;
  		default:
  			WARN(1, "Invalid mode %d\n", mode);
-@@ -6372,6 +6692,8 @@ static int mac80211_hwsim_new_radio(stru
+@@ -6378,6 +6698,8 @@ static int mac80211_hwsim_new_radio(stru
  	hw->wiphy->ema_max_profile_periodicity = 3;
  
  	spin_lock_init(&data->tsf_offset_lock);
@@ -521,7 +521,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	data->rx_rssi = DEFAULT_RX_RSSI;
  
-@@ -6939,6 +7261,8 @@ static int hwsim_cloned_frame_received_n
+@@ -6945,6 +7267,8 @@ static int hwsim_cloned_frame_received_n
  {
  	struct mac80211_hwsim_data *data2;
  	struct ieee80211_rx_status rx_status;
@@ -530,16 +530,16 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	struct ieee80211_hdr *hdr;
  	const u8 *dst;
  	int frame_data_len;
-@@ -7042,7 +7366,8 @@ static int hwsim_cloned_frame_received_n
+@@ -7051,7 +7375,8 @@ static int hwsim_cloned_frame_received_n
  	    ieee80211_is_probe_resp(hdr->frame_control))
  		rx_status.boottime_ns = ktime_get_boottime_ns();
  
 -	mac80211_hwsim_rx(data2, &rx_status, skb);
 +	tx_rate = mac80211_hwsim_airtime_tx_rate(info, &tx_rate_buf);
 +	mac80211_hwsim_rx(data2, &rx_status, tx_rate, skb);
+ 	mutex_unlock(&data2->mutex);
  
  	return 0;
- err:
 --- a/drivers/net/wireless/virtual/mac80211_hwsim.h
 +++ b/drivers/net/wireless/virtual/mac80211_hwsim.h
 @@ -58,7 +58,9 @@ enum hwsim_tx_control_flags {

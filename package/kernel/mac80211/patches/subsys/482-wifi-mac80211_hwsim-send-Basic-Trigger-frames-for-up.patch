@@ -119,16 +119,16 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static int mac80211_hwsim_start(struct ieee80211_hw *hw)
  {
  	struct mac80211_hwsim_data *data = hw->priv;
-@@ -2826,6 +2864,8 @@ static void mac80211_hwsim_stop(struct i
+@@ -2832,6 +2870,8 @@ static void mac80211_hwsim_stop(struct i
  	for (i = 0; i < ARRAY_SIZE(data->link_data); i++)
  		hrtimer_cancel(&data->link_data[i].beacon_timer);
  
 +	hwsim_ul_streams_del(data, NULL, -1);
 +
- 	while (!skb_queue_empty(&data->pending))
- 		ieee80211_free_txskb(hw, skb_dequeue(&data->pending));
+ 	while ((skb = skb_dequeue(&data->pending)))
+ 		ieee80211_free_txskb(hw, skb);
  
-@@ -2905,9 +2945,8 @@ static void mac80211_hwsim_remove_interf
+@@ -2911,9 +2951,8 @@ static void mac80211_hwsim_remove_interf
  		mac80211_hwsim_config_mac_nl(hw, vif->addr, false);
  }
  
@@ -140,7 +140,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
  	struct mac80211_hwsim_data *data = hw->priv;
  	u32 _portid = READ_ONCE(data->wmediumd);
-@@ -2920,7 +2959,8 @@ void mac80211_hwsim_tx_frame(struct ieee
+@@ -2926,7 +2965,8 @@ void mac80211_hwsim_tx_frame(struct ieee
  	}
  
  	if (_portid || hwsim_virtio_enabled)
@@ -150,7 +150,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	data->tx_pkts++;
  	data->tx_bytes += skb->len;
-@@ -2928,6 +2968,182 @@ void mac80211_hwsim_tx_frame(struct ieee
+@@ -2934,6 +2974,182 @@ void mac80211_hwsim_tx_frame(struct ieee
  	dev_kfree_skb(skb);
  }
  
@@ -333,7 +333,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static u64 hwsim_tbtt_at_or_after(u64 tsf, u64 bcn_int)
  {
  	u64 rem;
-@@ -3536,6 +3752,7 @@ static int mac80211_hwsim_sta_remove(str
+@@ -3542,6 +3758,7 @@ static int mac80211_hwsim_sta_remove(str
  {
  	hwsim_check_magic(vif);
  	hwsim_clear_sta_magic(sta);
@@ -341,7 +341,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	return 0;
  }
-@@ -5240,13 +5457,49 @@ static int mac80211_hwsim_sta_set_scs(st
+@@ -5246,13 +5463,49 @@ static int mac80211_hwsim_sta_set_scs(st
  				      u8 n_desc)
  {
  	struct mac80211_hwsim_data *data = hw->priv;
@@ -391,7 +391,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  }
  
  #ifdef CPTCFG_MAC80211_DEBUGFS
-@@ -6942,6 +7195,7 @@ static int mac80211_hwsim_new_radio(stru
+@@ -6948,6 +7201,7 @@ static int mac80211_hwsim_new_radio(stru
  	}
  
  	skb_queue_head_init(&data->pending);
@@ -399,7 +399,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	SET_IEEE80211_DEV(hw, data->dev);
  	if (!param->perm_addr) {
-@@ -7647,6 +7901,11 @@ static int hwsim_tx_info_frame_received_
+@@ -7653,6 +7907,11 @@ static int hwsim_tx_info_frame_received_
  
  	mac80211_hwsim_monitor_rx(data2->hw, skb, data2->channel);
  

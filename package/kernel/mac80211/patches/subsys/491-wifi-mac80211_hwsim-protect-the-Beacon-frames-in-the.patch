@@ -39,7 +39,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	default:
  		return 1;
  	}
-@@ -3273,6 +3284,11 @@ static void __mac80211_hwsim_beacon_tx(s
+@@ -3279,6 +3290,11 @@ static void __mac80211_hwsim_beacon_tx(s
  		dev_kfree_skb(skb);
  		return;
  	}

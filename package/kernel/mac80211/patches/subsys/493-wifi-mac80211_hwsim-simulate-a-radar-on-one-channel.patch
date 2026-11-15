@@ -122,7 +122,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  					 bitmap,
  					 GFP_KERNEL);
  
-@@ -7800,10 +7822,8 @@ static int mac80211_hwsim_new_radio(stru
+@@ -7806,10 +7828,8 @@ static int mac80211_hwsim_new_radio(stru
  			    &hwsim_fops_rx_rssi);
  	debugfs_create_u16("scs_status", 0600, data->debugfs,
  			   &data->scs_status);

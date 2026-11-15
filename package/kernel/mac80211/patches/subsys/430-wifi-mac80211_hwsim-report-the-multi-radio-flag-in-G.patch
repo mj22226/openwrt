@@ -16,7 +16,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/drivers/net/wireless/virtual/mac80211_hwsim_main.c
 +++ b/drivers/net/wireless/virtual/mac80211_hwsim_main.c
-@@ -7106,6 +7106,7 @@ static int mac80211_hwsim_get_radio(stru
+@@ -7112,6 +7112,7 @@ static int mac80211_hwsim_get_radio(stru
  	param.nan_device = !!(data->hw->wiphy->interface_modes &
  					BIT(NL80211_IFTYPE_NAN));
  	param.use_chanctx = data->use_chanctx;

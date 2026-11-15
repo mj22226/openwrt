@@ -26,7 +26,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -3091,6 +3091,14 @@ struct ieee80211_txq {
+@@ -3092,6 +3092,14 @@ struct ieee80211_txq {
   *	ieee80211_sta_register_airtime() for each station and AC at a
   *	regular interval, also with an airtime of 0.
   *
@@ -41,7 +41,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @NUM_IEEE80211_HW_FLAGS: number of hardware flags, used for sizing arrays
   */
  enum ieee80211_hw_flags {
-@@ -3153,6 +3161,7 @@ enum ieee80211_hw_flags {
+@@ -3154,6 +3162,7 @@ enum ieee80211_hw_flags {
  	IEEE80211_HW_STRICT,
  	IEEE80211_HW_SUPPORTS_NDP_BLOCKACK,
  	IEEE80211_HW_DEFERRED_AIRTIME_REPORT,
@@ -51,7 +51,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	NUM_IEEE80211_HW_FLAGS
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -1678,6 +1678,100 @@ static u8 ieee80211_num_beaconing_links(
+@@ -1682,6 +1682,100 @@ static u8 ieee80211_num_beaconing_links(
  	return num;
  }
  
@@ -152,7 +152,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static int ieee80211_start_ap(struct wiphy *wiphy, struct net_device *dev,
  			      struct cfg80211_ap_settings *params)
  {
-@@ -1700,6 +1794,7 @@ static int ieee80211_start_ap(struct wip
+@@ -1704,6 +1798,7 @@ static int ieee80211_start_ap(struct wip
  		.oper = params->chandef,
  		.require_npca = true,
  	};
@@ -160,7 +160,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	u64 tsf;
  
  	lockdep_assert_wiphy(local->hw.wiphy);
-@@ -1714,6 +1809,10 @@ static int ieee80211_start_ap(struct wip
+@@ -1718,6 +1813,10 @@ static int ieee80211_start_ap(struct wip
  	if (old)
  		return -EALREADY;
  
@@ -171,7 +171,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	link->smps_mode = IEEE80211_SMPS_OFF;
  
  	link->needed_rx_chains = sdata->local->rx_chains;
-@@ -1969,6 +2068,7 @@ static int ieee80211_start_ap(struct wip
+@@ -1973,6 +2072,7 @@ static int ieee80211_start_ap(struct wip
  
  	ieee80211_vif_cfg_change_notify(sdata, BSS_CHANGED_SSID);
  	ieee80211_link_info_change_notify(sdata, link, changed);
@@ -179,7 +179,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	if (ieee80211_num_beaconing_links(sdata) <= 1)
  		netif_carrier_on(dev);
-@@ -1995,6 +2095,7 @@ static int ieee80211_change_beacon(struc
+@@ -2002,6 +2102,7 @@ static int ieee80211_change_beacon(struc
  	int err;
  	struct ieee80211_bss_conf *link_conf;
  	u64 changed = 0;
@@ -187,7 +187,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	lockdep_assert_wiphy(wiphy);
  
-@@ -2014,6 +2115,10 @@ static int ieee80211_change_beacon(struc
+@@ -2021,6 +2122,10 @@ static int ieee80211_change_beacon(struc
  	if (!old)
  		return -ENOENT;
  
@@ -198,7 +198,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	err = ieee80211_assign_beacon(sdata, link, beacon, NULL, NULL,
  				      &changed);
  	if (err < 0)
-@@ -2051,6 +2156,7 @@ static int ieee80211_change_beacon(struc
+@@ -2058,6 +2163,7 @@ static int ieee80211_change_beacon(struc
  	}
  
  	ieee80211_link_info_change_notify(sdata, link, changed);
@@ -206,7 +206,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	return 0;
  }
  
-@@ -4793,14 +4899,18 @@ __ieee80211_channel_switch(struct wiphy
+@@ -4807,14 +4913,18 @@ __ieee80211_channel_switch(struct wiphy
  		goto out;
  	}
  
@@ -227,7 +227,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	ch_switch.timestamp = 0;
  	ch_switch.device_timestamp = 0;
  	ch_switch.block_tx = params->block_tx;
-@@ -5863,6 +5973,7 @@ ieee80211_color_change(struct wiphy *wip
+@@ -5877,6 +5987,7 @@ ieee80211_color_change(struct wiphy *wip
  {
  	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
  	struct ieee80211_local *local = sdata->local;
@@ -235,7 +235,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	struct ieee80211_bss_conf *link_conf;
  	struct ieee80211_link_data *link;
  	u8 link_id = params->link_id;
-@@ -5890,6 +6001,15 @@ ieee80211_color_change(struct wiphy *wip
+@@ -5904,6 +6015,15 @@ ieee80211_color_change(struct wiphy *wip
  		err = -EBUSY;
  		goto out;
  	}
@@ -320,7 +320,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  			const u8 *peer, int link_id,
 --- a/net/mac80211/iface.c
 +++ b/net/mac80211/iface.c
-@@ -880,6 +880,7 @@ static int ieee80211_stop(struct net_dev
+@@ -882,6 +882,7 @@ static int ieee80211_stop(struct net_dev
  	wiphy_work_cancel(sdata->local->hw.wiphy, &sdata->activate_links_work);
  	wiphy_work_cancel(sdata->local->hw.wiphy, &sdata->links_removed_work);
  	atomic_set(&sdata->links_removed, 0);
@@ -328,7 +328,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	/* Close the dependent MBSSID interfaces with wiphy lock as we may be
  	 * terminating its partner links too in case of MLD.
-@@ -1924,6 +1925,9 @@ static void ieee80211_links_removed_work
+@@ -1953,6 +1954,9 @@ static void ieee80211_links_removed_work
  	u16 links = atomic_xchg(&sdata->links_removed, 0);
  	u16 valid_links = sdata->wdev.valid_links;
  
@@ -338,7 +338,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	/* a link that user space removed meanwhile is gone already */
  	links &= valid_links;
  	if (!ieee80211_sdata_running(sdata) || !links || links == valid_links)
-@@ -1944,6 +1948,16 @@ void ieee80211_links_removed(struct ieee
+@@ -1973,6 +1977,16 @@ void ieee80211_links_removed(struct ieee
  }
  EXPORT_SYMBOL_GPL(ieee80211_links_removed);
  
