@@ -46,7 +46,8 @@ define KernelPackage/hci-uart
 	CONFIG_BT_HCIUART_H4 \
 	CONFIG_BT_HCIUART_NOKIA=n
   FILES:= \
-	$(LINUX_DIR)/drivers/bluetooth/hci_uart.ko
+	$(LINUX_DIR)/drivers/bluetooth/hci_uart.ko \
+	$(LINUX_DIR)/lib/crc/crc-ccitt.ko
   AUTOLOAD:=$(call AutoProbe,hci_uart)
 endef
 
