@@ -25,7 +25,7 @@ Signed-off-by: Satoshi Ikeuchi <satosan.ikm@gmail.com>
  	{ .compatible = "qcom,ipq8074-wifi",
  	  .data = (void *)ATH11K_HW_IPQ8074,
  	},
-@@ -1184,6 +1187,7 @@ static int ath11k_ahb_probe(struct platf
+@@ -1215,6 +1218,7 @@ static int ath11k_ahb_probe(struct platf
  	hw_rev = (uintptr_t)device_get_match_data(&pdev->dev);
  
  	switch (hw_rev) {

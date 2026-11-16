@@ -53,9 +53,9 @@ Signed-off-by: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
 
 --- a/drivers/net/wireless/ath/ath11k/core.c
 +++ b/drivers/net/wireless/ath/ath11k/core.c
-@@ -2394,6 +2394,16 @@ static int ath11k_core_reconfigure_on_cr
- 
- 	mutex_lock(&ab->core_lock);
+@@ -2395,6 +2395,16 @@ static int ath11k_core_reconfigure_on_cr
+ 	ath11k_hif_irq_disable(ab);
+ 	ath11k_hif_ce_irq_disable(ab);
  	ath11k_thermal_unregister(ab);
 +
 +	/*

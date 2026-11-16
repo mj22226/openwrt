@@ -33,7 +33,7 @@ Link: https://lore.kernel.org/linux-wireless/20261011204509.46062-1-pepe.schleho
 
 --- a/drivers/net/wireless/realtek/rtw88/rtw8822b.c
 +++ b/drivers/net/wireless/realtek/rtw88/rtw8822b.c
-@@ -1562,6 +1562,12 @@ static void rtw8822b_adaptivity(struct r
+@@ -1565,6 +1565,12 @@ static void rtw8822b_adaptivity(struct r
  	if (dm_info->edcca_mode == RTW_EDCCA_NORMAL) {
  		l2h = max_t(s8, igi + EDCCA_IGI_L2H_DIFF, EDCCA_TH_L2H_LB);
  		h2l = l2h - EDCCA_L2H_H2L_DIFF_NORMAL;

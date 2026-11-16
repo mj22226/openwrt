@@ -44,7 +44,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  
 --- a/drivers/net/wireless/ath/ath11k/Kconfig
 +++ b/drivers/net/wireless/ath/ath11k/Kconfig
-@@ -24,9 +24,9 @@ config ATH11K_PCI
+@@ -27,9 +27,9 @@ config ATH11K_PCI
  	tristate "Atheros ath11k PCI support"
  	depends on m
  	depends on ATH11K && PCI
@@ -59,7 +59,7 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
  	  This module adds support for PCIE bus
 --- a/local-symbols
 +++ b/local-symbols
-@@ -55,14 +55,6 @@ MAC80211_MESH_PS_DEBUG=
+@@ -55,16 +55,6 @@ MAC80211_MESH_PS_DEBUG=
  MAC80211_TDLS_DEBUG=
  MAC80211_DEBUG_COUNTERS=
  MAC80211_STA_HASH_MAX_SIZE=
@@ -70,7 +70,9 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 -MHI_BUS=
 -MHI_BUS_DEBUG=
 -MHI_BUS_PCI_GENERIC=
+-MHI_BUS_LOOPBACK=
 -MHI_BUS_EP=
+-MHI_BUS_EP_LOOPBACK=
+ QCOM_SOC=
  QCOM_AOSS_QMP=
  QCOM_COMMAND_DB=
- QCOM_GENI_SE=
