@@ -81,9 +81,7 @@ $(eval $(call KernelPackage,crypto-authenc))
 define KernelPackage/crypto-blake2b
   TITLE:=Support for BLAKE2b cryptographic hash function (RFC 7693)
   DEPENDS:=+kmod-crypto-hash
-  KCONFIG:=CONFIG_CRYPTO_BLAKE2B
-  FILES:=$(LINUX_DIR)/crypto/blake2b_generic.ko
-  AUTOLOAD:=$(call AutoLoad,09,blake2b_generic)
+  KCONFIG:=CONFIG_CRYPTO_BLAKE2B=y
   $(call AddDepends/crypto)
 endef
 
@@ -350,7 +348,6 @@ define KernelPackage/crypto-ghash
 	CONFIG_CRYPTO_GHASH \
 	CONFIG_CRYPTO_GHASH_ARM_CE \
 	CONFIG_CRYPTO_GHASH_ARM64_CE
-  FILES:=$(LINUX_DIR)/crypto/ghash-generic.ko
   AUTOLOAD:=$(call AutoLoad,09,ghash-generic)
   $(call AddDepends/crypto)
 endef
@@ -772,6 +769,7 @@ define KernelPackage/crypto-rng
 	CONFIG_CRYPTO_JITTERENTROPY \
 	CONFIG_CRYPTO_RNG2
   FILES:= \
+	$(LINUX_DIR)/lib/crypto/libsha3.ko \
 	$(LINUX_DIR)/crypto/drbg.ko \
 	$(LINUX_DIR)/crypto/jitterentropy_rng.ko \
 	$(LINUX_DIR)/crypto/rng.ko
@@ -825,8 +823,7 @@ $(eval $(call KernelPackage,crypto-sha1))
 define KernelPackage/crypto-sha3
   TITLE:=SHA3 digest CryptoAPI module
   DEPENDS:=+kmod-crypto-hash
-  KCONFIG:= CONFIG_CRYPTO_SHA3
-  FILES:=$(LINUX_DIR)/crypto/sha3_generic.ko
+  KCONFIG:= CONFIG_CRYPTO_SHA3=y
   AUTOLOAD:=$(call AutoLoad,09,sha3_generic)
   $(call AddDepends/crypto)
 endef
