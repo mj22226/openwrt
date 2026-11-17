@@ -27,7 +27,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/linux/ieee80211.h
 +++ b/include/linux/ieee80211.h
-@@ -1492,6 +1492,9 @@ enum ieee80211_statuscode {
+@@ -1503,6 +1503,9 @@ enum ieee80211_statuscode {
  	WLAN_STATUS_NO_DIRECT_LINK = 48,
  	WLAN_STATUS_STA_NOT_PRESENT = 49,
  	WLAN_STATUS_STA_NOT_QSTA = 50,
@@ -82,7 +82,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  /* policy for the key attributes */
-@@ -18270,6 +18299,390 @@ static int nl80211_set_qos_map(struct sk
+@@ -18310,6 +18339,390 @@ static int nl80211_set_qos_map(struct sk
  	return ret;
  }
  
@@ -473,7 +473,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static int nl80211_add_tx_ts(struct sk_buff *skb, struct genl_info *info)
  {
  	struct cfg80211_registered_device *rdev = info->user_ptr[0];
-@@ -20505,6 +20918,18 @@ static const struct genl_small_ops nl802
+@@ -20546,6 +20959,18 @@ static const struct genl_small_ops nl802
  		.flags = GENL_UNS_ADMIN_PERM,
  		.internal_flags = IFLAGS(NL80211_FLAG_NEED_NETDEV_UP),
  	},
@@ -494,7 +494,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
 --- a/include/uapi/linux/nl80211.h
 +++ b/include/uapi/linux/nl80211.h
-@@ -1501,6 +1501,18 @@
+@@ -1503,6 +1503,18 @@
   *	The events of an advertised mapping carry %NL80211_ATTR_WIPHY,
   *	%NL80211_ATTR_IFINDEX, %NL80211_ATTR_WDEV and %NL80211_ATTR_COOKIE.
   *
@@ -513,7 +513,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @NL80211_CMD_MAX: highest used command number
   * @__NL80211_CMD_AFTER_LAST: internal use
   */
-@@ -1789,6 +1801,9 @@ enum nl80211_commands {
+@@ -1791,6 +1803,9 @@ enum nl80211_commands {
  	NL80211_CMD_ADV_TTLM_ESTABLISHED,
  	NL80211_CMD_ADV_TTLM_ENDED,
  
@@ -523,7 +523,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	/* add new commands above here */
  
  	/* used to define NL80211_CMD_MAX below */
-@@ -3304,6 +3319,12 @@ enum nl80211_commands {
+@@ -3307,6 +3322,12 @@ enum nl80211_commands {
   *	advertised TID-to-link mapping, in ns of %CLOCK_BOOTTIME, see
   *	%NL80211_CMD_ADV_TTLM_STARTED and %NL80211_CMD_ADV_TTLM_ESTABLISHED.
   *
@@ -536,7 +536,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @NUM_NL80211_ATTR: total number of nl80211_attrs available
   * @NL80211_ATTR_MAX: highest attribute number currently defined
   * @__NL80211_ATTR_AFTER_LAST: internal use
-@@ -3918,6 +3939,9 @@ enum nl80211_attrs {
+@@ -3921,6 +3942,9 @@ enum nl80211_attrs {
  	NL80211_ATTR_MLO_ADV_TTLM_SWITCH_TSF,
  	NL80211_ATTR_MLO_ADV_TTLM_TBTT_BOOTTIME,
  
@@ -546,7 +546,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	/* add attributes here, update the policy in nl80211.c */
  
  	__NL80211_ATTR_AFTER_LAST,
-@@ -6216,6 +6240,70 @@ enum nl80211_scs_req_type {
+@@ -6219,6 +6243,70 @@ enum nl80211_scs_req_type {
  };
  
  /**

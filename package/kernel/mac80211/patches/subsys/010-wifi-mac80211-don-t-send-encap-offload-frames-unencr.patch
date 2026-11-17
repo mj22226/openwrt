@@ -17,7 +17,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -607,6 +607,9 @@ ieee80211_select_key_8023(struct ieee802
+@@ -592,6 +592,9 @@ ieee80211_select_key_8023(struct ieee802
  		tx->key = rcu_dereference(tx->sta->ptk[tx->sta->ptk_idx]);
  		if (!tx->key)
  			tx->key = rcu_dereference(tx->sdata->default_unicast_key);

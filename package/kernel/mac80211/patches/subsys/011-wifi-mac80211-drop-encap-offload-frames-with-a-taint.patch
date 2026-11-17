@@ -16,7 +16,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -614,7 +614,13 @@ ieee80211_select_key_8023(struct ieee802
+@@ -599,7 +599,13 @@ ieee80211_select_key_8023(struct ieee802
  		tx->key = rcu_dereference(tx->sdata->deflink.default_multicast_key);
  	}
  

@@ -24,7 +24,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -5561,6 +5561,10 @@ struct mgmt_frame_regs {
+@@ -5583,6 +5583,10 @@ struct mgmt_frame_regs {
   *
   * @set_hw_timestamp: Enable/disable HW timestamping of TM/FTM frames.
   * @set_ttlm: set the TID to link mapping.
@@ -35,7 +35,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @adv_ttlm_request: advertise a TID-to-link mapping of an AP MLD, see
   *	%NL80211_CMD_ADV_TTLM_REQUEST. cfg80211 calls it only while no mapping
   *	is requested or established. (invoked with the wiphy mutex held)
-@@ -5964,6 +5968,9 @@ struct cfg80211_ops {
+@@ -5986,6 +5990,9 @@ struct cfg80211_ops {
  				    struct cfg80211_set_hw_timestamp *hwts);
  	int	(*set_ttlm)(struct wiphy *wiphy, struct net_device *dev,
  			    struct cfg80211_ttlm_params *params);
@@ -47,7 +47,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	void	(*adv_ttlm_cancel)(struct wiphy *wiphy, struct net_device *dev,
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -19715,6 +19715,38 @@ static int nl80211_set_hw_timestamp(stru
+@@ -19756,6 +19756,38 @@ static int nl80211_set_hw_timestamp(stru
  }
  
  static int
@@ -86,7 +86,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  nl80211_set_ttlm(struct sk_buff *skb, struct genl_info *info)
  {
  	struct cfg80211_ttlm_params params = {};
-@@ -19722,6 +19754,9 @@ nl80211_set_ttlm(struct sk_buff *skb, st
+@@ -19763,6 +19795,9 @@ nl80211_set_ttlm(struct sk_buff *skb, st
  	struct net_device *dev = info->user_ptr[1];
  	struct wireless_dev *wdev = dev->ieee80211_ptr;
  
@@ -98,7 +98,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		return -EOPNOTSUPP;
 --- a/net/wireless/rdev-ops.h
 +++ b/net/wireless/rdev-ops.h
-@@ -1610,6 +1610,22 @@ rdev_set_hw_timestamp(struct cfg80211_re
+@@ -1613,6 +1613,22 @@ rdev_set_hw_timestamp(struct cfg80211_re
  }
  
  static inline int
@@ -163,7 +163,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		 struct cfg80211_adv_ttlm_params *params),
 --- a/include/uapi/linux/nl80211.h
 +++ b/include/uapi/linux/nl80211.h
-@@ -1342,6 +1342,11 @@
+@@ -1344,6 +1344,11 @@
   *      non-AP MLD station. The %NL80211_ATTR_MLO_TTLM_DLINK and
   *      %NL80211_ATTR_MLO_TTLM_ULINK attributes are used to specify the
   *      TID to Link mapping for downlink/uplink traffic.
@@ -175,7 +175,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   *
   * @NL80211_CMD_ASSOC_MLO_RECONF: For a non-AP MLD station, request to
   *      add/remove links to/from the association. To indicate link
-@@ -7416,6 +7421,11 @@ enum nl80211_feature_flags {
+@@ -7422,6 +7427,11 @@ enum nl80211_feature_flags {
   *	that stay again after the event. The expiry comes before the TBTT at
   *	which the timer reaches 0, and the removed links keep running until
   *	user space stops them.
@@ -187,7 +187,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   *
   * @NUM_NL80211_EXT_FEATURES: number of extended features.
   * @MAX_NL80211_EXT_FEATURES: highest extended feature index.
-@@ -7506,6 +7516,7 @@ enum nl80211_ext_feature_index {
+@@ -7513,6 +7523,7 @@ enum nl80211_ext_feature_index {
  	NL80211_EXT_FEATURE_SCS,
  	NL80211_EXT_FEATURE_MSCS,
  	NL80211_EXT_FEATURE_AP_REMOVAL_TIMER_OFFLOAD,

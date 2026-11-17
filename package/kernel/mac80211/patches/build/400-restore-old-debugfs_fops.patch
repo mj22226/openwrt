@@ -100,7 +100,7 @@
  
  #define DEBUGFS_DECLARE_FILE(name, _read, _write, _read_bufsize, _attr)	\
  	__DEBUGFS_DECLARE_FILE(name, _read, _write, _read_bufsize,	\
-@@ -811,10 +852,17 @@ void carl9170_debugfs_register(struct ar
+@@ -812,10 +853,17 @@ void carl9170_debugfs_register(struct ar
  	ar->debug_dir = debugfs_create_dir(KBUILD_MODNAME,
  		ar->hw->wiphy->debugfsdir);
  
@@ -142,7 +142,7 @@
  	struct b43_dfs_file *dfile;
  	ssize_t ret;
  	char *buf;
-@@ -510,7 +517,12 @@ static ssize_t b43_debugfs_read(struct f
+@@ -509,7 +516,12 @@ static ssize_t b43_debugfs_read(struct f
  		goto out_unlock;
  	}
  
@@ -155,7 +155,7 @@
  	if (!dfops->read) {
  		err = -ENOSYS;
  		goto out_unlock;
-@@ -553,7 +565,11 @@ static ssize_t b43_debugfs_write(struct
+@@ -551,7 +563,11 @@ static ssize_t b43_debugfs_write(struct
  				 size_t count, loff_t *ppos)
  {
  	struct b43_wldev *dev;
@@ -167,7 +167,7 @@
  	char *buf;
  	int err = 0;
  
-@@ -571,7 +587,12 @@ static ssize_t b43_debugfs_write(struct
+@@ -569,7 +585,12 @@ static ssize_t b43_debugfs_write(struct
  		goto out_unlock;
  	}
  
@@ -180,7 +180,7 @@
  	if (!dfops->write) {
  		err = -ENOSYS;
  		goto out_unlock;
-@@ -599,19 +620,37 @@ out_unlock:
+@@ -597,19 +618,37 @@ out_unlock:
  }
  
  
@@ -218,7 +218,7 @@
  
  B43_DEBUGFS_FOPS(shm16read, shm16read__read_file, shm16read__write_file);
  B43_DEBUGFS_FOPS(shm16write, NULL, shm16write__write_file);
-@@ -697,12 +736,21 @@ void b43_debugfs_add_device(struct b43_w
+@@ -695,12 +734,21 @@ void b43_debugfs_add_device(struct b43_w
  	e->shm32read_routing_next = 0xFFFFFFFF; /* invalid routing */
  	e->shm32read_addr_next = 0xFFFFFFFF; /* invalid address */
  
@@ -264,7 +264,7 @@
  	struct b43legacy_dfs_file *dfile;
  	ssize_t ret;
  	char *buf;
-@@ -207,7 +214,12 @@ static ssize_t b43legacy_debugfs_read(st
+@@ -206,7 +213,12 @@ static ssize_t b43legacy_debugfs_read(st
  		goto out_unlock;
  	}
  
@@ -277,7 +277,7 @@
  	if (!dfops->read) {
  		err = -ENOSYS;
  		goto out_unlock;
-@@ -255,7 +267,11 @@ static ssize_t b43legacy_debugfs_write(s
+@@ -253,7 +265,11 @@ static ssize_t b43legacy_debugfs_write(s
  				 size_t count, loff_t *ppos)
  {
  	struct b43legacy_wldev *dev;
@@ -289,7 +289,7 @@
  	char *buf;
  	int err = 0;
  
-@@ -273,7 +289,12 @@ static ssize_t b43legacy_debugfs_write(s
+@@ -271,7 +287,12 @@ static ssize_t b43legacy_debugfs_write(s
  		goto out_unlock;
  	}
  
@@ -302,7 +302,7 @@
  	if (!dfops->write) {
  		err = -ENOSYS;
  		goto out_unlock;
-@@ -305,20 +326,39 @@ out_unlock:
+@@ -303,20 +324,39 @@ out_unlock:
  	return err ? err : count;
  }
  
@@ -342,7 +342,7 @@
  
  B43legacy_DEBUGFS_FOPS(tsf, tsf_read_file, tsf_write_file, 1);
  B43legacy_DEBUGFS_FOPS(ucode_regs, ucode_regs_read_file, NULL, 1);
-@@ -380,12 +420,21 @@ void b43legacy_debugfs_add_device(struct
+@@ -378,12 +418,21 @@ void b43legacy_debugfs_add_device(struct
  	snprintf(devdir, sizeof(devdir), "%s", wiphy_name(dev->wl->hw->wiphy));
  	e->subdir = debugfs_create_dir(devdir, rootdir);
  

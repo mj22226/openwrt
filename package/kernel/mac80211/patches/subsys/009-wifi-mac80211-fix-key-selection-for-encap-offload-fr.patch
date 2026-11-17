@@ -29,7 +29,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -589,6 +589,34 @@ ieee80211_select_link_key(struct ieee802
+@@ -574,6 +574,34 @@ ieee80211_select_link_key(struct ieee802
  	return NULL;
  }
  
@@ -64,7 +64,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  static ieee80211_tx_result debug_noinline
  ieee80211_tx_h_select_key(struct ieee80211_tx_data *tx)
  {
-@@ -596,6 +624,9 @@ ieee80211_tx_h_select_key(struct ieee802
+@@ -581,6 +609,9 @@ ieee80211_tx_h_select_key(struct ieee802
  	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(tx->skb);
  	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)tx->skb->data;
  
@@ -74,7 +74,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	if (unlikely(info->flags & IEEE80211_TX_INTFL_DONT_ENCRYPT)) {
  		tx->key = NULL;
  		return TX_CONTINUE;
-@@ -612,12 +643,6 @@ ieee80211_tx_h_select_key(struct ieee802
+@@ -597,12 +628,6 @@ ieee80211_tx_h_select_key(struct ieee802
  	else
  		tx->key = NULL;
  

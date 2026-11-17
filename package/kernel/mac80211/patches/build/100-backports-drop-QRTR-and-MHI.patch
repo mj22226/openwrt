@@ -71,6 +71,6 @@ Signed-off-by: Robert Marko <robimarko@gmail.com>
 -MHI_BUS_DEBUG=
 -MHI_BUS_PCI_GENERIC=
 -MHI_BUS_EP=
+ QCOM_SOC=
  QCOM_AOSS_QMP=
  QCOM_COMMAND_DB=
- QCOM_GENI_SE=

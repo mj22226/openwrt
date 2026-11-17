@@ -18,7 +18,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/include/uapi/linux/nl80211.h
 +++ b/include/uapi/linux/nl80211.h
-@@ -1425,6 +1425,38 @@
+@@ -1427,6 +1427,38 @@
   * @NL80211_CMD_STOP_PD: Stop the PD operation, identified by
   *	its %NL80211_ATTR_WDEV interface.
   *
@@ -57,7 +57,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @NL80211_CMD_MAX: highest used command number
   * @__NL80211_CMD_AFTER_LAST: internal use
   */
-@@ -1703,6 +1735,10 @@ enum nl80211_commands {
+@@ -1705,6 +1737,10 @@ enum nl80211_commands {
  	NL80211_CMD_START_PD,
  	NL80211_CMD_STOP_PD,
  
@@ -68,7 +68,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	/* add new commands above here */
  
  	/* used to define NL80211_CMD_MAX below */
-@@ -3182,6 +3218,19 @@ enum nl80211_commands {
+@@ -3185,6 +3221,19 @@ enum nl80211_commands {
   *	The aggregated message always precedes the per-link messages for the
   *	same station within a dump sequence.
   *
@@ -88,7 +88,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @NUM_NL80211_ATTR: total number of nl80211_attrs available
   * @NL80211_ATTR_MAX: highest attribute number currently defined
   * @__NL80211_ATTR_AFTER_LAST: internal use
-@@ -3782,6 +3831,13 @@ enum nl80211_attrs {
+@@ -3785,6 +3834,13 @@ enum nl80211_attrs {
  
  	NL80211_ATTR_STA_DUMP_LINK_STATS,
  
@@ -102,9 +102,9 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	/* add attributes here, update the policy in nl80211.c */
  
  	__NL80211_ATTR_AFTER_LAST,
-@@ -7104,6 +7160,16 @@ enum nl80211_feature_flags {
-  *	LTF key seed via %NL80211_KEY_LTF_SEED. The seed is used to generate
-  *	secure LTF keys for secure LTF measurement sessions.
+@@ -7110,6 +7166,16 @@ enum nl80211_feature_flags {
+  * @NL80211_EXT_FEATURE_PROBE_AP: Driver supports probing the associated AP
+  *	in STA mode using @NL80211_CMD_PROBE_PEER.
   *
 + * @NL80211_EXT_FEATURE_PROBE_AP: Driver supports probing the associated AP
 + *	in STA mode using @NL80211_CMD_PROBE_PEER.
@@ -119,16 +119,16 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @NUM_NL80211_EXT_FEATURES: number of extended features.
   * @MAX_NL80211_EXT_FEATURES: highest extended feature index.
   */
-@@ -7185,6 +7251,9 @@ enum nl80211_ext_feature_index {
- 	NL80211_EXT_FEATURE_IEEE8021X_AUTH,
- 	NL80211_EXT_FEATURE_ROC_ADDR_FILTER,
+@@ -7193,6 +7259,9 @@ enum nl80211_ext_feature_index {
  	NL80211_EXT_FEATURE_SET_KEY_LTF_SEED,
-+	NL80211_EXT_FEATURE_PROBE_AP,
+ 	NL80211_EXT_FEATURE_PROBE_AP,
+ 
 +	NL80211_EXT_FEATURE_FAST_ROAM_OFFLOAD,
 +	NL80211_EXT_FEATURE_UPDATE_BEACON,
- 
++
  	/* add new features before the definition below */
  	NUM_NL80211_EXT_FEATURES,
+ 	MAX_NL80211_EXT_FEATURES = NUM_NL80211_EXT_FEATURES - 1
 --- a/drivers/net/wireless/virtual/mac80211_hwsim.h
 +++ b/drivers/net/wireless/virtual/mac80211_hwsim.h
 @@ -162,6 +162,8 @@ enum hwsim_commands {

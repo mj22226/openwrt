@@ -39,7 +39,7 @@ Signed-off-by: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
 
 --- a/drivers/net/wireless/ath/ath11k/ahb.c
 +++ b/drivers/net/wireless/ath/ath11k/ahb.c
-@@ -1265,14 +1265,15 @@ static void ath11k_ahb_remove(struct pla
+@@ -1296,14 +1296,15 @@ static void ath11k_ahb_remove(struct pla
  {
  	struct ath11k_base *ab = platform_get_drvdata(pdev);
  

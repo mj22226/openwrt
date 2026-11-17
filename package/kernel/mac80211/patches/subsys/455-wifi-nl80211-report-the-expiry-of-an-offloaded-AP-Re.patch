@@ -24,7 +24,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -11074,6 +11074,10 @@ cfg80211_6ghz_power_type(u8 control, u32
+@@ -11100,6 +11100,10 @@ cfg80211_6ghz_power_type(u8 control, u32
   * AP MLD removing the corresponding affiliated APs with Multi-Link
   * reconfiguration. Note that it's not valid to remove all links, in this
   * case disconnect instead.
@@ -37,7 +37,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  void cfg80211_links_removed(struct net_device *dev, u16 link_mask);
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -21969,23 +21969,32 @@ void cfg80211_links_removed(struct net_d
+@@ -22013,23 +22013,32 @@ void cfg80211_links_removed(struct net_d
  	struct wiphy *wiphy = wdev->wiphy;
  	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wiphy);
  	struct sk_buff *msg;
@@ -76,7 +76,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (!msg)
 --- a/include/uapi/linux/nl80211.h
 +++ b/include/uapi/linux/nl80211.h
-@@ -1333,6 +1333,10 @@
+@@ -1335,6 +1335,10 @@
   *	setup links due to AP MLD removing the corresponding affiliated APs with
   *	Multi-Link reconfiguration. %NL80211_ATTR_MLO_LINKS is used to provide
   *	information about the removed STA MLD setup links.
@@ -87,7 +87,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   *
   * @NL80211_CMD_SET_TID_TO_LINK_MAPPING: Set the TID to Link Mapping for a
   *      non-AP MLD station. The %NL80211_ATTR_MLO_TTLM_DLINK and
-@@ -7383,6 +7387,17 @@ enum nl80211_feature_flags {
+@@ -7389,6 +7393,17 @@ enum nl80211_feature_flags {
   *	service, configured with %NL80211_CMD_SET_SCS.
   * @NL80211_EXT_FEATURE_MSCS: Driver supports the mirrored stream
   *	classification service, configured with %NL80211_CMD_SET_MSCS.
@@ -105,7 +105,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   *
   * @NUM_NL80211_EXT_FEATURES: number of extended features.
   * @MAX_NL80211_EXT_FEATURES: highest extended feature index.
-@@ -7472,6 +7487,7 @@ enum nl80211_ext_feature_index {
+@@ -7479,6 +7494,7 @@ enum nl80211_ext_feature_index {
  	NL80211_EXT_FEATURE_AP_ADV_TTLM,
  	NL80211_EXT_FEATURE_SCS,
  	NL80211_EXT_FEATURE_MSCS,

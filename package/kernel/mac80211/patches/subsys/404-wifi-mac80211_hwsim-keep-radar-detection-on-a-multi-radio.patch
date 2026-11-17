@@ -26,8 +26,8 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/drivers/net/wireless/virtual/mac80211_hwsim_main.c
 +++ b/drivers/net/wireless/virtual/mac80211_hwsim_main.c
-@@ -6320,8 +6320,14 @@ static int mac80211_hwsim_new_radio(stru
- 		data->if_combination.num_different_channels *= data->n_radio;
+@@ -6128,8 +6128,14 @@ static int mac80211_hwsim_new_radio(stru
+ 		data->if_combination.num_different_channels *= n_bands;
  	}
  
 -	if (data->use_chanctx)

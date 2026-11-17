@@ -1,29 +1,22 @@
 --- a/compat/lib-crypto-aes.c
 +++ b/compat/lib-crypto-aes.c
-@@ -515,7 +515,7 @@ void aes_decrypt(const struct aes_key *k
+@@ -542,7 +542,7 @@ static void __init aes_fips_test(void)
+ 	memzero_explicit(&key, sizeof(key));
  }
- EXPORT_SYMBOL(aes_decrypt);
  
 -#if IS_ENABLED(CONFIG_CRYPTO_LIB_AES_CBC_MACS)
 +#if IS_ENABLED(CPTCFG_BACKPORTED_BPAUTO_CRYPTO_LIB_AES_CBC_MACS)
  
  #ifndef aes_cbcmac_blocks_arch
  static bool aes_cbcmac_blocks_arch(u8 h[AES_BLOCK_SIZE],
-@@ -710,49 +710,8 @@ void aes_cbcmac_final(struct aes_cbcmac_
+@@ -737,23 +737,6 @@ void aes_cbcmac_final(struct aes_cbcmac_
  }
  EXPORT_SYMBOL_NS_GPL(aes_cbcmac_final, "CRYPTO_INTERNAL");
  
--/*
-- * FIPS cryptographic algorithm self-test for AES-CMAC.  As per the FIPS 140-3
-- * Implementation Guidance, a cryptographic algorithm self-test for at least one
-- * of AES-GCM, AES-CCM, AES-CMAC, or AES-GMAC is required if any of those modes
-- * is implemented.  This fulfills that requirement via AES-CMAC.
-- *
-- * This is just for FIPS.  The full tests are in the KUnit test suite.
-- */
+-/* FIPS cryptographic algorithm self-test for AES-CMAC */
 -static void __init aes_cmac_fips_test(void)
 -{
--	struct aes_cmac_key key;
+-	struct aes_cmac_key key __cleanup(aes_cmac_zeroize_key);
 -	u8 mac[AES_BLOCK_SIZE];
 -
 -	if (aes_cmac_preparekey(&key, fips_test_key, sizeof(fips_test_key)) !=
@@ -32,7 +25,6 @@
 -	aes_cmac(&key, fips_test_data, sizeof(fips_test_data), mac);
 -	if (memcmp(fips_test_aes_cmac_value, mac, sizeof(mac)) != 0)
 -		panic("aes: CMAC FIPS self-test failed (wrong MAC)\n");
--	memzero_explicit(&key, sizeof(key));
 -}
 -#else /* CONFIG_CRYPTO_LIB_AES_CBC_MACS */
 -static inline void aes_cmac_fips_test(void)
@@ -40,13 +32,27 @@
 -}
  #endif /* !CONFIG_CRYPTO_LIB_AES_CBC_MACS */
  
+ #if IS_ENABLED(CONFIG_CRYPTO_LIB_AES_ECB)
+@@ -2117,30 +2100,6 @@ static inline void aes_ccm_fips_test(voi
+ }
+ #endif /* !CONFIG_CRYPTO_LIB_AES_CCM */
+ 
 -static int __init aes_mod_init(void)
 -{
 -#ifdef aes_mod_init_arch
 -	aes_mod_init_arch();
 -#endif
--	if (fips_enabled)
+-	if (fips_enabled) {
+-		aes_fips_test();
 -		aes_cmac_fips_test();
+-		aes_ecb_fips_test();
+-		aes_cbc_fips_test();
+-		aes_cbc_cts_fips_test();
+-		aes_ctr_fips_test();
+-		aes_xts_fips_test();
+-		aes_gcm_fips_test();
+-		aes_ccm_fips_test();
+-	}
 -	return 0;
 -}
 -subsys_initcall(aes_mod_init);
@@ -55,7 +61,6 @@
 -{
 -}
 -module_exit(aes_mod_exit);
--
+ 
  MODULE_DESCRIPTION("AES block cipher");
  MODULE_AUTHOR("Ard Biesheuvel <ard.biesheuvel@linaro.org>");
- MODULE_AUTHOR("Eric Biggers <ebiggers@kernel.org>");

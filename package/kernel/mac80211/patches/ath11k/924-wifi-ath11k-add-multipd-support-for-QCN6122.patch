@@ -23,8 +23,8 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
 +	ab->qmi.service_ins_id += ab->userpd_id;
  }
  
- static void ath11k_ahb_free_ext_irq(struct ath11k_base *ab)
-@@ -1106,6 +1107,27 @@ err_unregister:
+ static void ath11k_ahb_free_ext_irq_grp(struct ath11k_base *ab,
+@@ -1137,6 +1138,27 @@ err_unregister:
  	return ret;
  }
  
@@ -52,7 +52,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  static int ath11k_ahb_fw_resource_deinit(struct ath11k_base *ab)
  {
  	struct ath11k_ahb *ab_ahb = ath11k_ahb_priv(ab);
-@@ -1147,7 +1169,7 @@ static int ath11k_ahb_probe(struct platf
+@@ -1178,7 +1200,7 @@ static int ath11k_ahb_probe(struct platf
  	const struct ath11k_hif_ops *hif_ops;
  	const struct ath11k_pci_ops *pci_ops;
  	enum ath11k_hw_rev hw_rev;
@@ -61,7 +61,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  
  	hw_rev = (uintptr_t)device_get_match_data(&pdev->dev);
  
-@@ -1171,6 +1193,7 @@ static int ath11k_ahb_probe(struct platf
+@@ -1202,6 +1224,7 @@ static int ath11k_ahb_probe(struct platf
  		return -EOPNOTSUPP;
  	}
  
@@ -69,7 +69,7 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  	ret = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
  	if (ret) {
  		dev_err(&pdev->dev, "failed to set 32-bit consistent dma\n");
-@@ -1187,6 +1210,7 @@ static int ath11k_ahb_probe(struct platf
+@@ -1218,6 +1241,7 @@ static int ath11k_ahb_probe(struct platf
  	ab->hif.ops = hif_ops;
  	ab->pdev = pdev;
  	ab->hw_rev = hw_rev;
