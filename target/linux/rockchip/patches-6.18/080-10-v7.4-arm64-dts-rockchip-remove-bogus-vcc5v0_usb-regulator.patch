@@ -1,0 +1,53 @@
+From 9518c669aa24574445e874c89313a133c276513b Mon Sep 17 00:00:00 2001
+From: Joachim Eastwood <joachim.eastwood@gmail.com>
+Date: Thu, 3 Sep 2026 23:23:21 +0200
+Subject: [PATCH] arm64: dts: rockchip: remove bogus vcc5v0_usb regulator from
+ rk3588s-nanopi-r6
+
+All USB regulators (power switches) are feed from the main vcc5v0
+supply. There is no regulator or switch in between.
+
+Signed-off-by: Joachim Eastwood <joachim.eastwood@gmail.com>
+Link: https://patch.msgid.link/20260903-nanopi-m6-v6-9-37416bbd6862@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ .../arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
+@@ -131,16 +131,6 @@
+ 		vin-supply = <&vcc_3v3_s3>;
+ 	};
+ 
+-	vcc5v0_usb: regulator-vcc5v0-usb {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vcc5v0_usb";
+-		regulator-always-on;
+-		regulator-boot-on;
+-		regulator-min-microvolt = <5000000>;
+-		regulator-max-microvolt = <5000000>;
+-		vin-supply = <&vcc5v0_sys>;
+-	};
+-
+ 	vcc5v0_usb_otg0: regulator-vcc5v0-usb-otg0 {
+ 		compatible = "regulator-fixed";
+ 		enable-active-high;
+@@ -150,7 +140,7 @@
+ 		regulator-name = "vcc5v0_usb_otg0";
+ 		regulator-min-microvolt = <5000000>;
+ 		regulator-max-microvolt = <5000000>;
+-		vin-supply = <&vcc5v0_usb>;
++		vin-supply = <&vcc5v0_sys>;
+ 	};
+ 
+ 	vcc5v0_host_20: regulator-vcc5v0-host-20 {
+@@ -162,7 +152,7 @@
+ 		regulator-name = "vcc5v0_host_20";
+ 		regulator-min-microvolt = <5000000>;
+ 		regulator-max-microvolt = <5000000>;
+-		vin-supply = <&vcc5v0_usb>;
++		vin-supply = <&vcc5v0_sys>;
+ 	};
+ };
+ 

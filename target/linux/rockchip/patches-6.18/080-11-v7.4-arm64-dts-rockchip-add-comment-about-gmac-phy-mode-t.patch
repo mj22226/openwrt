@@ -1,0 +1,28 @@
+From 92b4f18f9a07786f9146788ca5e18cb9469bd1cf Mon Sep 17 00:00:00 2001
+From: Joachim Eastwood <joachim.eastwood@gmail.com>
+Date: Thu, 3 Sep 2026 23:23:22 +0200
+Subject: [PATCH] arm64: dts: rockchip: add comment about gmac phy-mode to
+ rk3588s-nanopi-r6
+
+Add comment to explain rgmii-rxid phy-mode usage. Note that the actual
+delay in ns is not known. The tx_delay value of 0x42 comes from vendor
+DT.
+
+Signed-off-by: Joachim Eastwood <joachim.eastwood@gmail.com>
+Link: https://patch.msgid.link/20260903-nanopi-m6-v6-10-37416bbd6862@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
+@@ -199,7 +199,7 @@
+ &gmac1 {
+ 	clock_in_out = "output";
+ 	phy-handle = <&rgmii_phy1>;
+-	phy-mode = "rgmii-rxid";
++	phy-mode = "rgmii-rxid"; /* Vendor provided tx delay value below */
+ 	phy-supply = <&vcc_3v3_s3>;
+ 	pinctrl-0 = <&gmac1_miim
+ 		     &gmac1_tx_bus2

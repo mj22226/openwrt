@@ -1,0 +1,54 @@
+From 1faf8018879fc0e4a76958f2122f6ab7aac5957a Mon Sep 17 00:00:00 2001
+From: Joachim Eastwood <joachim.eastwood@gmail.com>
+Date: Thu, 3 Sep 2026 23:23:19 +0200
+Subject: [PATCH] arm64: dts: rockchip: remove useless vcc_3v3_pcie20 from
+ rk3588s-nanopi-r6
+
+There is no separate regulator for boards with RTL8125BG MACs.
+The power is only separated from VCC_3V3_S3 with a ferrite bead.
+
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Signed-off-by: Joachim Eastwood <joachim.eastwood@gmail.com>
+Link: https://patch.msgid.link/20260903-nanopi-m6-v6-7-37416bbd6862@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ .../arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
+@@ -131,16 +131,6 @@
+ 		vin-supply = <&vcc_3v3_s3>;
+ 	};
+ 
+-	vcc_3v3_pcie20: regulator-vcc3v3-pcie20 {
+-		compatible = "regulator-fixed";
+-		regulator-name = "vcc_3v3_pcie20";
+-		regulator-always-on;
+-		regulator-boot-on;
+-		regulator-min-microvolt = <3300000>;
+-		regulator-max-microvolt = <3300000>;
+-		vin-supply = <&vcc_3v3_s3>;
+-	};
+-
+ 	vcc5v0_usb: regulator-vcc5v0-usb {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vcc5v0_usb";
+@@ -361,7 +351,7 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pcie20x1_1_perstn_m2>;
+ 	reset-gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_HIGH>;
+-	vpcie3v3-supply = <&vcc_3v3_pcie20>;
++	vpcie3v3-supply = <&vcc_3v3_s3>;
+ 	status = "okay";
+ };
+ 
+@@ -370,7 +360,7 @@
+ 	pinctrl-0 = <&pcie20x1_2_perstn_m0>, <&pcie20x1m0_clkreqn>;
+ 	supports-clkreq;
+ 	reset-gpios = <&gpio3 RK_PD1 GPIO_ACTIVE_HIGH>;
+-	vpcie3v3-supply = <&vcc_3v3_pcie20>;
++	vpcie3v3-supply = <&vcc_3v3_s3>;
+ 	status = "okay";
+ };
+ 

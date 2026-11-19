@@ -8,18 +8,7 @@ after the system is done booting.
 
 --- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
-@@ -14,6 +14,10 @@
- 		ethernet0 = &gmac1;
- 		mmc0 = &sdmmc;
- 		mmc1 = &sdhci;
-+		led-boot = &sys_led;
-+		led-failsafe = &sys_led;
-+		led-running = &sys_led;
-+		led-upgrade = &sys_led;
- 	};
- 
- 	chosen {
-@@ -63,9 +67,9 @@
+@@ -22,9 +22,9 @@
  
  		sys_led: led-0 {
  			color = <LED_COLOR_ID_RED>;
@@ -31,3 +20,16 @@ after the system is done booting.
  			pinctrl-names = "default";
  			pinctrl-0 = <&sys_led_pin>;
  		};
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi.dtsi
+@@ -11,6 +11,10 @@
+ 		ethernet0 = &gmac1;
+ 		mmc0 = &sdmmc;
+ 		mmc1 = &sdhci;
++		led-boot = &sys_led;
++		led-failsafe = &sys_led;
++		led-running = &sys_led;
++		led-upgrade = &sys_led;
+ 	};
+ 
+ 	chosen {

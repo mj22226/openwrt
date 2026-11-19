@@ -1,0 +1,27 @@
+From 92507cbe7581c519da115128a2ce6930dd9dd6fb Mon Sep 17 00:00:00 2001
+From: Joachim Eastwood <joachim.eastwood@gmail.com>
+Date: Thu, 3 Sep 2026 23:23:18 +0200
+Subject: [PATCH] arm64: dts: rockchip: remove always-on and boot-on from
+ vdd_npu_s0 reg on rk3588s-nanopi-r6
+
+Since the NPU is hooked up in DT, the always-on and boot-on properties
+on the regulator isn't needed anymore.
+
+Signed-off-by: Joachim Eastwood <joachim.eastwood@gmail.com>
+Link: https://patch.msgid.link/20260903-nanopi-m6-v6-6-37416bbd6862@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi | 2 --
+ 1 file changed, 2 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
+@@ -314,8 +314,6 @@
+ 		regulator-min-microvolt = <550000>;
+ 		regulator-max-microvolt = <950000>;
+ 		regulator-ramp-delay = <2300>;
+-		regulator-boot-on;
+-		regulator-always-on;
+ 		vin-supply = <&vcc5v0_sys>;
+ 
+ 		regulator-state-mem {

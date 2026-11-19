@@ -44,9 +44,9 @@ Signed-off-by: Tianling Shen <cnsztl@gmail.com>
  		};
  
  		power-led {
-@@ -373,8 +383,9 @@
+@@ -381,8 +391,9 @@
+ 	};
  
- &pinctrl {
  	leds {
 -		io_led: io-led {
 -			rockchip,pins = <3 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>;

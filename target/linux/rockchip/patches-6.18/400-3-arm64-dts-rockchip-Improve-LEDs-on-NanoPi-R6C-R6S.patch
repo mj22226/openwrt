@@ -16,21 +16,21 @@ In addition to that:
 Signed-off-by: Sebastian Kropatsch <seb-dev@mail.de>
 ---
  .../boot/dts/rockchip/rk3588s-nanopi-r6.dtsi  | 32 +++++++------------
- .../boot/dts/rockchip/rk3588s-nanopi-r6c.dts  | 22 ++++++++++---
+ .../boot/dts/rockchip/rk3588s-nanopi-r6c.dts  | 20 ++++++++++--
  .../boot/dts/rockchip/rk3588s-nanopi-r6s.dts  | 26 +++++++++++++--
- 3 files changed, 54 insertions(+), 26 deletions(-)
+ 3 files changed, 54 insertions(+), 24 deletions(-)
 
 --- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
 +++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
-@@ -5,6 +5,7 @@
- #include <dt-bindings/pinctrl/rockchip.h>
- #include <dt-bindings/gpio/gpio.h>
- #include <dt-bindings/input/input.h>
-+#include <dt-bindings/leds/common.h>
- #include <dt-bindings/soc/rockchip,vop2.h>
- #include "rk3588s.dtsi"
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  
-@@ -61,7 +62,8 @@
+ #include "rk3588s-nanopi.dtsi"
++#include <dt-bindings/leds/common.h>
+ 
+ / {
+ 	gpio-keys {
+@@ -20,7 +21,8 @@
  		compatible = "gpio-leds";
  
  		sys_led: led-0 {
@@ -40,7 +40,7 @@ Signed-off-by: Sebastian Kropatsch <seb-dev@mail.de>
  			gpios = <&gpio1 RK_PC1 GPIO_ACTIVE_HIGH>;
  			linux,default-trigger = "heartbeat";
  			pinctrl-names = "default";
-@@ -69,24 +71,22 @@
+@@ -28,24 +30,22 @@
  		};
  
  		wan_led: led-1 {
@@ -70,8 +70,8 @@ Signed-off-by: Sebastian Kropatsch <seb-dev@mail.de>
 -		};
  	};
  
- 	vcc_5v0: regulator-vcc-5v0 {
-@@ -378,23 +378,15 @@
+ 	vcc5v0_usb_otg0: regulator-vcc5v0-usb-otg0 {
+@@ -70,23 +70,15 @@
  
  	gpio-leds {
  		sys_led_pin: sys-led-pin {
@@ -100,10 +100,11 @@ Signed-off-by: Sebastian Kropatsch <seb-dev@mail.de>
  
 --- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6c.dts
 +++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6c.dts
-@@ -8,6 +8,18 @@
+@@ -7,8 +7,24 @@
+ / {
  	model = "FriendlyElec NanoPi R6C";
  	compatible = "friendlyarm,nanopi-r6c", "rockchip,rk3588s";
- 
++
 +	leds {
 +		compatible = "gpio-leds";
 +
@@ -115,36 +116,20 @@ Signed-off-by: Sebastian Kropatsch <seb-dev@mail.de>
 +			pinctrl-0 = <&led1_led_pin>;
 +		};
 +	};
-+
- 	/* MP2143DJ power switch (U9536 in schematics) */
- 	vcc3v3_pcie: regulator-vcc3v3-pcie {
- 		compatible = "regulator-fixed";
-@@ -24,16 +36,18 @@
- 	};
  };
  
 -&lan2_led {
 -	label = "user_led";
--};
--
- /* M.2 M-Key socket */
- &pcie2x1l2 {
- 	vpcie3v3-supply = <&vcc3v3_pcie>;
- };
- 
- &pinctrl {
++&pinctrl {
 +	gpio-leds {
 +		led1_led_pin: led1-led-pin {
 +			rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
 +		};
 +	};
-+
- 	pcie {
- 		pcie20x1_2_con_pwren: pcie20x1-2-con-pwren {
- 			rockchip,pins = <3 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
+ };
 --- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts
 +++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6s.dts
-@@ -7,13 +7,35 @@
+@@ -7,8 +7,30 @@
  / {
  	model = "FriendlyElec NanoPi R6S";
  	compatible = "friendlyarm,nanopi-r6s", "rockchip,rk3588s";
@@ -162,23 +147,18 @@ Signed-off-by: Sebastian Kropatsch <seb-dev@mail.de>
 +			pinctrl-0 = <&lan2_led_pin>;
 +		};
 +	};
- };
- 
--&lan2_led {
--	label = "lan2_led";
++};
++
 +&lan1_led {
 +	function-enumerator = <1>;
  };
  
- /* RTL8125BG Ethernet */
- &pcie2x1l2 {
- 	vpcie3v3-supply = <&vcc_3v3_s3>;
- };
-+
+-&lan2_led {
+-	label = "lan2_led";
 +&pinctrl {
 +	gpio-leds {
 +		lan2_led_pin: lan2-led-pin {
 +			rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
 +		};
 +	};
-+};
+ };

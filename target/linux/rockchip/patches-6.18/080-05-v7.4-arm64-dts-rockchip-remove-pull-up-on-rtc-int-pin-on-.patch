@@ -1,0 +1,27 @@
+From 2d4c429e561b21c07f95ed41481a5d1062659c9e Mon Sep 17 00:00:00 2001
+From: Joachim Eastwood <joachim.eastwood@gmail.com>
+Date: Thu, 3 Sep 2026 23:23:16 +0200
+Subject: [PATCH] arm64: dts: rockchip: remove pull up on rtc int pin on
+ rk3588s-nanopi-r6
+
+All boards in the RK3588S NanoPi familiy has a pull on the PCB for the
+RTC interrupt pin. So there is no need to enable the pull-up in the SoC.
+
+Signed-off-by: Joachim Eastwood <joachim.eastwood@gmail.com>
+Link: https://patch.msgid.link/20260903-nanopi-m6-v6-4-37416bbd6862@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
+@@ -420,7 +420,7 @@
+ 
+ 	hym8563 {
+ 		rtc_int: rtc-int {
+-			rockchip,pins = <0 RK_PB0 RK_FUNC_GPIO &pcfg_pull_up>;
++			rockchip,pins = <0 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 	};
+ 

@@ -45852,21 +45852,21 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +		status = "disabled";
 +	};
 +
-+	v3d: v3d@2000000 {
-+		compatible = "brcm,2712-v3d";
-+		reg = <0x10 0x02000000  0x0 0x4000>,
-+			  <0x10 0x02008000  0x0 0x6000>,
-+			  <0x10 0x02030800  0x0 0x0700>;
-+		reg-names = "hub", "core0", "sms";
 +
-+		power-domains = <&pm BCM2835_POWER_DOMAIN_GRAFX_V3D>;
-+		resets = <&pm BCM2835_RESET_V3D>;
-+		clocks = <&firmware_clocks 5>;
-+		clocks-names = "v3d";
-+		interrupts = <GIC_SPI 250 IRQ_TYPE_LEVEL_HIGH>,
-+					<GIC_SPI 249 IRQ_TYPE_LEVEL_HIGH>;
-+		status = "disabled";
-+	};
++
++
++
++
++
++
++
++
++
++
++
++
++
++
 +};
 +
 +&gicv2 {
@@ -45946,7 +45946,7 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 +};
 --- a/arch/arm64/boot/dts/broadcom/bcm2712-rpi-5-b-ovl-rp1.dts
 +++ /dev/null
-@@ -1,254 +0,0 @@
+@@ -1,290 +0,0 @@
 -// SPDX-License-Identifier: (GPL-2.0 OR MIT)
 -/dts-v1/;
 -
@@ -45993,6 +45993,30 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 -		};
 -	};
 -
+-	firmware {
+-		firmware: rpi-firmware {
+-			compatible = "raspberrypi,bcm2835-firmware", "simple-mfd";
+-
+-			mboxes = <&mailbox>;
+-
+-			firmware_clocks: clocks {
+-				compatible = "raspberrypi,firmware-clocks";
+-				#clock-cells = <1>;
+-			};
+-
+-			reset: reset {
+-				compatible = "raspberrypi,firmware-reset";
+-				#reset-cells = <1>;
+-			};
+-
+-			power: power {
+-				compatible = "raspberrypi,bcm2835-power";
+-				firmware = <&firmware>;
+-				#power-domain-cells = <1>;
+-			};
+-		};
+-	};
+-
 -	sd_io_1v8_reg: sd-io-1v8-reg {
 -		compatible = "regulator-gpio";
 -		regulator-name = "vdd-sd-io";
@@ -46027,6 +46051,18 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 -		startup-delay-us = <150000>;
 -		enable-active-high;
 -	};
+-};
+-
+-&ddc0 {
+-	status = "okay";
+-};
+-
+-&ddc1 {
+-	status = "okay";
+-};
+-
+-&disp_intr {
+-	status = "okay";
 -};
 -
 -&pinctrl {
@@ -46138,33 +46174,6 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 -	};
 -};
 -
--&soc {
--	firmware: firmware {
--		compatible = "raspberrypi,bcm2835-firmware", "simple-mfd";
--		#address-cells = <1>;
--		#size-cells = <1>;
--
--		mboxes = <&mailbox>;
--		dma-ranges;
--
--		firmware_clocks: clocks {
--			compatible = "raspberrypi,firmware-clocks";
--			#clock-cells = <1>;
--		};
--
--		reset: reset {
--			compatible = "raspberrypi,firmware-reset";
--			#reset-cells = <1>;
--		};
--	};
--
--	power: power {
--		compatible = "raspberrypi,bcm2835-power";
--		firmware = <&firmware>;
--		#power-domain-cells = <1>;
--	};
--};
--
 -/* uarta communicates with the BT module */
 -&uarta {
 -	uart-has-rtscts;
@@ -46182,16 +46191,27 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 -&hvs {
 -	clocks = <&firmware_clocks 4>, <&firmware_clocks 16>;
 -	clock-names = "core", "disp";
+-	status = "okay";
 -};
 -
 -&hdmi0 {
 -	clocks = <&firmware_clocks 13>, <&firmware_clocks 14>, <&dvp 0>, <&clk_27MHz>;
 -	clock-names = "hdmi", "bvb", "audio", "cec";
+-	status = "okay";
 -};
 -
 -&hdmi1 {
 -	clocks = <&firmware_clocks 13>, <&firmware_clocks 14>, <&dvp 1>, <&clk_27MHz>;
 -	clock-names = "hdmi", "bvb", "audio", "cec";
+-	status = "okay";
+-};
+-
+-&mop {
+-	status = "okay";
+-};
+-
+-&moplet {
+-	status = "okay";
 -};
 -
 -&pcie1 {
@@ -46199,6 +46219,22 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
 -};
 -
 -&pcie2 {
+-	status = "okay";
+-};
+-
+-&pixelvalve0 {
+-	status = "okay";
+-};
+-
+-&pixelvalve1 {
+-	status = "okay";
+-};
+-
+-&v3d {
+-	clocks = <&firmware_clocks 5>;
+-};
+-
+-&vc4 {
 -	status = "okay";
 -};
 --- a/arch/arm64/boot/dts/broadcom/bcm2712-rpi-5-b.dts
@@ -48605,8 +48641,8 @@ Signed-off-by: Phil Elwell <phil@raspberrypi.com>
  		interrupts = <2>, <9>, <16>;
  		interrupt-names = "ch0-eof", "ch1-eof", "ch2-eof";
 +		iommus = <&iommu4>;
+ 		status = "disabled";
  	};
- };
 --- /dev/null
 +++ b/arch/arm64/boot/dts/broadcom/bcm2712d0-rpi-5-b.dts
 @@ -0,0 +1,107 @@

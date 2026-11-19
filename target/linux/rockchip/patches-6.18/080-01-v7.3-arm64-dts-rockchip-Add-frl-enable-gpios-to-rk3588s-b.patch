@@ -1,0 +1,233 @@
+From 3305c44489505e98e794cacce80cb1de9f1b81ad Mon Sep 17 00:00:00 2001
+From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Date: Tue, 28 Apr 2026 00:57:23 +0300
+Subject: [PATCH] arm64: dts: rockchip: Add frl-enable-gpios to rk3588s boards
+
+The following RK3588s boards expose a GPIO pin to control the voltage
+bias on the HDMI0 data lines:
+
+- rk3588s-coolpi-4b
+- rk3588s-indiedroid-nova
+- rk3588s-nanopi-r6
+- rk3588s-odroid-m2
+- rk3588s-orangepi-5
+- rk3588s-radxa-cm5-io
+- rk3588s-rock-5a
+- rk3588s-rock-5c
+
+The pin must be asserted when operating in HDMI 2.1 FRL mode and
+deasserted for HDMI 1.4/2.0 TMDS mode.
+
+Wire up the hdmi0 node to its dedicated GPIO via frl-enable-gpios to
+allow adjusting the bias when transitioning between TMDS and FRL modes.
+
+While at it, also ensure that pinctrl-names is present and ordered
+alphabetically within the hdmi nodes.
+
+Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Link: https://patch.msgid.link/20260428-dts-rk-frl-enable-gpios-v2-5-924df9db884a@collabora.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts   | 10 ++++++++++
+ .../boot/dts/rockchip/rk3588s-indiedroid-nova.dts    | 10 +++++++++-
+ arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi  | 10 ++++++++++
+ arch/arm64/boot/dts/rockchip/rk3588s-odroid-m2.dts   | 10 ++++++++++
+ arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dtsi | 10 ++++++++++
+ .../arm64/boot/dts/rockchip/rk3588s-radxa-cm5-io.dts | 10 ++++++++++
+ arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts     | 12 ++++++++++--
+ arch/arm64/boot/dts/rockchip/rk3588s-rock-5c.dts     | 12 ++++++++++--
+ 8 files changed, 79 insertions(+), 5 deletions(-)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts
+@@ -251,6 +251,10 @@
+ };
+ 
+ &hdmi0 {
++	frl-enable-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_LOW>;
++	pinctrl-0 = <&hdmim0_tx0_cec &hdmim0_tx0_hpd
++		     &hdmim0_tx0_scl &hdmim0_tx0_sda &hdmi0_tx_on_h>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+@@ -396,6 +400,12 @@
+ };
+ 
+ &pinctrl {
++	hdmi {
++		hdmi0_tx_on_h: hdmi0-tx-on-h {
++			rockchip,pins = <4 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	hym8563 {
+ 		hym8563_int: hym8563-int {
+ 			rockchip,pins = <0 RK_PB0 RK_FUNC_GPIO &pcfg_pull_up>;
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-indiedroid-nova.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-indiedroid-nova.dts
+@@ -260,8 +260,10 @@
+ };
+ 
+ &hdmi0 {
++	frl-enable-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_LOW>;
+ 	pinctrl-0 = <&hdmim0_tx0_scl>, <&hdmim0_tx0_sda>,
+-		    <&hdmim0_tx0_hpd>, <&hdmim0_tx0_cec>;
++		    <&hdmim0_tx0_hpd>, <&hdmim0_tx0_cec>,
++		    <&hdmi0_tx_on_h>;
+ 	pinctrl-names = "default";
+ 	status = "okay";
+ };
+@@ -491,6 +493,12 @@
+ 		};
+ 	};
+ 
++	hdmi {
++		hdmi0_tx_on_h: hdmi0-tx-on-h {
++			rockchip,pins = <4 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	hym8563 {
+ 
+ 		hym8563_int: hym8563-int {
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
+@@ -236,6 +236,10 @@
+ };
+ 
+ &hdmi0 {
++	frl-enable-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_LOW>;
++	pinctrl-0 = <&hdmim0_tx0_cec &hdmim0_tx0_hpd
++		     &hdmim0_tx0_scl &hdmim0_tx0_sda &hdmi0_tx_on_h>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+@@ -408,6 +412,12 @@
+ 		};
+ 	};
+ 
++	hdmi {
++		hdmi0_tx_on_h: hdmi0-tx-on-h {
++			rockchip,pins = <4 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	hym8563 {
+ 		rtc_int: rtc-int {
+ 			rockchip,pins = <0 RK_PB0 RK_FUNC_GPIO &pcfg_pull_up>;
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-odroid-m2.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-odroid-m2.dts
+@@ -249,6 +249,10 @@
+ };
+ 
+ &hdmi0 {
++	frl-enable-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_LOW>;
++	pinctrl-0 = <&hdmim0_tx0_cec &hdmim0_tx0_hpd
++		     &hdmim0_tx0_scl &hdmim0_tx0_sda &hdmi0_tx_on_h>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+@@ -438,6 +442,12 @@
+ };
+ 
+ &pinctrl {
++	hdmi {
++		hdmi0_tx_on_h: hdmi0-tx-on-h {
++			rockchip,pins = <4 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	lcd {
+ 		lcd_pwren: lcd-pwren {
+ 			rockchip,pins = <4 RK_PA3 RK_FUNC_GPIO &pcfg_pull_none>;
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dtsi
+@@ -181,6 +181,10 @@
+ };
+ 
+ &hdmi0 {
++	frl-enable-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_LOW>;
++	pinctrl-0 = <&hdmim0_tx0_cec &hdmim0_tx0_hpd
++		     &hdmim0_tx0_scl &hdmim0_tx0_sda &hdmi0_tx_on_h>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+@@ -381,6 +385,12 @@
+ };
+ 
+ &pinctrl {
++	hdmi {
++		hdmi0_tx_on_h: hdmi0-tx-on-h {
++			rockchip,pins = <4 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	hym8563 {
+ 		hym8563_int: hym8563-int {
+ 			rockchip,pins = <0 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts
+@@ -322,11 +322,13 @@
+ };
+ 
+ &hdmi0 {
+-	pinctrl-names = "default";
++	frl-enable-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_LOW>;
+ 	pinctrl-0 = <&hdmim0_tx0_cec
+ 		     &hdmim1_tx0_hpd
+ 		     &hdmim0_tx0_scl
+-		     &hdmim0_tx0_sda>;
++		     &hdmim0_tx0_sda
++		     &hdmi0_tx_on_h>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+@@ -372,6 +374,12 @@
+ };
+ 
+ &pinctrl {
++	hdmi {
++		hdmi0_tx_on_h: hdmi0-tx-on-h {
++			rockchip,pins = <4 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	leds {
+ 		io_led: io-led {
+ 			rockchip,pins = <3 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>;
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-rock-5c.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-rock-5c.dts
+@@ -258,11 +258,13 @@
+ };
+ 
+ &hdmi0 {
+-	pinctrl-names = "default";
++	frl-enable-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_LOW>;
+ 	pinctrl-0 = <&hdmim0_tx0_cec
+ 		     &hdmim1_tx0_hpd
+ 		     &hdmim0_tx0_scl
+-		     &hdmim0_tx0_sda>;
++		     &hdmim0_tx0_sda
++		     &hdmi0_tx_on_h>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+@@ -460,6 +462,12 @@
+ };
+ 
+ &pinctrl {
++	hdmi {
++		hdmi0_tx_on_h: hdmi0-tx-on-h {
++			rockchip,pins = <4 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
++
+ 	leds {
+ 		led_pins: led-pins {
+ 			rockchip,pins = <3 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>,

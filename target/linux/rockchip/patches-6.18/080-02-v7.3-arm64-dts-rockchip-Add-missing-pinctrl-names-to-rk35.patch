@@ -1,0 +1,229 @@
+From 224aa83f3f73a8b17051c1639125260cc04617bc Mon Sep 17 00:00:00 2001
+From: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Date: Tue, 28 Apr 2026 00:57:31 +0300
+Subject: [PATCH] arm64: dts: rockchip: Add missing pinctrl-names to rk3588s
+ boards
+
+Several rk3588s board DTS files override pinctrl-0 for i2c, i2s, pwm,
+spi, tsadc and uart nodes without re-specifying pinctrl-names.  While
+the property is inherited from the base rk3588s.dtsi, add it explicitly
+to the board-level overrides for consistency with other nodes.
+
+Signed-off-by: Cristian Ciocaltea <cristian.ciocaltea@collabora.com>
+Link: https://patch.msgid.link/20260428-dts-rk-frl-enable-gpios-v2-13-924df9db884a@collabora.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts         | 6 ++++++
+ arch/arm64/boot/dts/rockchip/rk3588s-evb1-v10.dts          | 1 +
+ arch/arm64/boot/dts/rockchip/rk3588s-gameforce-ace.dts     | 7 +++++++
+ arch/arm64/boot/dts/rockchip/rk3588s-indiedroid-nova.dts   | 3 +++
+ arch/arm64/boot/dts/rockchip/rk3588s-khadas-edge2.dts      | 1 +
+ arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi        | 1 +
+ arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dtsi       | 1 +
+ arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts | 3 +++
+ arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5.dtsi     | 3 +++
+ arch/arm64/boot/dts/rockchip/rk3588s-roc-pc.dts            | 1 +
+ arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts           | 1 +
+ arch/arm64/boot/dts/rockchip/rk3588s-rock-5c.dts           | 1 +
+ 12 files changed, 29 insertions(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-coolpi-4b.dts
+@@ -276,6 +276,7 @@
+ 
+ &i2c0 {
+ 	pinctrl-0 = <&i2c0m2_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ 
+ 	vdd_cpu_big0_s0: regulator@42 {
+@@ -336,6 +337,7 @@
+ 
+ &i2c6 {
+ 	pinctrl-0 = <&i2c6m3_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ 
+ 	hym8563: rtc@51 {
+@@ -352,6 +354,7 @@
+ 
+ &i2c7 {
+ 	pinctrl-0 = <&i2c7m0_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ 
+ 	es8316: audio-codec@10 {
+@@ -377,6 +380,7 @@
+ 		     &i2s0_sclk
+ 		     &i2s0_sdi0
+ 		     &i2s0_sdo0>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ 
+ 	i2s0_8ch_p0: port {
+@@ -469,6 +473,7 @@
+ 
+ &pwm2 {
+ 	pinctrl-0 = <&pwm2m1_pins>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+@@ -875,6 +880,7 @@
+ 
+ &uart2 {
+ 	pinctrl-0 = <&uart2m0_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-evb1-v10.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-evb1-v10.dts
+@@ -441,6 +441,7 @@
+ 
+ &pwm12 {
+ 	pinctrl-0 = <&pwm12m1_pins>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-gameforce-ace.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-gameforce-ace.dts
+@@ -573,6 +573,7 @@
+ 
+ &i2c4 {
+ 	pinctrl-0 = <&i2c4m2_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ 
+ 	ti_adc: adc@48 {
+@@ -613,6 +614,7 @@
+ 
+ &i2c6 {
+ 	pinctrl-0 = <&i2c6m3_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ 
+ 	fusb302: typec@22 {
+@@ -746,6 +748,7 @@
+ 		     &i2s0_sclk
+ 		     &i2s0_sdi0
+ 		     &i2s0_sdo0>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+@@ -974,11 +977,13 @@
+ 
+ &pwm12 {
+ 	pinctrl-0 = <&pwm12m1_pins>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+ &pwm13 {
+ 	pinctrl-0 = <&pwm13m1_pins>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+@@ -1350,11 +1355,13 @@
+ 
+ &uart2 {
+ 	pinctrl-0 = <&uart2m0_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+ &uart9 {
+ 	pinctrl-0 = <&uart9m2_xfer>, <&uart9m2_ctsn>, <&uart9m2_rtsn>;
++	pinctrl-names = "default";
+ 	uart-has-rtscts;
+ 	status = "okay";
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-indiedroid-nova.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-indiedroid-nova.dts
+@@ -351,6 +351,7 @@
+ 
+ &i2c6 {
+ 	pinctrl-0 = <&i2c6m3_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ 
+ 	fusb302: typec-portc@22 {
+@@ -415,6 +416,7 @@
+ 
+ &i2c7 {
+ 	pinctrl-0 = <&i2c7m0_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ 
+ 	es8388: audio-codec@11 {
+@@ -901,6 +903,7 @@
+ 
+ &uart2 {
+ 	pinctrl-0 = <&uart2m0_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-khadas-edge2.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-khadas-edge2.dts
+@@ -736,6 +736,7 @@
+ 
+ &uart2 {
+ 	pinctrl-0 = <&uart2m0_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
+@@ -871,6 +871,7 @@
+ 
+ &uart2 {
+ 	pinctrl-0 = <&uart2m0_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-5.dtsi
+@@ -847,6 +847,7 @@
+ 
+ &uart2 {
+ 	pinctrl-0 = <&uart2m0_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-roc-pc.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-roc-pc.dts
+@@ -809,6 +809,7 @@
+ 
+ &uart7 {
+ 	pinctrl-0 = <&uart7m2_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-rock-5a.dts
+@@ -818,6 +818,7 @@
+ 
+ &uart2 {
+ 	pinctrl-0 = <&uart2m0_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-rock-5c.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-rock-5c.dts
+@@ -920,6 +920,7 @@
+ 
+ &uart2 {
+ 	pinctrl-0 = <&uart2m0_xfer>;
++	pinctrl-names = "default";
+ 	status = "okay";
+ };
+ 

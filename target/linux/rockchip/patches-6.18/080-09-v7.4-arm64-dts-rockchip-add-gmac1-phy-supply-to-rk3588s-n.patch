@@ -1,0 +1,25 @@
+From e7fd313ef4e5907a0bd769101de48ae354b7fcca Mon Sep 17 00:00:00 2001
+From: Joachim Eastwood <joachim.eastwood@gmail.com>
+Date: Thu, 3 Sep 2026 23:23:20 +0200
+Subject: [PATCH] arm64: dts: rockchip: add gmac1 phy-supply to
+ rk3588s-nanopi-r6
+
+The RTL8211F Ethernet phy is powered from the VCC_3V3_S3 rail.
+
+Signed-off-by: Joachim Eastwood <joachim.eastwood@gmail.com>
+Link: https://patch.msgid.link/20260903-nanopi-m6-v6-8-37416bbd6862@gmail.com
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+---
+ arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-nanopi-r6.dtsi
+@@ -210,6 +210,7 @@
+ 	clock_in_out = "output";
+ 	phy-handle = <&rgmii_phy1>;
+ 	phy-mode = "rgmii-rxid";
++	phy-supply = <&vcc_3v3_s3>;
+ 	pinctrl-0 = <&gmac1_miim
+ 		     &gmac1_tx_bus2
+ 		     &gmac1_rx_bus2
