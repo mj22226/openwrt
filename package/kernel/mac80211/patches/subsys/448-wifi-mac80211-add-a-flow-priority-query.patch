@@ -29,7 +29,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -6841,6 +6841,29 @@ struct ieee80211_sta *ieee80211_find_sta
+@@ -6842,6 +6842,29 @@ struct ieee80211_sta *ieee80211_find_sta
  					 const u8 *addr);
  
  /**

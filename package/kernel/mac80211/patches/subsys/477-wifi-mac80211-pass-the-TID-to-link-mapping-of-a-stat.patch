@@ -18,7 +18,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -4736,6 +4736,12 @@ struct ieee80211_prep_tx_info {
+@@ -4737,6 +4737,12 @@ struct ieee80211_prep_tx_info {
   *	ieee80211_adv_ttlm_duration_set(). The driver passes @params->cookie
   *	back with each step. cfg80211 calls this only while no mapping is
   *	requested or established. This callback can sleep.
@@ -31,7 +31,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * @adv_ttlm_cancel: cancel the advertised TID-to-link mapping of the given
   *	cookie, when a link of the AP MLD stops before its end. The driver
   *	stops the mapping in the device and reports no further step of it;
-@@ -5220,6 +5226,9 @@ struct ieee80211_ops {
+@@ -5221,6 +5227,9 @@ struct ieee80211_ops {
  				struct cfg80211_adv_ttlm_params *params);
  	void (*adv_ttlm_cancel)(struct ieee80211_hw *hw,
  				struct ieee80211_vif *vif, u64 cookie);
@@ -43,7 +43,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	int (*set_eml_op_mode)(struct ieee80211_hw *hw,
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -6095,6 +6095,43 @@ ieee80211_adv_ttlm_request(struct wiphy
+@@ -6109,6 +6109,43 @@ ieee80211_adv_ttlm_request(struct wiphy
  	return drv_adv_ttlm_request(sdata->local, sdata, params);
  }
  
@@ -87,7 +87,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static void
  ieee80211_adv_ttlm_cancel(struct wiphy *wiphy, struct net_device *dev,
  			  u64 cookie)
-@@ -6264,6 +6301,7 @@ const struct cfg80211_ops mac80211_confi
+@@ -6278,6 +6315,7 @@ const struct cfg80211_ops mac80211_confi
  	.set_ttlm = ieee80211_set_ttlm,
  	.adv_ttlm_request = ieee80211_adv_ttlm_request,
  	.adv_ttlm_cancel = ieee80211_adv_ttlm_cancel,

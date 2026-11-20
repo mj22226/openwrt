@@ -111,7 +111,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		if (!(sp->active_links_rx & BIT(link_id)))
  			continue;
  
-@@ -2771,11 +2801,16 @@ static void mac80211_hwsim_stop(struct i
+@@ -2777,11 +2807,16 @@ static void mac80211_hwsim_stop(struct i
  static int mac80211_hwsim_add_interface(struct ieee80211_hw *hw,
  					struct ieee80211_vif *vif)
  {
@@ -128,7 +128,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (vif->type != NL80211_IFTYPE_MONITOR)
  		mac80211_hwsim_config_mac_nl(hw, vif->addr, true);
  
-@@ -2858,6 +2893,121 @@ void mac80211_hwsim_tx_frame(struct ieee
+@@ -2864,6 +2899,121 @@ void mac80211_hwsim_tx_frame(struct ieee
  	dev_kfree_skb(skb);
  }
  
@@ -250,7 +250,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static void __mac80211_hwsim_beacon_tx(struct ieee80211_bss_conf *link_conf,
  				       struct mac80211_hwsim_data *data,
  				       struct ieee80211_hw *hw,
-@@ -2894,6 +3044,7 @@ static void mac80211_hwsim_beacon_tx(voi
+@@ -2900,6 +3050,7 @@ static void mac80211_hwsim_beacon_tx(voi
  			     link_data[link_id]);
  	struct ieee80211_hw *hw = data->hw;
  	struct sk_buff *skb;
@@ -258,7 +258,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	hwsim_check_magic(vif);
  
-@@ -2911,25 +3062,54 @@ static void mac80211_hwsim_beacon_tx(voi
+@@ -2917,25 +3068,54 @@ static void mac80211_hwsim_beacon_tx(voi
  	if (tx_bss_conf && tx_bss_conf != link_conf)
  		return;
  
@@ -314,7 +314,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		__mac80211_hwsim_beacon_tx(link_conf, data, hw, vif, skb);
  	}
  
-@@ -3551,6 +3731,135 @@ mac80211_hwsim_can_neg_ttlm(struct ieee8
+@@ -3557,6 +3737,135 @@ mac80211_hwsim_can_neg_ttlm(struct ieee8
  	return NEG_TTLM_RES_ACCEPT;
  }
  
@@ -450,7 +450,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #ifdef CPTCFG_NL80211_TESTMODE
  /*
   * This section contains example code for using netlink
-@@ -4971,6 +5280,8 @@ static const struct ieee80211_ops mac802
+@@ -4977,6 +5286,8 @@ static const struct ieee80211_ops mac802
  	.link_sta_statistics = mac80211_hwsim_link_sta_statistics,
  	.sta_state = mac80211_hwsim_sta_state,
  	.can_neg_ttlm = mac80211_hwsim_can_neg_ttlm,
@@ -459,7 +459,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  struct hwsim_new_radio_params {
-@@ -6774,6 +7085,11 @@ static int mac80211_hwsim_new_radio(stru
+@@ -6780,6 +7091,11 @@ static int mac80211_hwsim_new_radio(stru
  		hw->wiphy->iftype_ext_capab = mac80211_hwsim_iftypes_ext_capa;
  		hw->wiphy->num_iftype_ext_capab =
  			ARRAY_SIZE(mac80211_hwsim_iftypes_ext_capa);

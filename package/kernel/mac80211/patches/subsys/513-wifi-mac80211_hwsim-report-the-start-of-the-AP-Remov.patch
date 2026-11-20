@@ -14,7 +14,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
 --- a/drivers/net/wireless/virtual/mac80211_hwsim_main.c
 +++ b/drivers/net/wireless/virtual/mac80211_hwsim_main.c
-@@ -3314,7 +3314,8 @@ static void hwsim_ap_removal_timer_write
+@@ -3320,7 +3320,8 @@ static void hwsim_ap_removal_timer_write
  					 struct hwsim_ap_removal *rem,
  					 unsigned int link_id, u64 tbtt,
  					 unsigned int removed, u8 *timer,
@@ -24,7 +24,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
  	u32 bcn_int = data->link_data[silent ? link_id : removed].beacon_int;
  	u16 count = get_unaligned_le16(timer);
-@@ -3329,6 +3330,9 @@ static void hwsim_ap_removal_timer_write
+@@ -3335,6 +3336,9 @@ static void hwsim_ap_removal_timer_write
  
  		rem->links |= BIT(removed);
  		rem->tbtt[removed] = tbtt + (u64)count * bcn_int;
@@ -34,7 +34,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		return;
  	}
  
-@@ -3400,7 +3404,8 @@ static void hwsim_ap_removal_silent_tbtt
+@@ -3406,7 +3410,8 @@ static void hwsim_ap_removal_silent_tbtt
  static bool mac80211_hwsim_ap_removal_tbtt(struct mac80211_hwsim_data *data,
  					   struct ieee80211_vif *vif,
  					   unsigned int link_id, u64 tbtt,
@@ -44,7 +44,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  {
  	size_t hdr_len = offsetof(struct ieee80211_mgmt, u.beacon.variable);
  	struct hwsim_vif_priv *vp = (void *)vif->drv_priv;
-@@ -3452,7 +3457,8 @@ static bool mac80211_hwsim_ap_removal_tb
+@@ -3458,7 +3463,8 @@ static bool mac80211_hwsim_ap_removal_tb
  			announced |= BIT(removed);
  			hwsim_ap_removal_timer_write(data, rem, link_id, tbtt,
  						     removed, timer,
@@ -54,7 +54,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		}
  	}
  
-@@ -3468,12 +3474,32 @@ static bool mac80211_hwsim_ap_removal_tb
+@@ -3474,12 +3480,32 @@ static bool mac80211_hwsim_ap_removal_tb
  	return send;
  }
  
@@ -87,7 +87,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	struct hwsim_vif_priv *vp = (void *)vif->drv_priv;
  	unsigned int link_id = link_conf->link_id;
  	struct ieee80211_tx_info *info;
-@@ -3481,7 +3507,8 @@ static void __mac80211_hwsim_beacon_tx(s
+@@ -3487,7 +3513,8 @@ static void __mac80211_hwsim_beacon_tx(s
  	bool send;
  
  	send = mac80211_hwsim_ap_removal_tbtt(data, vif, link_id, tbtt, skb,

@@ -85,7 +85,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  #if IS_REACHABLE(CONFIG_VIRTIO)
-@@ -4370,6 +4387,8 @@ struct hwsim_new_radio_params {
+@@ -4376,6 +4393,8 @@ struct hwsim_new_radio_params {
  	const struct cfg80211_pmsr_capabilities *pmsr_capa;
  	bool nan_device;
  	bool background_radar;
@@ -94,7 +94,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  static void hwsim_mcast_config_msg(struct sk_buff *mcast_skb,
-@@ -4383,6 +4402,42 @@ static void hwsim_mcast_config_msg(struc
+@@ -4389,6 +4408,42 @@ static void hwsim_mcast_config_msg(struc
  				  HWSIM_MCGRP_CONFIG, GFP_KERNEL);
  }
  
@@ -137,7 +137,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  static int append_radio_msg(struct sk_buff *skb, int id,
  			    struct hwsim_new_radio_params *param)
  {
-@@ -4461,6 +4516,12 @@ static int append_radio_msg(struct sk_bu
+@@ -4467,6 +4522,12 @@ static int append_radio_msg(struct sk_bu
  		if (ret < 0)
  			return ret;
  	}
@@ -150,7 +150,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	return 0;
  }
  
-@@ -5598,6 +5659,179 @@ static void mac80211_hwsim_sband_capab(s
+@@ -5604,6 +5665,179 @@ static void mac80211_hwsim_sband_capab(s
  	}
  }
  
@@ -330,7 +330,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #ifdef CPTCFG_MAC80211_MESH
  #define HWSIM_MESH_BIT BIT(NL80211_IFTYPE_MESH_POINT)
  #else
-@@ -5659,7 +5893,6 @@ static int mac80211_hwsim_new_radio(stru
+@@ -5665,7 +5899,6 @@ static int mac80211_hwsim_new_radio(stru
  	struct net *net;
  	int idx, i;
  	int n_limits = 0;
@@ -338,7 +338,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	if (WARN_ON(param->channels > 1 && !param->use_chanctx))
  		return -EINVAL;
-@@ -5964,9 +6197,6 @@ static int mac80211_hwsim_new_radio(stru
+@@ -5970,9 +6203,6 @@ static int mac80211_hwsim_new_radio(stru
  
  	for (band = NL80211_BAND_2GHZ; band < NUM_NL80211_BANDS; band++) {
  		struct ieee80211_supported_band *sband = &data->bands[band];
@@ -348,7 +348,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  		sband->band = band;
  
-@@ -6035,31 +6265,22 @@ static int mac80211_hwsim_new_radio(stru
+@@ -6041,31 +6271,22 @@ static int mac80211_hwsim_new_radio(stru
  		mac80211_hwsim_sband_capab(sband);
  
  		hw->wiphy->bands[band] = sband;
@@ -388,7 +388,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	}
  
  	if (data->use_chanctx)
-@@ -6165,6 +6386,8 @@ static int mac80211_hwsim_new_radio(stru
+@@ -6171,6 +6392,8 @@ static int mac80211_hwsim_new_radio(stru
  	hwsim_radios_generation++;
  	spin_unlock_bh(&hwsim_radio_lock);
  
@@ -397,7 +397,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	hwsim_mcast_new_radio(idx, info, param);
  
  	return idx;
-@@ -6177,6 +6400,7 @@ failed_hw:
+@@ -6183,6 +6406,7 @@ failed_hw:
  failed_bind:
  	device_unregister(data->dev);
  failed_drvdata:
@@ -405,7 +405,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	ieee80211_free_hw(hw);
  failed:
  	return err;
-@@ -6226,6 +6450,7 @@ static void mac80211_hwsim_del_radio(str
+@@ -6232,6 +6456,7 @@ static void mac80211_hwsim_del_radio(str
  	ieee80211_unregister_hw(data->hw);
  	device_release_driver(data->dev);
  	device_unregister(data->dev);
@@ -413,7 +413,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	ieee80211_free_hw(data->hw);
  }
  
-@@ -6263,6 +6488,8 @@ static int mac80211_hwsim_get_radio(stru
+@@ -6269,6 +6494,8 @@ static int mac80211_hwsim_get_radio(stru
  	param.background_radar =
  		wiphy_ext_feature_isset(data->hw->wiphy,
  					NL80211_EXT_FEATURE_RADAR_BACKGROUND);
@@ -422,7 +422,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	res = append_radio_msg(skb, data->idx, &param);
  	if (res < 0)
-@@ -6749,9 +6976,186 @@ static int parse_pmsr_capa(const struct
+@@ -6759,9 +6986,186 @@ static int parse_pmsr_capa(const struct
  	return 0;
  }
  
@@ -609,7 +609,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	const char *hwname = NULL;
  	int ret;
  
-@@ -6886,6 +7290,24 @@ static int hwsim_new_radio_nl(struct sk_
+@@ -6896,6 +7300,24 @@ static int hwsim_new_radio_nl(struct sk_
  		param.hwname = hwname;
  	}
  
@@ -634,7 +634,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (info->attrs[HWSIM_ATTR_PMSR_SUPPORT]) {
  		struct cfg80211_pmsr_capabilities *pmsr_capa;
  
-@@ -6906,6 +7328,8 @@ static int hwsim_new_radio_nl(struct sk_
+@@ -6916,6 +7338,8 @@ static int hwsim_new_radio_nl(struct sk_
  out_free:
  	kfree(hwname);
  	kfree(param.pmsr_capa);

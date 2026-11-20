@@ -142,7 +142,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  		}
  
  		if (link_sta) {
-@@ -3860,6 +3895,26 @@ mac80211_hwsim_adv_ttlm_cancel(struct ie
+@@ -3866,6 +3901,26 @@ mac80211_hwsim_adv_ttlm_cancel(struct ie
  	spin_unlock_bh(&ttlm->lock);
  }
  
@@ -169,7 +169,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #ifdef CPTCFG_NL80211_TESTMODE
  /*
   * This section contains example code for using netlink
-@@ -5282,6 +5337,7 @@ static const struct ieee80211_ops mac802
+@@ -5288,6 +5343,7 @@ static const struct ieee80211_ops mac802
  	.can_neg_ttlm = mac80211_hwsim_can_neg_ttlm,
  	.adv_ttlm_request = mac80211_hwsim_adv_ttlm_request,
  	.adv_ttlm_cancel = mac80211_hwsim_adv_ttlm_cancel,
@@ -177,7 +177,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  struct hwsim_new_radio_params {
-@@ -7090,6 +7146,8 @@ static int mac80211_hwsim_new_radio(stru
+@@ -7096,6 +7152,8 @@ static int mac80211_hwsim_new_radio(stru
  				      NL80211_EXT_FEATURE_BEACON_CRIT_UPDATE);
  		wiphy_ext_feature_set(hw->wiphy,
  				      NL80211_EXT_FEATURE_AP_ADV_TTLM);

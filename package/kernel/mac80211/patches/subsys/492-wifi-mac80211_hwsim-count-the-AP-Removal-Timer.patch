@@ -54,7 +54,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  };
  
  #define HWSIM_VIF_MAGIC	0x69537748
-@@ -2896,6 +2907,8 @@ static int mac80211_hwsim_add_interface(
+@@ -2902,6 +2913,8 @@ static int mac80211_hwsim_add_interface(
  
  	memset(&vp->adv_ttlm, 0, sizeof(vp->adv_ttlm));
  	spin_lock_init(&vp->adv_ttlm.lock);
@@ -63,7 +63,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  	if (vif->type != NL80211_IFTYPE_MONITOR)
  		mac80211_hwsim_config_mac_nl(hw, vif->addr, true);
-@@ -3270,34 +3283,166 @@ ended:
+@@ -3276,34 +3289,166 @@ ended:
  		ieee80211_adv_ttlm_notify(vif, &event, GFP_ATOMIC);
  }
  
@@ -246,7 +246,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  }
  
  static void mac80211_hwsim_beacon_tx(void *arg, u8 *mac,
-@@ -3362,7 +3507,7 @@ static void mac80211_hwsim_beacon_tx(voi
+@@ -3368,7 +3513,7 @@ static void mac80211_hwsim_beacon_tx(voi
  				ieee80211_crit_update_done(vif, link_id,
  					ema->bcn[i].offs.crit_update_id);
  			__mac80211_hwsim_beacon_tx(link_conf, data, hw, vif,
@@ -255,7 +255,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  			ema->bcn[i].skb = NULL; /* Already freed */
  		}
  		ieee80211_beacon_free_ema_list(ema);
-@@ -3377,7 +3522,8 @@ static void mac80211_hwsim_beacon_tx(voi
+@@ -3383,7 +3528,8 @@ static void mac80211_hwsim_beacon_tx(voi
  		if (tim && tim->datalen >= 2 && !tim->data[0])
  			hwsim_adv_ttlm_dtim_set(vif, link_id, tbtt,
  						tim->data[1]);
@@ -265,7 +265,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	}
  
  	while ((skb = ieee80211_get_buffered_bc(hw, vif)) != NULL) {
-@@ -4691,6 +4837,7 @@ static int mac80211_hwsim_change_vif_lin
+@@ -4697,6 +4843,7 @@ static int mac80211_hwsim_change_vif_lin
  					   u16 old_links, u16 new_links,
  					   struct ieee80211_bss_conf *old[IEEE80211_MLD_MAX_NUM_LINKS])
  {
@@ -273,7 +273,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	unsigned long rem = old_links & ~new_links;
  	unsigned long add = new_links & ~old_links;
  	int i;
-@@ -4702,6 +4849,11 @@ static int mac80211_hwsim_change_vif_lin
+@@ -4708,6 +4855,11 @@ static int mac80211_hwsim_change_vif_lin
  
  	wiphy_dbg(hw->wiphy, "%s:\n", __func__);
  
@@ -285,7 +285,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	for_each_set_bit(i, &rem, IEEE80211_MLD_MAX_NUM_LINKS) {
  		mac80211_hwsim_config_mac_nl(hw, old[i]->addr, false);
  		wiphy_dbg(hw->wiphy,
-@@ -7418,6 +7570,8 @@ static int mac80211_hwsim_new_radio(stru
+@@ -7424,6 +7576,8 @@ static int mac80211_hwsim_new_radio(stru
  				      NL80211_EXT_FEATURE_AP_ADV_TTLM);
  		wiphy_ext_feature_set(hw->wiphy,
  				      NL80211_EXT_FEATURE_AP_NEG_TTLM);
