@@ -1,0 +1,36 @@
+From 956ffb95f19404d1730e33f8306925f7dd33cf53 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Wed, 20 Nov 2024 23:51:58 -0500
+Subject: [PATCH] key
+
+---
+ private-key.pem | 5 +++++
+ public-key.pem  | 4 ++++
+ 2 files changed, 9 insertions(+)
+ create mode 100644 private-key.pem
+ create mode 100644 public-key.pem
+
+diff --git a/private-key.pem b/private-key.pem
+new file mode 100644
+index 0000000..cfb6894
+--- /dev/null
++++ b/private-key.pem
+@@ -0,0 +1,5 @@
++-----BEGIN EC PRIVATE KEY-----
++MHcCAQEEIAcdOc1IeL1I/9RvwIRDt3r6dNr5sTJE2DIMCarY0/FzoAoGCCqGSM49
++AwEHoUQDQgAEs9d8eTcZBtErjJCGaR8rPmQQeEni5xAYxeM1SuWzbEbKfyxC/oyi
++VC59vsE30muu4LQDz9pHJgvjMmcpYlT80g==
++-----END EC PRIVATE KEY-----
+diff --git a/public-key.pem b/public-key.pem
+new file mode 100644
+index 0000000..761826e
+--- /dev/null
++++ b/public-key.pem
+@@ -0,0 +1,4 @@
++-----BEGIN PUBLIC KEY-----
++MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEs9d8eTcZBtErjJCGaR8rPmQQeEni
++5xAYxeM1SuWzbEbKfyxC/oyiVC59vsE30muu4LQDz9pHJgvjMmcpYlT80g==
++-----END PUBLIC KEY-----
+-- 
+2.46.0
+

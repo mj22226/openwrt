@@ -1,0 +1,25 @@
+From b32fc544ec16598198dfa08a13724ad6de5f435d Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Tue, 19 Nov 2024 00:15:43 -0500
+Subject: [PATCH] apk feeds rpi5
+
+---
+ files/etc/apk/distfeeds.list | 6 ++++++
+ 1 file changed, 6 insertions(+)
+ create mode 100644 files/etc/apk/repositories.d/distfeeds.list
+
+diff --git a/files/etc/apk/repositories.d/distfeeds.list b/files/etc/apk/repositories.d/distfeeds.list
+new file mode 100644
+index 0000000..5f128b1
+--- /dev/null
++++ b/files/etc/apk/repositories.d/distfeeds.list
+@@ -0,0 +1,6 @@
++file:///www/repo/packages/packages.adb
++https://downloads.openwrt.org/snapshots/packages/aarch64_cortex-a76/base/packages.adb
++https://downloads.openwrt.org/snapshots/packages/aarch64_cortex-a76/luci/packages.adb
++https://downloads.openwrt.org/snapshots/packages/aarch64_cortex-a76/packages/packages.adb
++https://downloads.openwrt.org/snapshots/packages/aarch64_cortex-a76/routing/packages.adb
++https://downloads.openwrt.org/snapshots/packages/aarch64_cortex-a76/telephony/packages.adb
+-- 
+2.46.0
+

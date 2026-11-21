@@ -1,0 +1,4571 @@
+From 694196f178310f3fe2363d227a701cb0d6cfe487 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Sat, 3 Feb 2024 16:50:04 -0500
+Subject: [PATCH] luci app diskman
+
+---
+ applications/luci-app-diskman/Makefile        |  53 ++
+ applications/luci-app-diskman/depends.lst     |   1 +
+ .../luasrc/controller/diskman.lua             | 151 ++++
+ .../luasrc/model/cbi/diskman/btrfs.lua        | 210 +++++
+ .../luasrc/model/cbi/diskman/disks.lua        | 360 +++++++++
+ .../luasrc/model/cbi/diskman/partition.lua    | 366 +++++++++
+ .../luci-app-diskman/luasrc/model/diskman.lua | 743 ++++++++++++++++++
+ .../view/diskman/cbi/disabled_button.htm      |   7 +
+ .../luasrc/view/diskman/cbi/format_button.htm |   7 +
+ .../luasrc/view/diskman/cbi/inlinebutton.htm  |   7 +
+ .../luasrc/view/diskman/cbi/xnullsection.htm  |  37 +
+ .../luasrc/view/diskman/cbi/xsimpleform.htm   |  87 ++
+ .../luasrc/view/diskman/disk_info.htm         | 110 +++
+ .../luasrc/view/diskman/partition_info.htm    | 138 ++++
+ .../luasrc/view/diskman/smart_detail.htm      |  78 ++
+ .../luci-app-diskman/po/pl/diskman.po         | 514 ++++++++++++
+ .../luci-app-diskman/po/templates/diskman.pot | 490 ++++++++++++
+ .../luci-app-diskman/po/zh-cn/diskman.po      | 511 ++++++++++++
+ .../luci-app-diskman/po/zh-tw/diskman.po      | 512 ++++++++++++
+ applications/luci-app-diskman/po/zh_Hans      |   1 +
+ applications/luci-app-diskman/po/zh_Hant      |   1 +
+ 21 files changed, 4384 insertions(+)
+ create mode 100644 applications/luci-app-diskman/Makefile
+ create mode 100644 applications/luci-app-diskman/depends.lst
+ create mode 100644 applications/luci-app-diskman/luasrc/controller/diskman.lua
+ create mode 100644 applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua
+ create mode 100644 applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua
+ create mode 100644 applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua
+ create mode 100644 applications/luci-app-diskman/luasrc/model/diskman.lua
+ create mode 100644 applications/luci-app-diskman/luasrc/view/diskman/cbi/disabled_button.htm
+ create mode 100644 applications/luci-app-diskman/luasrc/view/diskman/cbi/format_button.htm
+ create mode 100644 applications/luci-app-diskman/luasrc/view/diskman/cbi/inlinebutton.htm
+ create mode 100644 applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm
+ create mode 100644 applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm
+ create mode 100644 applications/luci-app-diskman/luasrc/view/diskman/disk_info.htm
+ create mode 100644 applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm
+ create mode 100644 applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm
+ create mode 100644 applications/luci-app-diskman/po/pl/diskman.po
+ create mode 100644 applications/luci-app-diskman/po/templates/diskman.pot
+ create mode 100644 applications/luci-app-diskman/po/zh-cn/diskman.po
+ create mode 100644 applications/luci-app-diskman/po/zh-tw/diskman.po
+ create mode 100755 applications/luci-app-diskman/po/zh_Hans
+ create mode 100755 applications/luci-app-diskman/po/zh_Hant
+
+diff --git a/applications/luci-app-diskman/Makefile b/applications/luci-app-diskman/Makefile
+new file mode 100644
+index 0000000000..9ecccd6d4e
+--- /dev/null
++++ b/applications/luci-app-diskman/Makefile
+@@ -0,0 +1,53 @@
++include $(TOPDIR)/rules.mk
++
++PKG_NAME:=luci-app-diskman
++LUCI_NAME:=luci-app-diskman
++PKG_VERSION:=0.2.13
++PKG_RELEASE:=2
++PKG_MAINTAINER:=lisaac <https://github.com/lisaac/luci-app-diskman>
++PKG_LICENSE:=AGPL-3.0
++
++LUCI_TITLE:=Disk Manager interface for LuCI
++
++LUCI_DEPENDS:=+luci-compat +luci-lib-ipkg +e2fsprogs +parted +smartmontools +smartmontools-drivedb +blkid \
++	+kmod-fs-vfat +dosfstools +kmod-fs-msdos +kmod-nls-base +kmod-nls-utf8 +kmod-nls-cp932 +kmod-nls-cp936 +kmod-nls-cp950 \
++	+kmod-fs-exfat +exfat-mkfs +exfat-fsck +block-mount +blockd +mount-utils \
++	+kmod-fs-ntfs3 +ntfs-3g-utils \
++	+kmod-fs-btrfs +btrfs-progs +lsblk +mdadm \
++	+PACKAGE_$(PKG_NAME)_INCLUDE_kmod_md_raid456:mdadm \
++	+PACKAGE_$(PKG_NAME)_INCLUDE_kmod_md_raid456:kmod-md-raid456 \
++	+PACKAGE_$(PKG_NAME)_INCLUDE_kmod_md_linears:mdadm \
++	+PACKAGE_$(PKG_NAME)_INCLUDE_kmod_md_linears:kmod-md-linear
++
++LUCI_DESCRIPTION:=Disk Manager interface for LuCI
++
++define Package/$(PKG_NAME)/config
++config PACKAGE_$(PKG_NAME)_INCLUDE_ntfs_3g_utils
++	depends on PACKAGE_$(PKG_NAME)
++	bool "Include ntfs-3g-utils"
++	default y
++config PACKAGE_$(PKG_NAME)_INCLUDE_btrfs_progs
++	depends on PACKAGE_$(PKG_NAME)
++	bool "Include btrfs-progs"
++	default y
++config PACKAGE_$(PKG_NAME)_INCLUDE_lsblk
++	depends on PACKAGE_$(PKG_NAME)
++	bool "Include lsblk"
++	default y
++config PACKAGE_$(PKG_NAME)_INCLUDE_mdadm
++	depends on PACKAGE_$(PKG_NAME)
++	bool "Include mdadm"
++	default n
++config PACKAGE_$(PKG_NAME)_INCLUDE_kmod_md_raid456
++	depends on PACKAGE_$(PKG_NAME)_INCLUDE_mdadm
++	bool "Include kmod-md-raid456"
++	default n
++config PACKAGE_$(PKG_NAME)_INCLUDE_kmod_md_linears
++	depends on PACKAGE_$(PKG_NAME)_INCLUDE_mdadm
++	bool "Include kmod-md-linear"
++	default n
++endef
++
++include $(TOPDIR)/feeds/luci/luci.mk
++
++# call BuildPackage - OpenWrt buildroot signature
+diff --git a/applications/luci-app-diskman/depends.lst b/applications/luci-app-diskman/depends.lst
+new file mode 100644
+index 0000000000..6227107bab
+--- /dev/null
++++ b/applications/luci-app-diskman/depends.lst
+@@ -0,0 +1 @@
++e2fsprogs parted smartmontools blkid mdadm btrfs-progs util-linux
+\ No newline at end of file
+diff --git a/applications/luci-app-diskman/luasrc/controller/diskman.lua b/applications/luci-app-diskman/luasrc/controller/diskman.lua
+new file mode 100644
+index 0000000000..98b2e64685
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/controller/diskman.lua
+@@ -0,0 +1,151 @@
++--[[
++LuCI - Lua Configuration Interface
++Copyright 2019 lisaac <https://github.com/lisaac/luci-app-diskman>
++]]--
++
++require "luci.util"
++module("luci.controller.diskman",package.seeall)
++
++function index()
++  -- check all used executables in disk management are existed
++  local CMD = {"parted", "blkid", "smartctl"}
++  local executables_all_existed = true
++  for _, cmd in ipairs(CMD) do
++    local command = luci.sys.exec("/usr/bin/which " .. cmd)
++    if not command:match(cmd) then
++      executables_all_existed = false
++      break
++    end
++  end
++
++  if not executables_all_existed then return end
++  -- entry(path, target, title, order)
++  -- set leaf attr to true to pass argument throughe url (e.g. admin/system/disk/partition/sda)
++  entry({"admin", "system", "diskman"}, alias("admin", "system", "diskman", "disks"), _("Disk Man"), 55)
++  entry({"admin", "system", "diskman", "disks"}, form("diskman/disks"), nil).leaf = true
++  entry({"admin", "system", "diskman", "partition"}, form("diskman/partition"), nil).leaf = true
++  entry({"admin", "system", "diskman", "btrfs"}, form("diskman/btrfs"), nil).leaf = true
++  entry({"admin", "system", "diskman", "format_partition"}, call("format_partition"), nil).leaf = true
++  entry({"admin", "system", "diskman", "get_disk_info"}, call("get_disk_info"), nil).leaf = true
++  entry({"admin", "system", "diskman", "mk_p_table"}, call("mk_p_table"), nil).leaf = true
++  entry({"admin", "system", "diskman", "smartdetail"}, call("smart_detail"), nil).leaf = true
++  entry({"admin", "system", "diskman", "smartattr"}, call("smart_attr"), nil).leaf = true
++end
++
++function format_partition()
++  local partation_name = luci.http.formvalue("partation_name")
++  local fs = luci.http.formvalue("file_system")
++  if not partation_name then
++    luci.http.status(500, "Partition NOT found!")
++    luci.http.write_json("Partition NOT found!")
++    return
++  elseif not nixio.fs.access("/dev/"..partation_name) then
++    luci.http.status(500, "Partition NOT found!")
++    luci.http.write_json("Partition NOT found!")
++    return
++  elseif not fs then
++    luci.http.status(500, "no file system")
++    luci.http.write_json("no file system")
++    return
++  end
++  local dm = require "luci.model.diskman"
++  code, msg = dm.format_partition(partation_name, fs)
++  luci.http.status(code, msg)
++  luci.http.write_json(msg)
++end
++
++function get_disk_info(dev)
++  if not dev then
++    luci.http.status(500, "no device")
++    luci.http.write_json("no device")
++    return
++  elseif not nixio.fs.access("/dev/"..dev) then
++    luci.http.status(500, "no device")
++    luci.http.write_json("no device")
++    return
++  end
++  local dm = require "luci.model.diskman"
++  local device_info = dm.get_disk_info(dev)
++  luci.http.status(200, "ok")
++  luci.http.prepare_content("application/json")
++  luci.http.write_json(device_info)
++end
++
++function mk_p_table()
++  local p_table = luci.http.formvalue("p_table")
++  local dev = luci.http.formvalue("dev")
++  if not dev then
++    luci.http.status(500, "no device")
++    luci.http.write_json("no device")
++    return
++  elseif not nixio.fs.access("/dev/"..dev) then
++    luci.http.status(500, "no device")
++    luci.http.write_json("no device")
++    return
++  end
++  local dm = require "luci.model.diskman"
++  if p_table == "GPT" or p_table == "MBR" then
++    p_table = p_table == "MBR" and "msdos" or "gpt"
++    local res = luci.sys.call(dm.command.parted .. " -s /dev/" .. dev .. " mktable ".. p_table)
++    if res == 0 then
++      luci.http.status(200, "ok")
++    else
++      luci.http.status(500, "command exec error")
++    end
++    luci.http.prepare_content("application/json")
++    luci.http.write_json({code=res})
++  else
++    luci.http.status(404, "not support")
++    luci.http.prepare_content("application/json")
++    luci.http.write_json({code="1"})
++  end
++end
++
++function smart_detail(dev)
++  luci.template.render("diskman/smart_detail", {dev=dev})
++end
++
++function smart_attr(dev)
++  local attr = { }
++  local dm = require "luci.model.diskman"
++  local cmd = io.popen(dm.command.smartctl ..  " -H -A -i /dev/%s" % dev)
++  if cmd then
++    local content = cmd:read("*all")
++    local ln
++    cmd:close()
++    if content:match("NVMe Version:")then
++      for ln in string.gmatch(content,'[^\r\n]+') do
++        if ln:match("^(.-):%s+(.+)") then
++          local key, value = ln:match("^(.-):%s+(.+)")
++          attr[#attr+1]= {
++              key = key,
++              value = value
++            }
++        end
++      end
++    else
++      for ln in string.gmatch(content,'[^\r\n]+') do
++        if ln:match("^.*%d+%s+.+%s+.+%s+.+%s+.+%s+.+%s+.+%s+.+%s+.+%s+.+") then
++          local id,attrbute,flag,value,worst,thresh,type,updated,raw = ln:match("^%s*(%d+)%s+([%a%p]+)%s+(%w+)%s+(%d+)%s+(%d+)%s+(%d+)%s+([%a%p]+)%s+(%a+)%s+[%w%p]+%s+(.+)")
++          id= "%x" % id
++          if not id:match("^%w%w") then
++            id = "0%s" % id
++          end
++          attr[#attr+1]= {
++              id = id:upper(),
++              attrbute = attrbute,
++              flag  = flag,
++              value = value,
++              worst = worst,
++              thresh  = thresh,
++              type = type,
++              updated = updated,
++              raw  = raw
++            }
++        end
++      end
++    end
++  end
++  luci.http.prepare_content("application/json")
++  luci.http.write_json(attr)
++end
+\ No newline at end of file
+diff --git a/applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua b/applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua
+new file mode 100644
+index 0000000000..0060078536
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua
+@@ -0,0 +1,210 @@
++--[[
++LuCI - Lua Configuration Interface
++Copyright 2019 lisaac <https://github.com/lisaac/luci-app-diskman>
++]]--
++
++require "luci.util"
++require("luci.tools.webadmin")
++local dm = require "luci.model.diskman"
++local uuid = arg[1]
++
++if not uuid then luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman")) end
++
++-- mount subv=/ to tempfs
++mount_point = "/tmp/.btrfs_tmp"
++nixio.fs.mkdirr(mount_point)
++luci.util.exec(dm.command.umount .. " "..mount_point .. " >/dev/null 2>&1")
++luci.util.exec(dm.command.mount .. " -t btrfs -o subvol=/ UUID="..uuid.." "..mount_point)
++
++m = SimpleForm("btrfs", translate("Btrfs"), translate("Manage Btrfs"))
++m.template = "diskman/cbi/xsimpleform"
++m.redirect = luci.dispatcher.build_url("admin/system/diskman")
++m.submit = false
++m.reset = false
++
++-- info
++local btrfs_info = dm.get_btrfs_info(mount_point)
++local table_btrfs_info = m:section(Table, {btrfs_info}, translate("Btrfs Info"))
++table_btrfs_info:option(DummyValue, "uuid", translate("UUID"))
++table_btrfs_info:option(DummyValue, "members", translate("Members"))
++table_btrfs_info:option(DummyValue, "data_raid_level", translate("Data"))
++table_btrfs_info:option(DummyValue, "metadata_raid_lavel", translate("Metadata"))
++table_btrfs_info:option(DummyValue, "size_formated", translate("Size"))
++table_btrfs_info:option(DummyValue, "used_formated", translate("Used"))
++table_btrfs_info:option(DummyValue, "free_formated", translate("Free Space"))
++table_btrfs_info:option(DummyValue, "usage", translate("Usage"))
++local v_btrfs_label = table_btrfs_info:option(Value, "label", translate("Label"))
++local value_btrfs_label = ""
++v_btrfs_label.write = function(self, section, value)
++  value_btrfs_label = value or ""
++end
++local btn_update_label = table_btrfs_info:option(Button, "_update_label")
++btn_update_label.inputtitle = translate("Update")
++btn_update_label.inputstyle = "edit"
++btn_update_label.write = function(self, section, value)
++  local cmd = dm.command.btrfs .. " filesystem label " .. mount_point .. " " .. value_btrfs_label
++  local res = luci.util.exec(cmd)
++  luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman/btrfs/" .. uuid))
++end
++-- subvolume
++local subvolume_list = dm.get_btrfs_subv(mount_point)
++subvolume_list["_"] = { ID = 0 }
++table_subvolume = m:section(Table, subvolume_list, translate("SubVolumes"))
++table_subvolume:option(DummyValue, "id", translate("ID"))
++table_subvolume:option(DummyValue, "top_level", translate("Top Level"))
++table_subvolume:option(DummyValue, "uuid", translate("UUID"))
++table_subvolume:option(DummyValue, "otime", translate("Otime"))
++table_subvolume:option(DummyValue, "snapshots", translate("Snapshots"))
++local v_path = table_subvolume:option(Value, "path", translate("Path"))
++v_path.forcewrite = true
++v_path.render = function(self, section, scope)
++  if subvolume_list[section].ID == 0 then
++    self.template = "cbi/value"
++    self.placeholder = "/my_subvolume"
++    self.forcewrite = true
++    Value.render(self, section, scope)
++  else
++    self.template = "cbi/dvalue"
++    DummyValue.render(self, section, scope)
++  end
++end
++local value_path
++v_path.write = function(self, section, value)
++  value_path = value
++end
++local btn_set_default = table_subvolume:option(Button, "_subv_set_default", translate("Set Default"))
++btn_set_default.forcewrite = true
++btn_set_default.inputstyle = "edit"
++btn_set_default.template = "diskman/cbi/disabled_button"
++btn_set_default.render = function(self, section, scope)
++  if subvolume_list[section].default_subvolume then
++    self.view_disabled = true
++    self.inputtitle = translate("Set Default")
++  elseif subvolume_list[section].ID == 0 then
++    self.template = "cbi/dvalue"
++  else
++    self.inputtitle = translate("Set Default")
++    self.view_disabled = false
++  end
++  Button.render(self, section, scope)
++end
++btn_set_default.write = function(self, section, value)
++  local cmd
++  if value == translate("Set Default") then
++    cmd = dm.command.btrfs .. " subvolume set-default " .. mount_point..subvolume_list[section].path
++  else
++    cmd = dm.command.btrfs .. " subvolume set-default " .. mount_point.."/"
++  end
++  local res = luci.util.exec(cmd.. " 2>&1")
++  if res and (res:match("ERR") or res:match("not enough arguments")) then
++    m.errmessage = res
++  else
++    luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman/btrfs/" .. uuid))
++  end
++end
++local btn_remove = table_subvolume:option(Button, "_subv_remove")
++btn_remove.template = "diskman/cbi/disabled_button"
++btn_remove.forcewrite = true
++btn_remove.render = function(self, section, scope)
++  if subvolume_list[section].ID == 0 then
++    btn_remove.inputtitle = translate("Create")
++    btn_remove.inputstyle = "add"
++    self.view_disabled = false
++  elseif subvolume_list[section].path == "/" or subvolume_list[section].default_subvolume then
++    btn_remove.inputtitle = translate("Delete")
++    btn_remove.inputstyle = "remove"
++    self.view_disabled = true
++  else
++    btn_remove.inputtitle = translate("Delete")
++    btn_remove.inputstyle = "remove"
++    self.view_disabled = false
++  end
++  Button.render(self, section, scope)
++end
++
++btn_remove.write = function(self, section, value)
++  local cmd
++  if value == translate("Delete") then
++    cmd = dm.command.btrfs .. " subvolume delete " .. mount_point .. subvolume_list[section].path
++  elseif value == translate("Create") then
++    if value_path and value_path:match("^/") then
++      cmd = dm.command.btrfs .. " subvolume create " .. mount_point .. value_path
++    else
++      m.errmessage = translate("Please input Subvolume Path, Subvolume must start with '/'")
++      return
++    end
++  end
++  local res = luci.util.exec(cmd.. " 2>&1")
++  if res and (res:match("ERR") or res:match("not enough arguments")) then
++    m.errmessage = luci.util.pcdata(res)
++  else
++    luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman/btrfs/" .. uuid))
++  end
++end
++-- snapshot
++-- local snapshot_list = dm.get_btrfs_subv(mount_point, 1)
++-- table_snapshot = m:section(Table, snapshot_list, translate("Snapshots"))
++-- table_snapshot:option(DummyValue, "id", translate("ID"))
++-- table_snapshot:option(DummyValue, "top_level", translate("Top Level"))
++-- table_snapshot:option(DummyValue, "uuid", translate("UUID"))
++-- table_snapshot:option(DummyValue, "otime", translate("Otime"))
++-- table_snapshot:option(DummyValue, "path", translate("Path"))
++-- local snp_remove = table_snapshot:option(Button, "_snp_remove")
++-- snp_remove.inputtitle = translate("Delete")
++-- snp_remove.inputstyle = "remove"
++-- snp_remove.write = function(self, section, value)
++--   local cmd = dm.command.btrfs .. " subvolume delete " .. mount_point .. snapshot_list[section].path
++--   local res = luci.util.exec(cmd.. " 2>&1")
++--   if res and (res:match("ERR") or res:match("not enough arguments")) then
++--     m.errmessage = luci.util.pcdata(res)
++--   else
++--     luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman/btrfs/" .. uuid))
++--   end
++-- end
++
++-- new snapshots
++local s_snapshot = m:section(SimpleSection, translate("New Snapshot"))
++local value_sorce, value_dest, value_readonly
++local v_sorce = s_snapshot:option(Value, "_source", translate("Source Path"), translate("The source path for create the snapshot"))
++v_sorce.placeholder = "/data"
++v_sorce.forcewrite = true
++v_sorce.write = function(self, section, value)
++  value_sorce = value
++end
++
++local v_readonly = s_snapshot:option(Flag, "_readonly", translate("Readonly"), translate("The path where you want to store the snapshot"))
++v_readonly.forcewrite = true
++v_readonly.rmempty = false
++v_readonly.disabled = 0
++v_readonly.enabled = 1
++v_readonly.default = 1
++v_readonly.write = function(self, section, value)
++  value_readonly = value
++end
++local v_dest = s_snapshot:option(Value, "_dest", translate("Destination Path (optional)"))
++v_dest.forcewrite = true
++v_dest.placeholder = "/.snapshot/202002051538"
++v_dest.write = function(self, section, value)
++  value_dest = value
++end
++local btn_snp_create = s_snapshot:option(Button, "_snp_create")
++btn_snp_create.title = " "
++btn_snp_create.inputtitle = translate("New Snapshot")
++btn_snp_create.inputstyle = "add"
++btn_snp_create.write = function(self, section, value)
++  if value_sorce and value_sorce:match("^/") then
++    if not value_dest then value_dest = "/.snapshot"..value_sorce.."/"..os.date("%Y%m%d%H%M%S") end
++    nixio.fs.mkdirr(mount_point..value_dest:match("(.-)[^/]+$"))
++    local cmd = dm.command.btrfs .. " subvolume snapshot" .. (value_readonly == 1 and " -r " or " ") .. mount_point..value_sorce .. " " .. mount_point..value_dest
++    local res = luci.util.exec(cmd .. " 2>&1")
++    if res and (res:match("ERR") or res:match("not enough arguments")) then
++      m.errmessage = luci.util.pcdata(res)
++    else
++      luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman/btrfs/" .. uuid))
++    end
++  else
++    m.errmessage = translate("Please input Source Path of snapshot, Source Path must start with '/'")
++  end
++end
++
++return m
+diff --git a/applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua b/applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua
+new file mode 100644
+index 0000000000..3382afff8d
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua
+@@ -0,0 +1,360 @@
++--[[
++LuCI - Lua Configuration Interface
++Copyright 2019 lisaac <https://github.com/lisaac/luci-app-diskman>
++]]--
++
++require "luci.util"
++require("luci.tools.webadmin")
++local dm = require "luci.model.diskman"
++
++-- Use (non-UCI) SimpleForm since we have no related config file
++m = SimpleForm("diskman", translate("DiskMan"), translate("Manage Disks over LuCI."))
++m.template = "diskman/cbi/xsimpleform"
++m:append(Template("diskman/disk_info"))
++-- disable submit and reset button
++m.submit = false
++m.reset = false
++-- rescan disks
++rescan = m:section(SimpleSection)
++rescan_button = rescan:option(Button, "_rescan")
++rescan_button.inputtitle= translate("Rescan Disks")
++rescan_button.template = "diskman/cbi/inlinebutton"
++rescan_button.inputstyle = "add"
++rescan_button.forcewrite = true
++rescan_button.write = function(self, section, value)
++  luci.util.exec("echo '- - -' | tee /sys/class/scsi_host/host*/scan > /dev/null")
++  if dm.command.mdadm then
++    luci.util.exec(dm.command.mdadm .. " --assemble --scan")
++  end
++  luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman"))
++end
++
++-- disks
++local disks = dm.list_devices()
++d = m:section(Table, disks, translate("Disks"))
++d.config = "disk"
++-- option(type, id(key of table), text)
++d:option(DummyValue, "path", translate("Path"))
++d:option(DummyValue, "model", translate("Model"))
++d:option(DummyValue, "sn", translate("Serial Number"))
++d:option(DummyValue, "size_formated", translate("Size"))
++d:option(DummyValue, "temp", translate("Temp"))
++-- d:option(DummyValue, "sec_size", translate("Sector Size "))
++d:option(DummyValue, "p_table", translate("Partition Table"))
++d:option(DummyValue, "sata_ver", translate("SATA Version"))
++-- d:option(DummyValue, "rota_rate", translate("Rotation Rate"))
++d:option(DummyValue, "health_status", translate("Health") .. "<br/>" .. translate("Status"))
++-- d:option(DummyValue, "status", translate("Status"))
++
++-- local btn_eject = d:option(Button, "_eject")
++-- btn_eject.template = "diskman/cbi/disabled_button"
++-- btn_eject.inputstyle = "remove"
++-- btn_eject.inputtitle = translate("Eject")
++-- btn_eject.forcewrite = true
++-- btn_eject.write = function(self, section, value)
++--   local dev = section
++--   local disk_info = dm.get_disk_info(dev, true)
++--   if disk_info.p_table:match("Raid") then
++--     m.errmessage = translate("Unsupported raid reject!")
++--     return
++--   end
++--   for i, p in ipairs(disk_info.partitions) do
++--     if p.mount_point ~= "-" then
++--       m.errmessage = p.name .. translate("is in use! please unmount it first!")
++--       return
++--     end
++--   end
++--   if disk_info.type:match("md") then
++--     luci.util.exec(dm.command.mdadm .. " --stop /dev/" .. dev)
++--     luci.util.exec(dm.command.mdadm .. " --remove /dev/" .. dev)
++--     for _, disk in ipairs(disk_info.members) do
++--       luci.util.exec(dm.command.mdadm .. " --zero-superblock " .. disk)
++--     end
++--     dm.gen_mdadm_config()
++--   else
++--     luci.util.exec("echo 1 > /sys/block/" .. dev .. "/device/delete")
++--   end
++--   luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman"))
++-- end
++
++d.extedit = luci.dispatcher.build_url("admin/system/diskman/partition/%s")
++
++-- raid devices
++if dm.command.mdadm then
++  local raid_devices = dm.list_raid_devices()
++  -- raid_devices = diskmanager.getRAIDdevices()
++  if next(raid_devices) ~= nil then
++    local r = m:section(Table, raid_devices, translate("RAID Devices"))
++    r.config = "_raid"
++    r:option(DummyValue, "path", translate("Path"))
++    r:option(DummyValue, "level", translate("RAID mode"))
++    r:option(DummyValue, "size_formated", translate("Size"))
++    r:option(DummyValue, "p_table", translate("Partition Table"))
++    r:option(DummyValue, "status", translate("Status"))
++    r:option(DummyValue, "members_str", translate("Members"))
++    r:option(DummyValue, "active", translate("Active"))
++    r.extedit  = luci.dispatcher.build_url("admin/system/diskman/partition/%s")
++  end
++end
++
++-- btrfs devices
++if dm.command.btrfs then
++  btrfs_devices = dm.list_btrfs_devices()
++  if next(btrfs_devices) ~= nil then
++    local table_btrfs = m:section(Table, btrfs_devices, translate("Btrfs"))
++    table_btrfs:option(DummyValue, "uuid", translate("UUID"))
++    table_btrfs:option(DummyValue, "label", translate("Label"))
++    table_btrfs:option(DummyValue, "members", translate("Members"))
++    -- sieze is error, since there is RAID
++    -- table_btrfs:option(DummyValue, "size_formated", translate("Size"))
++    table_btrfs:option(DummyValue, "used_formated", translate("Usage"))
++    table_btrfs.extedit  = luci.dispatcher.build_url("admin/system/diskman/btrfs/%s")
++  end
++end
++
++-- mount point
++local mount_point = dm.get_mount_points()
++local _mount_point = {}
++table.insert( mount_point, { device = 0 } )
++local table_mp = m:section(Table, mount_point, translate("Mount Point"))
++local v_device = table_mp:option(Value, "device", translate("Device"))
++v_device.render = function(self, section, scope)
++  if mount_point[section].device == 0 then
++    self.template = "cbi/value"
++    self.forcewrite = true
++    for dev, info in pairs(disks) do
++      for i, v in ipairs(info.partitions) do
++        self:value("/dev/".. v.name, "/dev/".. v.name .. " ".. v.size_formated)
++      end
++    end
++    Value.render(self, section, scope)
++  else
++    self.template = "cbi/dvalue"
++    DummyValue.render(self, section, scope)
++  end
++end
++v_device.write = function(self, section, value)
++  _mount_point.device = value and value:gsub("%s+", "") or ""
++end
++local v_fs = table_mp:option(Value, "fs", translate("File System"))
++v_fs.render = function(self, section, scope)
++  if mount_point[section].device == 0 then
++    self.template = "cbi/value"
++    self:value("auto", "auto")
++    self.default = "auto"
++    self.forcewrite = true
++    Value.render(self, section, scope)
++  else
++    self.template = "cbi/dvalue"
++    DummyValue.render(self, section, scope)
++  end
++end
++v_fs.write = function(self, section, value)
++  _mount_point.fs = value and value:gsub("%s+", "") or ""
++end
++local v_mount_option = table_mp:option(Value, "mount_options", translate("Mount Options"))
++v_mount_option.render = function(self, section, scope)
++  if mount_point[section].device == 0 then
++    self.template = "cbi/value"
++    self.placeholder = "rw,noauto"
++    self.forcewrite = true
++    Value.render(self, section, scope)
++  else
++    self.template = "cbi/dvalue"
++    local mp = mount_point[section].mount_options
++    mount_point[section].mount_options = nil
++    local length = 0
++    for k in mp:gmatch("([^,]+)") do
++      mount_point[section].mount_options = mount_point[section].mount_options and (mount_point[section].mount_options .. ",") or ""
++      if length > 20 then
++        mount_point[section].mount_options = mount_point[section].mount_options.. " <br>"
++        length = 0
++      end
++      mount_point[section].mount_options = mount_point[section].mount_options .. k
++      length = length + #k
++    end
++    self.rawhtml = true
++    -- mount_point[section].mount_options = #mount_point[section].mount_options > 50 and mount_point[section].mount_options:sub(1,50) .. "..." or mount_point[section].mount_options
++    DummyValue.render(self, section, scope)
++  end
++end
++v_mount_option.write = function(self, section, value)
++  _mount_point.mount_options = value and value:gsub("%s+", "") or ""
++end
++local v_mount_point = table_mp:option(Value, "mount_point", translate("Mount Point"))
++v_mount_point.render = function(self, section, scope)
++  if mount_point[section].device == 0 then
++    self.template = "cbi/value"
++    self.placeholder = "/media/diskX"
++    self.forcewrite = true
++    Value.render(self, section, scope)
++  else
++    self.template = "cbi/dvalue"
++    local new_mp = ""
++    local v_mp_d
++    for v_mp_d in self["section"]["data"][section]["mount_point"]:gmatch('[^/]+') do
++      if #v_mp_d > 12 then
++        new_mp = new_mp .. "/" .. v_mp_d:sub(1,7) .. ".." .. v_mp_d:sub(-4)
++      else
++        new_mp = new_mp .."/".. v_mp_d
++      end
++    end
++    self["section"]["data"][section]["mount_point"] = '<span title="'..self["section"]["data"][section]["mount_point"] .. '" >'..new_mp..'</span>'
++    self.rawhtml = true
++    DummyValue.render(self, section, scope)
++  end
++end
++v_mount_point.write = function(self, section, value)
++  _mount_point.mount_point = value
++end
++local btn_umount = table_mp:option(Button, "_mount", translate("Mount"))
++btn_umount.forcewrite = true
++btn_umount.render = function(self, section, scope)
++  if mount_point[section].device == 0 then
++    self.inputtitle = translate("Mount")
++    btn_umount.inputstyle = "add"
++  else
++    self.inputtitle = translate("Umount")
++    btn_umount.inputstyle = "remove"
++  end
++  Button.render(self, section, scope)
++end
++btn_umount.write = function(self, section, value)
++  local res
++  if value == translate("Mount") then
++    if not _mount_point.mount_point or not _mount_point.device then return end
++    luci.util.exec("mkdir -p ".. _mount_point.mount_point)
++    res = luci.util.exec(dm.command.mount .. " ".. _mount_point.device .. (_mount_point.fs and (" -t ".. _mount_point.fs )or "") .. (_mount_point.mount_options and (" -o " .. _mount_point.mount_options.. " ") or  " ").._mount_point.mount_point .. " 2>&1")
++  elseif value == translate("Umount") then
++    res = luci.util.exec(dm.command.umount .. " "..mount_point[section].mount_point .. " 2>&1")
++  end
++  if res:match("^mount:") or res:match("^umount:") then
++    m.errmessage = luci.util.pcdata(res)
++  else
++    luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman"))
++  end
++end
++
++if dm.command.mdadm or dm.command.btrfs then
++local creation_section = m:section(TypedSection, "_creation")
++creation_section.cfgsections=function()
++  return {translate("Creation")}
++end
++creation_section:tab("raid",  translate("RAID"), translate("RAID Creation"))
++creation_section:tab("btrfs", translate("Btrfs"), translate("Multiple Devices Btrfs Creation"))
++
++-- raid functions
++if dm.command.mdadm then
++
++  local rname, rmembers, rlevel
++  local r_name = creation_section:taboption("raid", Value, "_rname", translate("Raid Name"))
++  r_name.placeholder = dm.find_free_md_device()
++  r_name.write = function(self, section, value)
++    rname = value
++  end
++  local r_level = creation_section:taboption("raid", ListValue, "_rlevel", translate("Raid Level"))
++  local valid_raid = luci.util.exec("grep -m1 'Personalities :' /proc/mdstat")
++  if valid_raid:match("%[linear%]") then
++    r_level:value("linear", "Linear")
++  end
++  if valid_raid:match("%[raid5%]") then
++    r_level:value("5", "Raid 5")
++  end
++  if valid_raid:match("%[raid6%]") then
++    r_level:value("6", "Raid 6")
++  end
++  if valid_raid:match("%[raid1%]") then
++    r_level:value("1", "Raid 1")
++  end
++  if valid_raid:match("%[raid0%]") then
++    r_level:value("0", "Raid 0")
++  end
++  if valid_raid:match("%[raid10%]") then
++    r_level:value("10", "Raid 10")
++  end
++  r_level.write = function(self, section, value)
++    rlevel = value
++  end
++  local r_member = creation_section:taboption("raid", DynamicList, "_rmember", translate("Raid Member"))
++  for dev, info in pairs(disks) do
++    if not info.inuse and  #info.partitions == 0  then
++        r_member:value(info.path, info.path.. " ".. info.size_formated)
++    end
++    for i, v in ipairs(info.partitions) do
++      if not v.inuse then
++        r_member:value("/dev/".. v.name, "/dev/".. v.name .. " ".. v.size_formated)
++      end
++    end
++  end
++  r_member.write = function(self, section, value)
++    rmembers = value
++  end
++  local r_create = creation_section:taboption("raid", Button, "_rcreate")
++  r_create.render = function(self, section, scope)
++    self.title = " "
++    self.inputtitle = translate("Create Raid")
++    self.inputstyle = "add"
++    Button.render(self, section, scope)
++  end
++  r_create.write = function(self, section, value)
++    -- mdadm --create --verbose /dev/md0 --level=stripe --raid-devices=2 /dev/sdb6 /dev/sdc5
++    local res = dm.create_raid(rname, rlevel, rmembers)
++    if res and res:match("^ERR") then
++      m.errmessage = luci.util.pcdata(res)
++      return
++    end
++    dm.gen_mdadm_config()
++    luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman"))
++  end
++end
++
++-- btrfs
++if dm.command.btrfs then
++  local blabel, bmembers, blevel
++  local btrfs_label = creation_section:taboption("btrfs", Value, "_blabel", translate("Btrfs Label"))
++  btrfs_label.write = function(self, section, value)
++    blabel = value
++  end
++  local btrfs_level = creation_section:taboption("btrfs", ListValue, "_blevel", translate("Btrfs Raid Level"))
++  btrfs_level:value("single", "Single")
++  btrfs_level:value("raid0", "Raid 0")
++  btrfs_level:value("raid1", "Raid 1")
++  btrfs_level:value("raid10", "Raid 10")
++  btrfs_level.write = function(self, section, value)
++    blevel = value
++  end
++
++  local btrfs_member = creation_section:taboption("btrfs", DynamicList, "_bmember", translate("Btrfs Member"))
++  for dev, info in pairs(disks) do
++    if not info.inuse and  #info.partitions == 0  then
++      btrfs_member:value(info.path, info.path.. " ".. info.size_formated)
++    end
++    for i, v in ipairs(info.partitions) do
++      if not v.inuse then
++        btrfs_member:value("/dev/".. v.name, "/dev/".. v.name .. " ".. v.size_formated)
++      end
++    end
++  end
++  btrfs_member.write = function(self, section, value)
++    bmembers = value
++  end
++  local btrfs_create = creation_section:taboption("btrfs", Button, "_bcreate")
++  btrfs_create.render = function(self, section, scope)
++    self.title = " "
++    self.inputtitle = translate("Create Btrfs")
++    self.inputstyle = "add"
++    Button.render(self, section, scope)
++  end
++  btrfs_create.write = function(self, section, value)
++    -- mkfs.btrfs -L label -d blevel /dev/sda /dev/sdb
++    local res = dm.create_btrfs(blabel, blevel, bmembers)
++    if res and res:match("^ERR") then
++      m.errmessage = luci.util.pcdata(res)
++      return
++    end
++    luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman"))
++  end
++end
++end
++
++return m
+diff --git a/applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua b/applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua
+new file mode 100644
+index 0000000000..348a617a6c
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua
+@@ -0,0 +1,366 @@
++--[[
++LuCI - Lua Configuration Interface
++Copyright 2019 lisaac <https://github.com/lisaac/luci-app-diskman>
++]]--
++
++require "luci.util"
++require("luci.tools.webadmin")
++local dm = require "luci.model.diskman"
++local dev = arg[1]
++
++if not dev then
++  luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman"))
++elseif not nixio.fs.access("/dev/"..dev) then
++  luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman"))
++end
++
++m = SimpleForm("partition", translate("Partition Management"), translate("Partition Disk over LuCI."))
++m.template = "diskman/cbi/xsimpleform"
++m.redirect = luci.dispatcher.build_url("admin/system/diskman")
++m:append(Template("diskman/partition_info"))
++-- disable submit and reset button
++m.submit = false
++m.reset = false
++
++local disk_info = dm.get_disk_info(dev, true)
++local format_cmd = dm.get_format_cmd()
++
++s = m:section(Table, {disk_info}, translate("Device Info"))
++-- s:option(DummyValue, "key")
++-- s:option(DummyValue, "value")
++s:option(DummyValue, "path", translate("Path"))
++s:option(DummyValue, "model", translate("Model"))
++s:option(DummyValue, "sn", translate("Serial Number"))
++s:option(DummyValue, "size_formated", translate("Size"))
++s:option(DummyValue, "sec_size", translate("Sector Size"))
++local dv_p_table = s:option(ListValue, "p_table", translate("Partition Table"))
++dv_p_table.render = function(self, section, scope)
++  -- create table only if not used by raid and no partitions on disk
++  if not disk_info.p_table:match("Raid") and (#disk_info.partitions == 0 or (#disk_info.partitions == 1 and disk_info.partitions[1].number == -1) or (disk_info.p_table:match("LOOP") and not disk_info.partitions[1].inuse)) then
++    self:value(disk_info.p_table, disk_info.p_table)
++    self:value("GPT", "GPT")
++    self:value("MBR", "MBR")
++    self.default = disk_info.p_table
++    ListValue.render(self, section, scope)
++  else
++    self.template = "cbi/dvalue"
++    DummyValue.render(self, section, scope)
++  end
++end
++if disk_info.type:match("md") then
++  s:option(DummyValue, "level", translate("Level"))
++  s:option(DummyValue, "members_str", translate("Members"))
++else
++  s:option(DummyValue, "temp", translate("Temp"))
++  s:option(DummyValue, "sata_ver", translate("SATA Version"))
++  s:option(DummyValue, "rota_rate", translate("Rotation Rate"))
++end
++s:option(DummyValue, "status", translate("Status"))
++local btn_health = s:option(Button, "health", translate("Health"))
++btn_health.render = function(self, section, scope)
++  if disk_info.health then
++    self.inputtitle = disk_info.health
++    if disk_info.health == "PASSED" then
++      self.inputstyle = "add"
++    else
++      self.inputstyle = "remove"
++    end
++    Button.render(self, section, scope)
++  else
++    self.template = "cbi/dvalue"
++    DummyValue.render(self, section, scope)
++  end
++end
++
++local btn_eject = s:option(Button, "_eject")
++btn_eject.template = "diskman/cbi/disabled_button"
++btn_eject.inputstyle = "remove"
++btn_eject.render = function(self, section, scope)
++  for i, p in ipairs(disk_info.partitions) do
++    if p.mount_point ~= "-" then
++      self.view_disabled = true
++      break
++    end
++  end
++  if disk_info.p_table:match("Raid") then
++    self.view_disabled = true
++  end
++  if disk_info.type:match("md") then
++    btn_eject.inputtitle = translate("Remove")
++  else
++    btn_eject.inputtitle = translate("Eject")
++  end
++  Button.render(self, section, scope)
++end
++btn_eject.forcewrite = true
++btn_eject.write = function(self, section, value)
++  for i, p in ipairs(disk_info.partitions) do
++    if p.mount_point ~= "-" then
++      m.errmessage = p.name .. translate("is in use! please unmount it first!")
++      return
++    end
++  end
++  if disk_info.type:match("md") then
++    luci.util.exec(dm.command.mdadm .. " --stop /dev/" .. dev)
++    luci.util.exec(dm.command.mdadm .. " --remove /dev/" .. dev)
++    for _, disk in ipairs(disk_info.members) do
++      luci.util.exec(dm.command.mdadm .. " --zero-superblock " .. disk)
++    end
++    dm.gen_mdadm_config()
++  else
++    luci.util.exec("echo 1 > /sys/block/" .. dev .. "/device/delete")
++  end
++  luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman"))
++end
++-- eject: echo 1 > /sys/block/(device)/device/delete
++-- rescan: echo '- - -' | tee /sys/class/scsi_host/host*/scan > /dev/null
++
++
++-- partitions info
++if not disk_info.p_table:match("Raid") then
++  s_partition_table = m:section(Table, disk_info.partitions, translate("Partitions Info"), translate("Default 2048 sector alignment, support +size{b,k,m,g,t} in End Sector"))
++
++  -- s_partition_table:option(DummyValue, "number", translate("Number"))
++  s_partition_table:option(DummyValue, "name", translate("Name"))
++  local val_sec_start = s_partition_table:option(Value, "sec_start", translate("Start Sector"))
++  val_sec_start.render = function(self, section, scope)
++    -- could create new partition
++    if disk_info.partitions[section].number == -1 and disk_info.partitions[section].size > 1 * 1024 * 1024 then
++      self.template = "cbi/value"
++      Value.render(self, section, scope)
++    else
++      self.template = "cbi/dvalue"
++      DummyValue.render(self, section, scope)
++    end
++  end
++  local val_sec_end = s_partition_table:option(Value, "sec_end", translate("End Sector"))
++  val_sec_end.render = function(self, section, scope)
++    -- could create new partition
++    if disk_info.partitions[section].number == -1 and disk_info.partitions[section].size > 1 * 1024 * 1024 then
++      self.template = "cbi/value"
++      Value.render(self, section, scope)
++    else
++      self.template = "cbi/dvalue"
++      DummyValue.render(self, section, scope)
++    end
++  end
++  val_sec_start.forcewrite = true
++  val_sec_start.write = function(self, section, value)
++    disk_info.partitions[section]._sec_start = value
++  end
++  val_sec_end.forcewrite = true
++  val_sec_end.write = function(self, section, value)
++    disk_info.partitions[section]._sec_end = value
++  end
++  s_partition_table:option(DummyValue, "size_formated", translate("Size"))
++  if disk_info.p_table == "MBR" then
++    s_partition_table:option(DummyValue, "type", translate("Type"))
++  end
++  s_partition_table:option(DummyValue, "used_formated", translate("Used"))
++  s_partition_table:option(DummyValue, "free_formated", translate("Free Space"))
++  s_partition_table:option(DummyValue, "usage", translate("Usage"))
++  local dv_mount_point = s_partition_table:option(DummyValue, "mount_point", translate("Mount Point"))
++  dv_mount_point.rawhtml = true
++  dv_mount_point.render = function(self, section, scope)
++    local new_mp = ""
++    local v_mp_d
++    for line in self["section"]["data"][section]["mount_point"]:gmatch("[^%s]+") do
++      if line == '-' then
++        new_mp = line
++        break
++      end
++      for v_mp_d in line:gmatch('[^/]+') do
++        if #v_mp_d > 12 then
++          new_mp = new_mp .. "/" .. v_mp_d:sub(1,7) .. ".." .. v_mp_d:sub(-4)
++        else
++          new_mp = new_mp .."/".. v_mp_d
++        end
++      end
++      new_mp = '<span title="'.. line .. '" >' ..new_mp  ..'</span>' .. "<br/>"
++    end
++    self["section"]["data"][section]["mount_point"] = new_mp
++    DummyValue.render(self, section, scope)
++  end
++  local val_fs = s_partition_table:option(Value, "fs", translate("File System"))
++  val_fs.forcewrite = true
++  val_fs.partitions = disk_info.partitions
++  for k, v in pairs(format_cmd) do
++    val_fs.format_cmd = val_fs.format_cmd and (val_fs.format_cmd ..  "," .. k) or k
++  end
++
++  val_fs.write = function(self, section, value)
++    disk_info.partitions[section]._fs = value
++  end
++  val_fs.render = function(self, section, scope)
++    -- use listvalue when partition not mounted
++    if disk_info.partitions[section].mount_point == "-" and disk_info.partitions[section].number ~= -1 and disk_info.partitions[section].type ~= "extended" then
++      self.template = "diskman/cbi/format_button"
++      self.inputstyle = "reset"
++      self.inputtitle = disk_info.partitions[section].fs == "raw" and translate("Format") or disk_info.partitions[section].fs
++      Button.render(self, section, scope)
++      -- self:reset_values()
++      -- self.keylist = {}
++      -- self.vallist = {}
++      -- for k, v in pairs(format_cmd) do
++      --   self:value(k,k)
++      -- end
++      -- self.default = disk_info.partitions[section].fs
++    else
++      -- self:reset_values()
++      -- self.keylist = {}
++      -- self.vallist = {}
++      self.template = "cbi/dvalue"
++      DummyValue.render(self, section, scope)
++    end
++  end
++  -- btn_format = s_partition_table:option(Button, "_format")
++  -- btn_format.template = "diskman/cbi/format_button"
++  -- btn_format.partitions = disk_info.partitions
++  -- btn_format.render = function(self, section, scope)
++  --   if disk_info.partitions[section].mount_point == "-" and disk_info.partitions[section].number ~= -1 and disk_info.partitions[section].type ~= "extended" then
++  --     self.inputtitle = translate("Format")
++  --     self.template = "diskman/cbi/disabled_button"
++  --     self.view_disabled = false
++  --     self.inputstyle = "reset"
++  --     for k, v in pairs(format_cmd) do
++  --       self:depends("val_fs", "k")
++  --     end
++  --   -- elseif disk_info.partitions[section].mount_point ~= "-" and disk_info.partitions[section].number ~= -1 then
++  --   --   self.inputtitle = "Format"
++  --   --   self.template = "diskman/cbi/disabled_button"
++  --   --   self.view_disabled = true
++  --   --   self.inputstyle = "reset"
++  --   else
++  --     self.inputtitle = ""
++  --     self.template = "cbi/dvalue"
++  --   end
++  --   Button.render(self, section, scope)
++  -- end
++  -- btn_format.forcewrite = true
++  -- btn_format.write = function(self, section, value)
++  --   local partition_name = "/dev/".. disk_info.partitions[section].name
++  --   if not nixio.fs.access(partition_name) then
++  --     m.errmessage = translate("Partition NOT found!")
++  --     return
++  --   end
++  --   local fs = disk_info.partitions[section]._fs
++  --   if not format_cmd[fs] then
++  --     m.errmessage = translate("Filesystem NOT support!")
++  --     return
++  --   end
++  --   local cmd = format_cmd[fs].cmd .. " " .. format_cmd[fs].option .. " " .. partition_name
++  --   local res = luci.util.exec(cmd .. " 2>&1")
++  --   if res and res:lower():match("error+") then
++  --     m.errmessage = luci.util.pcdata(res)
++  --   else
++  --     luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman/partition/" .. dev))
++  --   end
++  -- end
++
++  local btn_action = s_partition_table:option(Button, "_action")
++  btn_action.forcewrite = true
++  btn_action.template = "diskman/cbi/disabled_button"
++  btn_action.render = function(self, section, scope)
++    -- if partition is mounted or the size < 1mb, then disable the add action
++    if disk_info.partitions[section].mount_point ~= "-" or (disk_info.partitions[section].type ~= "extended" and disk_info.partitions[section].number == -1 and disk_info.partitions[section].size <= 1 * 1024 * 1024) then
++      self.view_disabled = true
++      -- self.inputtitle = ""
++      -- self.template = "cbi/dvalue"
++    elseif disk_info.partitions[section].type == "extended" and next(disk_info.partitions[section]["logicals"]) ~= nil then
++      self.view_disabled = true
++    else
++      -- self.template = "diskman/cbi/disabled_button"
++      self.view_disabled = false
++    end
++    if disk_info.partitions[section].number ~= -1 then
++      self.inputtitle = translate("Remove")
++      self.inputstyle = "remove"
++    else
++      self.inputtitle = translate("New")
++      self.inputstyle = "add"
++    end
++    Button.render(self, section, scope)
++  end
++  btn_action.write = function(self, section, value)
++    if value == translate("New") then
++      local start_sec = disk_info.partitions[section]._sec_start and tonumber(disk_info.partitions[section]._sec_start) or tonumber(disk_info.partitions[section].sec_start)
++      local end_sec = disk_info.partitions[section]._sec_end
++
++      if start_sec then
++        -- for sector alignment
++        local align = tonumber(disk_info.phy_sec) / tonumber(disk_info.logic_sec)
++        align = (align < 2048) and 2048
++        if start_sec < 2048 then
++          start_sec = "2048" .. "s"
++        elseif math.fmod( start_sec, align ) ~= 0 then
++          start_sec = tostring(start_sec + align - math.fmod( start_sec, align )) .. "s"
++        else
++          start_sec = start_sec .. "s"
++        end
++      else
++        m.errmessage = translate("Invalid Start Sector!")
++        return
++      end
++      -- support +size format for End sector
++      local end_size, end_unit = end_sec:match("^+(%d-)([bkmgtsBKMGTS])$")
++      if tonumber(end_size) and end_unit then
++        local unit ={
++          B=1,
++          S=512,
++          K=1024,
++          M=1048576,
++          G=1073741824,
++          T=1099511627776
++        }
++        end_unit = end_unit:upper()
++        end_sec = tostring(tonumber(end_size) * unit[end_unit] / unit["S"] + tonumber(start_sec:sub(1,-2)) - 1 ) .. "s"
++      elseif tonumber(end_sec) then
++        end_sec = end_sec .. "s"
++      else
++        m.errmessage = translate("Invalid End Sector!")
++        return
++      end
++      local part_type = "primary"
++
++      if disk_info.p_table == "MBR" and disk_info["extended_partition_index"] then
++        if tonumber(disk_info.partitions[disk_info["extended_partition_index"]].sec_start) <= tonumber(start_sec:sub(1,-2)) and tonumber(disk_info.partitions[disk_info["extended_partition_index"]].sec_end) >= tonumber(end_sec:sub(1,-2)) then
++          part_type = "logical"
++          if tonumber(start_sec:sub(1,-2)) - tonumber(disk_info.partitions[section].sec_start) < 2048 then
++            start_sec = tonumber(start_sec:sub(1,-2)) + 2048
++            start_sec = start_sec .."s"
++          end
++        end
++      elseif disk_info.p_table == "GPT" then
++        -- AUTOMATIC FIX GPT PARTITION TABLE
++        -- Not all of the space available to /dev/sdb appears to be used, you can fix the GPT to use all of the space (an extra 16123870 blocks) or continue with the current setting?
++        local cmd = ' printf "ok\nfix\n" | parted ---pretend-input-tty /dev/'.. dev ..' print'
++        luci.util.exec(cmd .. " 2>&1")
++      end
++
++      -- partiton
++      local cmd = dm.command.parted .. " -s -a optimal /dev/" .. dev .. " mkpart " .. part_type .." " .. start_sec .. " " .. end_sec
++      local res = luci.util.exec(cmd .. " 2>&1")
++      if res and res:lower():match("error+") then
++        m.errmessage = luci.util.pcdata(res)
++      else
++        luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman/partition/" .. dev))
++      end
++    elseif value == translate("Remove") then
++      -- remove partition
++      local number = tostring(disk_info.partitions[section].number)
++      if (not number) or (number == "") then
++        m.errmessage = translate("Partition not exists!")
++        return
++      end
++      local cmd = dm.command.parted .. " -s /dev/" .. dev .. " rm " .. number
++      local res = luci.util.exec(cmd .. " 2>&1")
++      if res and res:lower():match("error+") then
++        m.errmessage = luci.util.pcdata(res)
++      else
++        luci.http.redirect(luci.dispatcher.build_url("admin/system/diskman/partition/" .. dev))
++      end
++    end
++  end
++end
++
++return m
+\ No newline at end of file
+diff --git a/applications/luci-app-diskman/luasrc/model/diskman.lua b/applications/luci-app-diskman/luasrc/model/diskman.lua
+new file mode 100644
+index 0000000000..80a1a66444
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/model/diskman.lua
+@@ -0,0 +1,743 @@
++--[[
++LuCI - Lua Configuration Interface
++Copyright 2019 lisaac <https://github.com/lisaac/luci-app-diskman>
++]]--
++
++require "luci.util"
++local ver = require "luci.version"
++
++local CMD = {"parted", "mdadm", "blkid", "smartctl", "df", "btrfs", "lsblk"}
++
++local d = {command ={}}
++for _, cmd in ipairs(CMD) do
++  local command = luci.sys.exec("/usr/bin/which " .. cmd)
++    d.command[cmd] = command:match("^.+"..cmd) or nil
++end
++
++d.command.mount = nixio.fs.access("/usr/bin/mount") and "/usr/bin/mount" or "/bin/mount"
++d.command.umount = nixio.fs.access("/usr/bin/umount") and "/usr/bin/umount" or "/bin/umount"
++
++local proc_mounts = nixio.fs.readfile("/proc/mounts") or ""
++local mounts = luci.util.exec(d.command.mount .. " 2>/dev/null") or ""
++local swaps = nixio.fs.readfile("/proc/swaps") or ""
++local df = luci.sys.exec(d.command.df .. " 2>/dev/null") or ""
++
++function byte_format(byte)
++  local suff = {"B", "KB", "MB", "GB", "TB"}
++  for i=1, 5 do
++    if byte > 1024 and i < 5 then
++      byte = byte / 1024
++    else
++      return string.format("%.2f %s", byte, suff[i]) 
++    end 
++  end
++end
++
++local get_smart_info = function(device)
++  local section
++  local smart_info = {}
++  for _, line in ipairs(luci.util.execl(d.command.smartctl .. " -H -A -i -n standby -f brief /dev/" .. device)) do
++    local attrib, val
++    if section == 1 then
++        attrib, val = line:match "^(.-):%s+(.+)"
++    elseif section == 2 and smart_info.nvme_ver then
++      attrib, val = line:match("^(.-):%s+(.+)")
++      if not smart_info.health then smart_info.health = line:match(".-overall%-health.-: (.+)") end
++    elseif section == 2 then
++      attrib, val = line:match("^([0-9 ]+)%s+[^ ]+%s+[POSRCK-]+%s+[0-9-]+%s+[0-9-]+%s+[0-9-]+%s+[0-9-]+%s+([0-9-]+)")
++      if not smart_info.health then smart_info.health = line:match(".-overall%-health.-: (.+)") end
++    else
++      attrib = line:match "^=== START OF (.*) SECTION ==="
++      if attrib and attrib:match("INFORMATION") then
++        section = 1
++      elseif attrib and attrib:match("SMART DATA") then
++        section = 2
++      elseif not smart_info.status then
++        val = line:match "^Device is in (.*) mode"
++        if val then smart_info.status = val end
++      end
++    end
++
++    if not attrib then
++      if section ~= 2 then section = 0 end
++    elseif (attrib == "Power mode is") or
++      (attrib == "Power mode was") then
++        smart_info.status = val:match("(%S+)")
++    -- elseif attrib == "Sector Sizes" then
++    --   -- 512 bytes logical, 4096 bytes physical
++    --   smart_info.phy_sec = val:match "([0-9]*) bytes physical"
++    --   smart_info.logic_sec = val:match "([0-9]*) bytes logical"
++    -- elseif attrib == "Sector Size" then
++    --   -- 512 bytes logical/physical
++    --   smart_info.phy_sec = val:match "([0-9]*)"
++    --   smart_info.logic_sec = smart_info.phy_sec
++    elseif attrib == "Serial Number" then
++      smart_info.sn = val
++    elseif attrib == "194" or attrib == "Temperature" then
++      if val ~= "-" then
++        smart_info.temp = (val:match("(%d+)") or "?") .. "°C"
++      end
++    elseif attrib == "Rotation Rate" then
++      smart_info.rota_rate = val
++    elseif attrib == "SATA Version is" then
++      smart_info.sata_ver = val
++    elseif attrib == "NVMe Version" then
++      smart_info.nvme_ver = val
++    end
++  end
++  return smart_info
++end
++
++local parse_parted_info = function(keys, line)
++  -- parse the output of parted command (machine parseable format)
++  -- /dev/sda:5860533168s:scsi:512:4096:gpt:ATA ST3000DM001-1ER1:;
++  -- 1:34s:2047s:2014s:free;
++  -- 1:2048s:1073743872s:1073741825s:ext4:primary:;
++  local result = {}
++  local values = {}
++
++  for value in line:gmatch("(.-)[:;]") do table.insert(values, value) end
++  for i = 1,#keys do
++    result[keys[i]] = values[i] or ""
++  end
++  return result
++end
++
++local is_raid_member = function(partition)
++  -- check if inuse as raid member
++  if nixio.fs.access("/proc/mdstat") then
++    for _, result in ipairs(luci.util.execl("grep md /proc/mdstat | sed 's/[][]//g'")) do
++      local md, buf
++      md, buf = result:match("(md.-):(.+)")
++      if buf:match(partition) then
++        return "Raid Member: ".. md
++      end
++    end
++  end
++  return nil
++end
++
++local get_mount_point = function(partition)
++  local mount_point
++  for m in mounts:gmatch("/dev/"..partition.." on ([^ ]*)") do
++    mount_point = (mount_point and (mount_point .. " ")  or "") .. m
++  end
++  if mount_point then return mount_point end
++  -- result = luci.sys.exec('cat /proc/mounts | awk \'{if($1=="/dev/'.. partition ..'") print $2}\'')
++  -- if result ~= "" then return result end
++
++  if swaps:match("\n/dev/" .. partition .."%s") then return "swap" end
++  -- result = luci.sys.exec("cat /proc/swaps | grep /dev/" .. partition)
++  -- if result ~= "" then return "swap" end
++
++  return is_raid_member(partition)
++
++end
++
++-- return used, free, usage
++local get_partition_usage = function(partition)
++  if not nixio.fs.access("/dev/"..partition) then return false end
++  local used, free, usage = df:match("\n/dev/" .. partition .. "%s+%d+%s+(%d+)%s+(%d+)%s+(%d+)%%%s-")
++
++  usage = usage and (usage .. "%") or "-"
++  used = used and (tonumber(used) * 1024) or 0
++  free = free and (tonumber(free) * 1024) or 0
++
++  return used, free, usage
++end
++
++local get_parted_info = function(device)
++  if not device then return end
++  local result = {partitions={}}
++  local DEVICE_INFO_KEYS = { "path", "size", "type", "logic_sec", "phy_sec", "p_table", "model", "flags" }
++  local PARTITION_INFO_KEYS = { "number", "sec_start", "sec_end", "size", "fs", "tag_name", "flags" }
++  local partition_temp
++  local partitions_temp = {}
++  local disk_temp
++
++  for line in luci.util.execi(d.command.parted .. " -s -m /dev/" .. device .. " unit s print free", "r") do
++    if line:find("^/dev/"..device..":.+") then
++      disk_temp = parse_parted_info(DEVICE_INFO_KEYS, line)
++      disk_temp.partitions = {}
++      if disk_temp["size"] then
++        local length = disk_temp["size"]:gsub("^(%d+)s$", "%1")
++        local newsize = tostring(tonumber(length)*tonumber(disk_temp["logic_sec"]))
++        disk_temp["size"] = newsize
++      end
++      if disk_temp["p_table"] == "msdos" then
++        disk_temp["p_table"] = "MBR"
++      else
++        disk_temp["p_table"] = disk_temp["p_table"]:upper()
++      end
++    elseif line:find("^%d-:.+") then
++      partition_temp = parse_parted_info(PARTITION_INFO_KEYS, line)
++      -- use human-readable form instead of sector number
++      if partition_temp["size"] then
++        local length = partition_temp["size"]:gsub("^(%d+)s$", "%1")
++        local newsize = (tonumber(length) * tonumber(disk_temp["logic_sec"]))
++        partition_temp["size"] = newsize
++        partition_temp["size_formated"] = byte_format(newsize)
++      end
++      partition_temp["number"] = tonumber(partition_temp["number"]) or -1
++      if partition_temp["fs"] == "free" then
++        partition_temp["number"] = -1
++        partition_temp["fs"] = "Free Space"
++        partition_temp["name"] = "-"
++      elseif device:match("sd") or device:match("sata") or device:match("vd") then
++        partition_temp["name"] = device..partition_temp["number"]
++      elseif device:match("mmcblk") or device:match("md") or device:match("nvme") then
++        partition_temp["name"] = device.."p"..partition_temp["number"]
++      end
++      if partition_temp["number"] > 0 and partition_temp["fs"] == "" and d.command.lsblk then
++        partition_temp["fs"] = luci.util.exec(d.command.lsblk .. " /dev/"..device.. tostring(partition_temp["number"]) .. " -no fstype"):match("([^%s]+)") or ""
++      end
++      partition_temp["fs"] = partition_temp["fs"] == "" and "raw" or partition_temp["fs"]
++      partition_temp["sec_start"] = partition_temp["sec_start"] and partition_temp["sec_start"]:sub(1,-2)
++      partition_temp["sec_end"] = partition_temp["sec_end"] and partition_temp["sec_end"]:sub(1,-2)
++      partition_temp["mount_point"] = partition_temp["name"]~="-" and get_mount_point(partition_temp["name"]) or "-"
++      if partition_temp["mount_point"]~="-" then
++        partition_temp["used"], partition_temp["free"], partition_temp["usage"] = get_partition_usage(partition_temp["name"])
++        partition_temp["used_formated"] = partition_temp["used"] and byte_format(partition_temp["used"]) or "-"
++        partition_temp["free_formated"] = partition_temp["free"] and byte_format(partition_temp["free"]) or "-"
++      else
++        partition_temp["used"], partition_temp["free"], partition_temp["usage"] = 0,0,"-"
++        partition_temp["used_formated"] = "-"
++        partition_temp["free_formated"] = "-"
++      end
++      -- if disk_temp["p_table"] == "MBR" and (partition_temp["number"] < 4) and (partition_temp["number"] > 0) then
++      --   local real_size_sec = tonumber(nixio.fs.readfile("/sys/block/"..device.."/"..partition_temp["name"].."/size")) * tonumber(disk_temp.phy_sec)
++      --   if real_size_sec ~= partition_temp["size"] then
++      --     disk_temp["extended_partition_index"] = partition_temp["number"]
++      --     partition_temp["type"] = "extended"
++      --     partition_temp["size"] = real_size_sec
++      --     partition_temp["fs"] = "-"
++      --     partition_temp["logicals"] = {}
++      --   else
++      --     partition_temp["type"] = "primary"
++      --   end
++      -- end
++
++      table.insert(partitions_temp, partition_temp)
++    end
++  end
++  if disk_temp and disk_temp["p_table"] == "MBR" then
++    for i, p in ipairs(partitions_temp) do
++      if disk_temp["extended_partition_index"] and p["number"] > 4 then
++        if tonumber(p["sec_end"]) <= tonumber(partitions_temp[disk_temp["extended_partition_index"]]["sec_end"]) and tonumber(p["sec_start"]) >= tonumber(partitions_temp[disk_temp["extended_partition_index"]]["sec_start"]) then
++          p["type"] = "logical"
++          table.insert(partitions_temp[disk_temp["extended_partition_index"]]["logicals"], i)
++        end
++      elseif (p["number"] <= 4) and (p["number"] > 0) then
++        local s = nixio.fs.readfile("/sys/block/"..device.."/"..p["name"].."/size")
++        if s then
++          local real_size_sec = tonumber(s) * tonumber(disk_temp.logic_sec)
++          -- if size not equal, it's an extended
++          if real_size_sec ~= p["size"] then
++            disk_temp["extended_partition_index"] = i
++            p["type"] = "extended"
++            p["size"] = real_size_sec
++            p["fs"] = "-"
++            p["logicals"] = {}
++          else
++            p["type"] = "primary"
++          end
++        else
++          -- if not found in "/sys/block"
++          p["type"] = "primary"
++        end
++      end
++    end
++  end
++  result = disk_temp or result
++  result.partitions = partitions_temp
++
++  return result
++end
++
++local mddetail = function(mdpath)
++	local detail = {}
++	local path = mdpath:match("^/dev/md%d+$")
++	if path then
++		local mdadm = io.popen(d.command.mdadm .. " --detail "..path, "r")
++		for line in mdadm:lines() do
++			local key, value = line:match("^%s*(.+) : (.+)")
++			if key then
++				detail[key] = value
++			end
++		end
++		mdadm:close()
++	end
++	return detail
++end
++
++-- return {{device="", mount_points="", fs="", mount_options="", dump="", pass=""}..}
++d.get_mount_points = function()
++  local mount
++  local res = {}
++  local h ={"device", "mount_point", "fs", "mount_options", "dump", "pass"}
++  for mount in proc_mounts:gmatch("[^\n]+") do
++    local device = mount:match("^([^%s]+)%s+.+")
++    -- only show /dev/xxx device
++    if device and device:match("/dev/") then
++      res[#res+1] = {}
++      local i = 0
++      for v in mount:gmatch("[^%s]+") do
++        i = i + 1
++        res[#res][h[i]] = v
++      end
++    end
++  end
++  return res
++end
++
++d.get_disk_info = function(device, wakeup)
++  --[[ return:
++  {
++    path, model, sn, size, size_mounted, flags, type, temp, p_table, logic_sec, phy_sec, sec_size, sata_ver, rota_rate, status, health,
++    partitions = {
++      1 = { number, name, sec_start, sec_end, size, size_mounted, fs, tag_name, type, flags, mount_point, usage, used, free, used_formated, free_formated},
++      2 = { number, name, sec_start, sec_end, size, size_mounted, fs, tag_name, type, flags, mount_point, usage, used, free, used_formated, free_formated},
++      ...
++    }
++    --raid devices only
++    level, members, members_str
++  }
++  --]]
++  if not device then return end
++  local disk_info
++  local smart_info = get_smart_info(device)
++
++  -- check if divice is the member of raid
++  smart_info["p_table"] = is_raid_member(device..'0')
++  -- if status is not active(standby), only check smart_info.
++  -- if only weakup == true, weakup the disk and check parted_info.
++  if smart_info.status ~= "STANDBY" or wakeup or (smart_info["p_table"] and not smart_info["p_table"]:match("Raid")) or device:match("^md") then
++    disk_info = get_parted_info(device)
++    disk_info["sec_size"] = disk_info["logic_sec"] .. "/" .. disk_info["phy_sec"]
++    disk_info["size_formated"] = byte_format(tonumber(disk_info["size"]))
++    -- if status is standby, after get part info, the disk is weakuped, then get smart_info again for more informations
++    if smart_info.status ~= "ACTIVE" then smart_info = get_smart_info(device) end
++  else
++    disk_info = {}
++  end
++
++  for k, v in pairs(smart_info) do
++    disk_info[k] = v
++  end
++
++  if disk_info.type and disk_info.type:match("md") then
++    local raid_info = d.list_raid_devices()[disk_info["path"]:match("/dev/(.+)")]
++    for k, v in pairs(raid_info) do
++      disk_info[k] = v
++    end
++  end
++  return disk_info
++end
++
++d.list_raid_devices = function()
++  local fs = require "nixio.fs"
++
++  local raid_devices = {}
++  if not fs.access("/proc/mdstat") then return raid_devices end
++  local mdstat = io.open("/proc/mdstat", "r")
++  for line in mdstat:lines() do
++
++    -- md1 : active raid1 sdb2[1] sda2[0]
++    -- md127 : active raid5 sdh1[6] sdg1[4] sdf1[3] sde1[2] sdd1[1] sdc1[0]
++    local device_info = {}
++    local mdpath, list = line:match("^(md%d+) : (.+)")
++    if mdpath then
++      local members = {}
++      for member in string.gmatch(list, "%S+") do
++        member_path = member:match("^(%S+)%[%d+%]")
++        if member_path then
++          member = '/dev/'..member_path
++        end
++        table.insert(members, member)
++      end
++      local active = table.remove(members, 1)
++      local level = "-"
++      if active == "active" then
++        level = table.remove(members, 1)
++      end
++
++      local size = tonumber(fs.readfile(string.format("/sys/class/block/%s/size", mdpath)))
++      local ss = tonumber(fs.readfile(string.format("/sys/class/block/%s/queue/logical_block_size", mdpath)))
++
++      device_info["path"] = "/dev/"..mdpath
++      device_info["size"] = size*ss
++      device_info["size_formated"] = byte_format(size*ss)
++      device_info["active"] = active:upper()
++      device_info["level"] = level
++      device_info["members"] = members
++      device_info["members_str"] = table.concat(members, ", ")
++
++      -- Get more info from output of mdadm --detail
++      local detail = mddetail(device_info["path"])
++      device_info["status"] = detail["State"]:upper()
++
++      raid_devices[mdpath] = device_info
++    end
++  end
++  mdstat:close()
++
++  return raid_devices
++end
++
++-- Collect Devices information
++  --[[ return:
++  {
++    sda={
++      path, model, inuse, size_formated,
++      partitions={ 
++        { name, inuse, size_formated }
++        ...
++      }
++    }
++    ..
++  }
++  --]]
++d.list_devices = function()
++  local fs = require "nixio.fs"
++
++  -- get all device names (sdX and mmcblkX)
++  local target_devnames = {}
++  for dev in fs.dir("/dev") do
++    if dev:match("^sd[a-z]$")
++      or dev:match("^mmcblk%d+$")
++      or dev:match("^sata[a-z]$")
++      or dev:match("^nvme%d+n%d+$")
++      or dev:match("^vd[a-z]$")
++      then
++      table.insert(target_devnames, dev)
++    end
++  end
++
++  local devices = {}
++  for i, bname in pairs(target_devnames) do
++    local device_info = {}
++    local device = "/dev/" .. bname
++    local size = tonumber(fs.readfile(string.format("/sys/class/block/%s/size", bname)) or "0")
++    local ss = tonumber(fs.readfile(string.format("/sys/class/block/%s/queue/logical_block_size", bname)) or "0")
++    local model = fs.readfile(string.format("/sys/class/block/%s/device/model", bname))
++    local partitions = {}
++    for part in nixio.fs.glob("/sys/block/" .. bname .."/" .. bname .. "*") do
++      local pname = nixio.fs.basename(part)
++      local psize = byte_format(tonumber(nixio.fs.readfile(part .. "/size"))*ss)
++      local mount_point = get_mount_point(pname)
++      if mount_point then device_info["inuse"] = true end
++      table.insert(partitions, {name = pname, size_formated = psize, inuse = mount_point})
++    end
++
++      device_info["path"] = device
++      device_info["size_formated"] = byte_format(size*ss)
++      device_info["model"] = model
++      device_info["partitions"] = partitions
++      -- true or false
++      device_info["inuse"] = device_info["inuse"] or get_mount_point(bname)
++
++      local udevinfo = {}
++      if luci.sys.exec("which udevadm") ~= "" then
++        local udevadm = io.popen("udevadm info --query=property --name="..device)
++        for attr in udevadm:lines() do
++          local k, v = attr:match("(%S+)=(%S+)")
++          udevinfo[k] = v
++        end
++        udevadm:close()
++
++        device_info["info"] = udevinfo
++        if udevinfo["ID_MODEL"] then device_info["model"] = udevinfo["ID_MODEL"] end
++      end
++      devices[bname] = device_info
++  end
++  -- luci.util.perror(luci.util.serialize_json(devices))
++  return devices
++end
++
++-- get formart cmd
++d.get_format_cmd = function()
++  local AVAILABLE_FMTS = {
++    ext2 = { cmd = "mkfs.ext2", option = "-F -E lazy_itable_init=1" },
++    ext3 = { cmd = "mkfs.ext3", option = "-F -E lazy_itable_init=1" },
++    ext4 = { cmd = "mkfs.ext4", option = "-F -E lazy_itable_init=1" },
++    fat32 = { cmd = "mkfs.fat", option = "-F 32" },
++    exfat = { cmd = "mkfs.exfat", option = "" },
++    hfsplus = { cmd = "mkhfs", option = "-f" },
++    ntfs = { cmd = "mkfs.ntfs", option = "-f" },
++    swap = { cmd = "mkswap", option = "" },
++    btrfs = { cmd = "mkfs.btrfs", option = "-f" }
++  }
++  result = {}
++  for fmt, obj in pairs(AVAILABLE_FMTS) do
++    local cmd = luci.sys.exec("/usr/bin/which " .. obj["cmd"])
++    if cmd:match(obj["cmd"]) then
++      result[fmt] = { cmd = cmd:match("^.+"..obj["cmd"]) ,option = obj["option"] }
++    end
++  end
++  return result
++end
++
++d.find_free_md_device = function()
++  for num=0,127 do
++    local md = io.open("/dev/md"..tostring(num), "r")
++    if md == nil then
++      return "/dev/md"..tostring(num)
++    else
++      io.close(md)
++    end
++  end
++  return nil
++end
++
++d.create_raid = function(rname, rlevel, rmembers)
++  local mb = {}
++  for _, v in ipairs(rmembers) do
++    mb[v]=v
++  end
++  rmembers = {}
++  for _, v in pairs(mb) do
++    table.insert(rmembers, v)
++  end
++  if type(rname) == "string" then
++    if rname:match("^md%d-%s+") then
++      rname = "/dev/"..rname:match("^(md%d-)%s+")
++    elseif rname:match("^/dev/md%d-%s+") then
++      rname = "/dev/"..rname:match("^(/dev/md%d-)%s+")
++    elseif not rname:match("/") then
++      rname = "/dev/md/".. rname
++    else
++      return "ERR: Invalid raid name"
++    end
++  else
++    rname = d.find_free_md_device()
++    if rname == nil then return "ERR: Cannot find free md device" end
++  end
++
++  if rlevel == "5" or rlevel == "6" then
++    if #rmembers < 3 then return "ERR: Not enough members" end
++  end
++  if rlevel == "10" then
++    if #rmembers < 4 then return "ERR: Not enough members" end
++  end
++  if #rmembers < 2 then return "ERR: Not enough members" end
++  local cmd = d.command.mdadm .. " --create "..rname.." --run --assume-clean --homehost=any --level=" .. rlevel .. " --raid-devices=" .. #rmembers .. " " .. table.concat(rmembers, " ")
++  local res = luci.util.exec(cmd)
++  return res
++end
++
++d.gen_mdadm_config = function()
++  if not nixio.fs.access("/etc/config/mdadm") then return end
++  local uci = require "luci.model.uci"
++  local x = uci.cursor()
++  -- delete all array sections
++  x:foreach("mdadm", "array", function(s) x:delete("mdadm",s[".name"]) end)
++  local cmd = d.command.mdadm .. " -D -s"
++  --ARRAY /dev/md1 metadata=1.2 name=any:1 UUID=f998ae14:37621b27:5c49e850:051f6813
++  --ARRAY /dev/md3 metadata=1.2 name=any:3 UUID=c068c141:4b4232ca:f48cbf96:67d42feb
++  for _, v in ipairs(luci.util.execl(cmd)) do
++    local device, uuid = v:match("^ARRAY%s-([^%s]+)%s-[^%s]-%s-[^%s]-%s-UUID=([^%s]+)%s-")
++    if device and uuid then
++      local section_name = x:add("mdadm", "array")
++      x:set("mdadm", section_name, "device", device)
++      x:set("mdadm", section_name, "uuid", uuid)
++    end
++  end
++  x:commit("mdadm")
++  -- enable mdadm
++  luci.util.exec("/etc/init.d/mdadm enable")
++end
++
++-- list btrfs filesystem device
++-- {uuid={uuid, label, members, size, used}...}
++d.list_btrfs_devices = function()
++  local btrfs_device = {}
++  if not d.command.btrfs then return btrfs_device end
++  local line, _uuid
++  for _, line in ipairs(luci.util.execl(d.command.btrfs .. " filesystem show -d --raw"))
++  do
++    local label, uuid = line:match("^Label:%s+([^%s]+)%s+uuid:%s+([^%s]+)")
++    if label and uuid then
++      _uuid = uuid
++      local _label = label:match("^'([^']+)'")
++      btrfs_device[_uuid] = {label = _label or label, uuid = uuid}
++      -- table.insert(btrfs_device, {label = label, uuid = uuid})
++    end
++    local used = line:match("Total devices[%w%s]+used%s+(%d+)$")
++    if used then
++      btrfs_device[_uuid]["used"] = tonumber(used)
++      btrfs_device[_uuid]["used_formated"] = byte_format(tonumber(used))
++    end
++    local size, device = line:match("devid[%w.%s]+size%s+(%d+)[%w.%s]+path%s+([^%s]+)$")
++    if size and device then
++      btrfs_device[_uuid]["size"] = btrfs_device[_uuid]["size"] and btrfs_device[_uuid]["size"] + tonumber(size) or tonumber(size)
++      btrfs_device[_uuid]["size_formated"] = byte_format(btrfs_device[_uuid]["size"])
++      btrfs_device[_uuid]["members"] = btrfs_device[_uuid]["members"] and btrfs_device[_uuid]["members"]..", "..device or device
++    end
++  end
++  return btrfs_device
++end
++
++d.create_btrfs = function(blabel, blevel, bmembers)
++  -- mkfs.btrfs -L label -d blevel /dev/sda /dev/sdb
++  if not d.command.btrfs or type(bmembers) ~= "table" or next(bmembers) == nil then return "ERR no btrfs support or no members" end
++  local label = blabel and " -L " .. blabel or ""
++  local cmd = "mkfs.btrfs -f " .. label .. " -d " .. blevel .. " " .. table.concat(bmembers, " ")
++  return luci.util.exec(cmd)
++end
++
++-- get btrfs info
++-- {uuid, label, members, data_raid_level,metadata_raid_lavel, size, used, size_formated, used_formated, free, free_formated, usage}
++d.get_btrfs_info = function(m_point)
++  local btrfs_info = {}
++  if not m_point or not d.command.btrfs then return btrfs_info end
++  local cmd = d.command.btrfs .. " filesystem show --raw " .. m_point
++  local _, line, uuid, _label, members
++  for _, line in ipairs(luci.util.execl(cmd)) do
++    if not uuid and not _label then
++      _label, uuid = line:match("^Label:%s+([^%s]+)%s+uuid:%s+([^s]+)")
++    else
++      local mb = line:match("%s+devid.+path%s+([^%s]+)")
++      if mb then
++        members = members and (members .. ", ".. mb) or mb
++      end
++    end
++  end
++
++  if not _label or not uuid then return btrfs_info end
++  local label = _label:match("^'([^']+)'")
++  cmd = d.command.btrfs .. " filesystem usage -b " .. m_point
++  local used, free, data_raid_level, metadata_raid_lavel
++  for _, line in ipairs(luci.util.execl(cmd)) do
++    if not used then
++      used = line:match("^%s+Used:%s+(%d+)")
++    elseif not free then
++      free = line:match("^%s+Free %(estimated%):%s+(%d+)")
++    elseif not data_raid_level then
++      data_raid_level = line:match("^Data,%s-(%w+)")
++    elseif not metadata_raid_lavel then
++      metadata_raid_lavel = line:match("^Metadata,%s-(%w+)")
++    end
++  end
++  if used and free and data_raid_level and metadata_raid_lavel then
++    used = tonumber(used)
++    free = tonumber(free)
++    btrfs_info = {
++      uuid = uuid,
++      label = label,
++      data_raid_level = data_raid_level,
++      metadata_raid_lavel = metadata_raid_lavel,
++      used = used,
++      free = free,
++      size = used + free,
++      size_formated = byte_format(used + free),
++      used_formated = byte_format(used),
++      free_formated = byte_format(free),
++      members = members,
++      usage = string.format("%.2f",(used / (free+used) * 100)) .. "%"
++    }
++  end
++  return btrfs_info
++end
++
++-- get btrfs subvolume
++-- {id={id, gen, top_level, path, snapshots, otime, default_subvolume}...}
++d.get_btrfs_subv = function(m_point, snapshot)
++local subvolume = {}
++if not m_point or not d.command.btrfs then return subvolume end
++
++-- get default subvolume
++local cmd = d.command.btrfs .. " subvolume get-default " .. m_point
++local res = luci.util.exec(cmd)
++local default_subvolume_id = res:match("^ID%s+([^%s]+)")
++
++-- get the root subvolume
++if not snapshot then
++  local _, line, section_snap, _uuid, _otime, _id, _snap
++  cmd = d.command.btrfs .. " subvolume show ".. m_point
++  for _, line in ipairs(luci.util.execl(cmd)) do
++    if not section_snap then
++      if not _uuid then
++        _uuid = line:match("^%s-UUID:%s+([^%s]+)")
++      elseif not _otime then
++        _otime = line:match("^%s+Creation time:%s+(.+)")
++      elseif not _id then
++        _id = line:match("^%s+Subvolume ID:%s+([^%s]+)")
++      elseif line:match("^%s+(Snapshot%(s%):)") then
++        section_snap = true
++      end
++    else
++      local snapshot = line:match("^%s+(.+)")
++      if snapshot then
++        _snap = _snap and (_snap ..", /".. snapshot) or ("/"..snapshot)
++      end
++    end
++  end
++  if _uuid and _otime and _id then
++    subvolume["0".._id] = {id = _id , uuid = _uuid, otime = _otime, snapshots = _snap, path = "/"}
++    if default_subvolume_id == _id then
++      subvolume["0".._id].default_subvolume = 1
++    end
++  end
++end
++
++-- get subvolume of btrfs
++cmd = d.command.btrfs .. " subvolume list -gcu" .. (snapshot and "s " or " ") .. m_point
++for _, line in ipairs(luci.util.execl(cmd)) do
++  -- ID 259 gen 11 top level 258 uuid 26ae0c59-199a-cc4d-bd58-644eb4f65d33 path 1a/2b'
++  local id, gen, top_level, uuid, path, otime, otime2
++  if snapshot then
++    id, gen, top_level, otime, otime2, uuid, path = line:match("^ID%s+([^%s]+)%s+gen%s+([^%s]+)%s+cgen.-top level%s+([^%s]+)%s+otime%s+([^%s]+)%s+([^%s]+)%s+uuid%s+([^%s]+)%s+path%s+([^%s]+)%s-$")
++  else
++    id, gen, top_level, uuid, path = line:match("^ID%s+([^%s]+)%s+gen%s+([^%s]+)%s+cgen.-top level%s+([^%s]+)%s+uuid%s+([^%s]+)%s+path%s+([^%s]+)%s-$")
++  end
++  if id and gen and top_level and uuid and path then
++    subvolume[id] = {id = id, gen = gen, top_level = top_level, otime = (otime and otime or "") .." ".. (otime2 and otime2 or ""), uuid = uuid, path = '/'.. path}
++    if not snapshot then
++      -- use btrfs subv show to get snapshots
++      local show_cmd = d.command.btrfs .. " subvolume show "..m_point.."/"..path
++      local __, line_show, section_snap
++      for __, line_show in ipairs(luci.util.execl(show_cmd)) do
++        if not section_snap then
++          local create_time = line_show:match("^%s+Creation time:%s+(.+)")
++          if create_time then
++            subvolume[id]["otime"] = create_time
++          elseif line_show:match("^%s+(Snapshot%(s%):)") then
++            section_snap = "true"
++          end
++        else
++          local snapshot = line_show:match("^%s+(.+)")
++          subvolume[id]["snapshots"] = subvolume[id]["snapshots"] and (subvolume[id]["snapshots"] .. ", /".. snapshot) or ("/"..snapshot)
++        end
++      end
++    end
++  end
++end
++if subvolume[default_subvolume_id] then
++  subvolume[default_subvolume_id].default_subvolume = 1
++end
++-- if m_point == "/tmp/.btrfs_tmp" then
++--   luci.util.exec("umount " .. m_point)
++-- end
++return subvolume
++end
++
++d.format_partition = function(partition, fs)
++  local partition_name = "/dev/".. partition
++  if not nixio.fs.access(partition_name) then
++    return 500, "Partition NOT found!"
++  end
++
++  local format_cmd = d.get_format_cmd()
++  if not format_cmd[fs] then
++    return 500, "Filesystem NOT support!"
++  end
++  local cmd = format_cmd[fs].cmd .. " " .. format_cmd[fs].option .. " " .. partition_name
++  local res = luci.util.exec(cmd .. " 2>&1")
++  if res and res:lower():match("error+") then
++    return 500, res
++  else
++    return 200, "OK"
++  end
++end
++
++return d
+diff --git a/applications/luci-app-diskman/luasrc/view/diskman/cbi/disabled_button.htm b/applications/luci-app-diskman/luasrc/view/diskman/cbi/disabled_button.htm
+new file mode 100644
+index 0000000000..1ad4eca3be
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/view/diskman/cbi/disabled_button.htm
+@@ -0,0 +1,7 @@
++<%+cbi/valueheader%>
++	<% if self:cfgvalue(section) ~= false then %>
++		<input class="cbi-button cbi-button-<%=self.inputstyle or "button" %>" type="submit"<%= attr("name", cbid) .. attr("id", cbid) .. attr("value", self.inputtitle or self.title)%> <% if self.view_disabled then %> disabled <% end %>/>
++	<% else %>
++		-
++	<% end %>
++<%+cbi/valuefooter%>
+\ No newline at end of file
+diff --git a/applications/luci-app-diskman/luasrc/view/diskman/cbi/format_button.htm b/applications/luci-app-diskman/luasrc/view/diskman/cbi/format_button.htm
+new file mode 100644
+index 0000000000..18e306e27f
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/view/diskman/cbi/format_button.htm
+@@ -0,0 +1,7 @@
++<%+cbi/valueheader%>
++	<% if self:cfgvalue(section) ~= false then %>
++    <input class="cbi-button cbi-button-<%=self.inputstyle or "button" %>" onclick="event.preventDefault();partition_format('<%=self.partitions[section].name%>', '<%=self.format_cmd%>', '<%=self.inputtitle%>');" type="submit"<%= attr("name", cbid) .. attr("id", cbid) .. attr("value", self.inputtitle or self.title)%> <% if self.view_disabled then %> disabled <% end %>/>
++	<% else %>
++		-
++	<% end %>
++<%+cbi/valuefooter%>
+diff --git a/applications/luci-app-diskman/luasrc/view/diskman/cbi/inlinebutton.htm b/applications/luci-app-diskman/luasrc/view/diskman/cbi/inlinebutton.htm
+new file mode 100644
+index 0000000000..b1b1932571
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/view/diskman/cbi/inlinebutton.htm
+@@ -0,0 +1,7 @@
++<div style="display: inline-block;">
++	<% if self:cfgvalue(section) ~= false then %>
++		<input class="cbi-button cbi-button-<%=self.inputstyle or "button" %>" type="submit"" <% if self.disable then %>disabled <% end %><%= attr("name", cbid) .. attr("id", cbid) .. attr("value", self.inputtitle or self.title)%> />
++	<% else %>
++		-
++	<% end %>
++</div>
+diff --git a/applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm b/applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm
+new file mode 100644
+index 0000000000..69aa65e003
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm
+@@ -0,0 +1,37 @@
++<div class="cbi-section" id="cbi-<%=self.config%>-section">
++	<% if self.title and #self.title > 0 then -%>
++		<legend><%=self.title%></legend>
++	<%- end %>
++	<% if self.description and #self.description > 0 then -%>
++		<div class="cbi-section-descr"><%=self.description%></div>
++	<%- end %>
++	<div class="cbi-section-node">
++		<div id="cbi-<%=self.config%>-<%=tostring(self):sub(8)%>">
++			<% self:render_children(1, scope or {}) %>
++		</div>
++		<% if self.error and self.error[1] then -%>
++			<div class="cbi-section-error">
++				<ul><% for _, e in ipairs(self.error[1]) do -%>
++					<li>
++						<%- if e == "invalid" then -%>
++							<%:One or more fields contain invalid values!%>
++						<%- elseif e == "missing" then -%>
++							<%:One or more required fields have no value!%>
++						<%- else -%>
++							<%=pcdata(e)%>
++						<%- end -%>
++					</li>
++				<%- end %></ul>
++			</div>
++		<%- end %>
++	</div>
++</div>
++<%-
++	if type(self.hidden) == "table" then
++		for k, v in pairs(self.hidden) do
++-%>
++	<input type="hidden" id="<%=k%>" name="<%=k%>" value="<%=pcdata(v)%>" />
++<%-
++		end
++	end
++%>
+\ No newline at end of file
+diff --git a/applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm b/applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm
+new file mode 100644
+index 0000000000..72a21f50ec
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm
+@@ -0,0 +1,87 @@
++<% if not self.embedded then %>
++<form method="post" enctype="multipart/form-data" action="<%=REQUEST_URI%>"<%=
++			attr("data-strings", luci.util.serialize_json({
++				label = {
++					choose = translate('-- Please choose --'),
++					custom = translate('-- custom --'),
++				},
++				path = {
++					resource = resource,
++					browser  = url("admin/filebrowser")
++				}
++			}))
++		%>>
++			<input type="hidden" name="token" value="<%=token%>" />
++			<input type="hidden" name="cbi.submit" value="1" /><%
++	end
++
++	%><div class="cbi-map" id="cbi-<%=self.config%>"><%
++
++	if self.title and #self.title > 0 then
++		%><h2 name="content"><%=self.title%></h2><%
++	end
++
++	if self.description and #self.description > 0 then
++		%><div class="cbi-map-descr"><%=self.description%></div><%
++	end
++
++	if self.message then
++		%><div class="alert-message notice"><%=self.message%></div><%
++	end
++
++	if self.errmessage then
++		%><div class="alert-message warning"><%=self.errmessage%></div><%
++	end
++
++	self:render_children()
++
++	%></div><%
++
++	if not self.embedded then
++		if type(self.hidden) == "table" then
++			local k, v
++			for k, v in pairs(self.hidden) do
++				%><input type="hidden" id="<%=k%>" name="<%=k%>" value="<%=pcdata(v)%>" /><%
++			end
++		end
++
++		local display_back   = (self.redirect)
++		local display_cancel = (self.cancel ~= false and self.on_cancel)
++		local display_skip   = (self.flow and self.flow.skip)
++		local display_submit = (self.submit ~= false)
++		local display_reset  = (self.reset ~= false)
++
++		if display_back or display_cancel or display_skip or display_submit or display_reset then
++			%><div class="cbi-page-actions"><%
++
++			if display_back then
++				%><input class="btn cbi-button cbi-button-link" type="button" value="<%:Back to Overview%>" onclick="location.href='<%=pcdata(self.redirect)%>'" /> <%
++			end
++
++			if display_cancel then
++				local label = pcdata(self.cancel or translate("Cancel"))
++				%><input class="btn cbi-button cbi-button-link" type="button" value="<%=label%>" onclick="cbi_submit(this, 'cbi.cancel')" /> <%
++			end
++
++			if display_skip then
++				%><input class="btn cbi-button cbi-button-neutral" type="button" value="<%:Skip%>" onclick="cbi_submit(this, 'cbi.skip')" /> <%
++			end
++
++			if display_submit then
++				local label = pcdata(self.submit or translate("Submit"))
++				%><input class="btn cbi-button cbi-button-save" type="submit" value="<%=label%>" /> <%
++			end
++
++			if display_reset then
++				local label = pcdata(self.reset or translate("Reset"))
++				%><input class="btn cbi-button cbi-button-reset" type="reset" value="<%=label%>" /> <%
++			end
++
++			%></div><%
++		end
++
++		%></form><%
++	end
++%>
++
++<script type="text/javascript">cbi_init();</script>
+diff --git a/applications/luci-app-diskman/luasrc/view/diskman/disk_info.htm b/applications/luci-app-diskman/luasrc/view/diskman/disk_info.htm
+new file mode 100644
+index 0000000000..10ba3e7c28
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/view/diskman/disk_info.htm
+@@ -0,0 +1,110 @@
++<script type="text/javascript">
++  window.onload = function () {
++    //disk partition info
++    let p_colors = ["#c0c0ff", "#fbbd00", "#e97c30", "#a0e0a0", "#e0c0ff"]
++    let lines = document.querySelectorAll('[id^=cbi-disk-]')
++    lines.forEach((item) => {
++      let dev = item.id.match(/cbi-disk-(.*)/)[1]
++      if (dev == "table") { return }
++      XHR.get('<%=luci.dispatcher.build_url("admin/system/diskman/get_disk_info")%>/' + dev, null, (x, disk_info) => {
++        // handle disk info
++        item.childNodes.forEach((cell) => {
++          if (cell && cell.attributes) {
++            if (cell.getAttribute("data-name") == "sn" || cell.childNodes[1] && cell.childNodes[1].id.match(/sn/)) {
++              cell.innerText = disk_info.sn || "-"
++            } else if (cell.getAttribute("data-name") == "temp" || cell.childNodes[1] && cell.childNodes[1].id.match(/temp/)) {
++              cell.innerText = disk_info.temp || "-"
++            } else if (cell.getAttribute("data-name") == "p_table" || cell.childNodes[1] && cell.childNodes[1].id.match(/p_table/)) {
++              cell.innerText = disk_info.p_table || "-"
++            } else if (cell.getAttribute("data-name") == "sata_ver" || cell.childNodes[1] && cell.childNodes[1].id.match(/sata_ver/)) {
++              cell.innerText = disk_info.sata_ver || "-"
++            } else if (cell.getAttribute("data-name") == "health_status" || cell.childNodes[1] && cell.childNodes[1].id.match(/health_status/)) {
++              cell.innerText = (disk_info.health || "-") + "\n" + (disk_info.status || "-")
++            } else if (cell.getAttribute("data-name") == "health" || cell.childNodes[1] && cell.childNodes[1].id.match(/health/)) {
++              cell.innerText = disk_info.health || "-"
++            } else if (cell.getAttribute("data-name") == "status" || cell.childNodes[1] && cell.childNodes[1].id.match(/status/)) {
++              cell.innerText = disk_info.status || "-"
++            }
++          }
++        })
++        // handle partitons info
++        if (disk_info.partitions && disk_info.partitions.length > 0) {
++          let partitons_div
++          if (item.nodeName == "TR") {
++            partitons_div = '<tr width="100%" style="white-space:nowrap;"><td style="margin:0px; padding:0px; border:0px; white-space:nowrap;" colspan="15">'
++          } else if (item.nodeName == "DIV") {
++            partitons_div = '<div class="tr cbi-section-table-row cbi-rowstyle-1"><div style="white-space:nowrap; position:absolute; width:100%">'
++          }
++          let expand = 0
++          let need_expand = 0
++          disk_info.partitions.forEach((part) => {
++            let p = part.size / disk_info.size * 100
++            if (p <= 8) {
++              expand += 8
++              need_expand += p
++              part.part_percent = 8
++            }
++          })
++          let n = 0
++          disk_info.partitions.forEach((part) => {
++            let p = part.size / disk_info.size * 100
++            if (p > 8) {
++              part.part_percent = p * (100 - expand) / (100 - need_expand)
++            }
++            let part_percent = part.part_percent + '%'
++            let p_color = p_colors[n++]
++            if (n > 4) { n = 0 }
++            let inline_txt = (part.name != '-' && part.name || '') + ' ' + (part.fs != 'Free Space' && part.fs || '') + ' ' + part.size_formated + ' ' + (part.useage != '-' && part.useage || '')
++            let partiton_div = '<div title="' + inline_txt + '" style="color: #525F7F; display:inline-block; text-align:center;background-color:' + p_color + '; width:' + part_percent + '">' + inline_txt + '</div>'
++            partitons_div += partiton_div
++          })
++          if (item.nodeName == "TR") {
++            partitons_div += '</td></tr>'
++          } else if (item.nodeName == "DIV") {
++            partitons_div += '</div><div>&nbsp</div></div>'
++          }
++          item.insertAdjacentHTML('afterend', partitons_div);
++        }
++      })
++    })
++    //raid table
++    lines = document.querySelectorAll('[id^=cbi-_raid-]')
++    lines.forEach((item) => {
++      let dev = item.id.match(/cbi-_raid-(.*)/)[1]
++      if (dev == "table") { return }
++      console.log(dev)
++      XHR.get('<%=luci.dispatcher.build_url("admin/system/diskman/get_disk_info")%>/' + dev, null, (x, disk_info) => {
++        // handle raid info
++        item.childNodes.forEach((cell) => {
++          if (cell && cell.attributes) {
++            if (cell.getAttribute("data-name") == "p_table" || cell.childNodes[1] && cell.childNodes[1].id.match(/p_table/)) {
++                  cell.innerText = disk_info.p_table || "-"
++                }
++          }
++        })
++        // handle partitons info
++        let partitons_div
++        if (item.nodeName == "TR") {
++          partitons_div = '<tr width="100%" style="white-space:nowrap;"><td style="margin:0px; padding:0px; border:0px; white-space:nowrap;" colspan="15">'
++        } else if (item.nodeName == "DIV") {
++          partitons_div = '<div class="tr cbi-section-table-row cbi-rowstyle-1"><div style="white-space:nowrap; position:absolute; width:100%">'
++        }
++        let n = 0
++        disk_info.partitions.forEach((part) => {
++          let part_percent = part.size / disk_info.size * 100 + '%'
++          let p_color = p_colors[n++]
++          if (n > 4) { n = 0 }
++          let inline_txt = (part.name != '-' && part.name || '') + ' ' + (part.fs != 'Free Space' && part.fs || '') + ' ' + part.size_formated + ' ' + (part.useage != '-' && part.useage || '')
++          let partiton_div = '<div title="' + inline_txt + '" style="display:inline-block; text-align:center;background-color:' + p_color + '; width:' + part_percent + '">' + inline_txt + '</div>'
++          partitons_div += partiton_div
++        })
++        if (item.nodeName == "TR") {
++          partitons_div += '</td></tr>'
++        } else if (item.nodeName == "DIV") {
++          partitons_div += '</div><div>&nbsp</div></div>'
++        }
++        item.insertAdjacentHTML('afterend', partitons_div);
++      })
++    })
++  }
++</script>
+diff --git a/applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm b/applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm
+new file mode 100644
+index 0000000000..100541fe9d
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm
+@@ -0,0 +1,138 @@
++<style type="text/css">
++  #dialog_format {
++    position: absolute;
++    top: 0;
++    left: 0;
++    bottom: 0;
++    right: 0;
++    background: rgba(0, 0, 0, 0.7);
++    display: none;
++    z-index: 20000;
++  }
++
++  #dialog_format .dialog_box {
++    position: relative;
++    background: rgba(255, 255, 255);
++    top: 35%;
++    width: 40%;
++    min-width: 20em;
++    margin: auto;
++    display: flex;
++    flex-wrap: wrap;
++    height:auto;
++    align-items: center;
++  }
++
++  #dialog_format .dialog_line {
++    margin-top: .5em;
++    margin-bottom: .5em;
++    margin-left: 2em;
++    margin-right: 2em;
++  }
++
++  #dialog_format .dialog_box>h4,
++  #dialog_format .dialog_box>p,
++  #dialog_format .dialog_box>div {
++    flex-basis: 100%;
++  }
++
++  #dialog_format .dialog_box>img {
++    margin-right: 1em;
++    flex-basis: 32px;
++  }
++
++  body.dialog-format-active {
++    overflow: hidden;
++    height: 100vh;
++  }
++
++  body.dialog-format-active #dialog_format {
++    display: block;
++  }
++</style>
++<script type="text/javascript">//<![CDATA[
++  function show_detail(dev, e) {
++    e.preventDefault()
++    window.open('<%=luci.dispatcher.build_url("admin/system/diskman/smartdetail")%>/' + dev,
++      'newwindow', 'height=560,width=720,top=160,left=350,toolbar=no,menubar=no,scrollbars=yes, resizable=no,location=no, status=no')
++  }
++  window.onload = function () {
++    // handle partition table
++    const init_pt_btn = function() {
++      const btn_p_table = document.getElementById("widget.cbid.table.1.p_table") || document.getElementById("cbid.table.1.p_table")
++      if (!btn_p_table) {
++        setTimeout(init_pt_btn, 500);
++        return;
++      }
++      if (btn_p_table.type == 'hidden')
++        return;
++      const btn_p_table_raw_index = btn_p_table.selectedIndex
++      const val_name = document.getElementById("cbi-table-1-path").innerText.split('/').pop()
++      btn_p_table.onchange = function () {
++        let btn_p_table_index = btn_p_table.selectedIndex
++        if (btn_p_table_index != btn_p_table_raw_index) {
++          if (confirm("<%:Warnning !! \nTHIS WILL OVERWRITE EXISTING PARTITIONS!! \nModify the partition table?%>")) {
++            let p_table = btn_p_table.options[btn_p_table_index].value
++            XHR.get('<%=luci.dispatcher.build_url("admin/system/diskman/mk_p_table")%>', { dev: val_name, p_table: p_table }, (x, res) => {
++              if (res.code == 0) {
++                location.reload();
++              }
++            }
++            );
++          }
++          else {
++          }
++        }
++      }
++    };
++    init_pt_btn();
++    // handle smartinfo
++    const url = location.href.split('/')
++    const dev = url[url.length - 1]
++    const btn_smart_detail = document.getElementById("cbi-table-1-health")
++    btn_smart_detail.children[0].onclick = show_detail.bind(this, dev)
++  }
++  function close_dialog() {
++    document.body.classList.remove('dialog-format-active')
++    document.documentElement.style.overflowY = 'scroll'
++  }
++  function do_format(partation_name){
++    let fs = document.getElementById("filesystem_list").value
++    let status = document.getElementById("format-status")
++    if(!fs) {
++      status.innerHTML = "<%:Please select file system!%>"
++      return
++    }
++    status.innerHTML = "<%:Formatting..%>"
++    let b = document.getElementById('btn_format')
++    b.disabled = true
++    let xhr = new XHR()
++    xhr.post('<%=luci.dispatcher.build_url("admin/system/diskman/format_partition")%>', { partation_name: partation_name, file_system: fs }, (x, res) => {
++      if (x.status == 200) {
++        status.innerHTML = x.statusText
++        location.reload();
++      }else{
++        status.innerHTML = x.statusText
++      }
++    })
++  }
++
++  function clear_text(){
++    let s = document.getElementById('format-status')
++    s.innerHTML = ""
++    let b = document.getElementById('btn_format')
++    b.disabled = false
++  }
++
++  function partition_format(partition_name, format_cmd, current_fs){
++    let list = ''
++    format_cmd.split(",").forEach(e => {
++      list = list + '<option value="'+e+'">'+e+'</option>'
++    });
++    document.getElementById('dialog_format') || document.body.insertAdjacentHTML("beforeend", '<div id="dialog_format"><div class="dialog_box"><div class="dialog_line"></div><div class="dialog_line"><span><%:Format partation:%> <b>'+partition_name+'</b></span><br><span id="format-status" style="color: red;"></span></div><div class="dialog_line"><select id="filesystem_list" class="cbi-input-select" onchange="clear_text()">'+list+'</select></div><div class="dialog_line" style="text-align: right;"><input type="button" class="cbi-button cbi-button-apply" id="btn_format" type="submit" value="<%:Format%>" onclick="do_format(`'+partition_name+'`)" /> <input type="button"class="cbi-button cbi-button-reset" type="reset" value="<%:Cancel%>" onclick="close_dialog()" /></div><div class="dialog_line"></div></div></div>>')
++    document.body.classList.add('dialog-format-active')
++    document.documentElement.style.overflowY = 'hidden'
++    let fs_list = document.getElementById("filesystem_list")
++    fs_list.value = current_fs
++  }
++</script>
+\ No newline at end of file
+diff --git a/applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm b/applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm
+new file mode 100644
+index 0000000000..ffb4f7d911
+--- /dev/null
++++ b/applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm
+@@ -0,0 +1,78 @@
++<html>
++<head>
++  <title>S.M.A.R.T detail of <%=dev%></title>
++  <script type="text/javascript">//<![CDATA[
++    let formData = new FormData()
++    let xhr = new XMLHttpRequest()
++    xhr.open("GET", '<%=luci.dispatcher.build_url("admin", "system", "diskman", "smartattr", dev)%>', true)
++    xhr.onload = function () {
++      let st = JSON.parse(xhr.responseText)
++      let tb = document.getElementById('smart_attr_table');
++      if (st && tb) {
++        /* clear all rows */
++        while (tb.rows.length > 1)
++          tb.deleteRow(1);
++
++        for (var i = 0; i < st.length; i++) {
++          var tr = tb.insertRow(-1);
++          tr.className = 'cbi-section-table-row cbi-rowstyle-' + ((i % 2) + 1);
++          var td = null
++            <% if dev: match("nvme") then %>
++              tr.insertCell(-1).innerHTML = st[i].key;
++          tr.insertCell(-1).innerHTML = st[i].value;
++            <% else %>
++            tr.insertCell(-1).innerHTML = st[i].id;
++          tr.insertCell(-1).innerHTML = st[i].attrbute;
++          tr.insertCell(-1).innerHTML = st[i].flag;
++          tr.insertCell(-1).innerHTML = st[i].value;
++          tr.insertCell(-1).innerHTML = st[i].worst;
++          tr.insertCell(-1).innerHTML = st[i].thresh;
++          tr.insertCell(-1).innerHTML = st[i].type;
++          tr.insertCell(-1).innerHTML = st[i].updated;
++          tr.insertCell(-1).innerHTML = st[i].raw;
++          if ((st[i].id == '05' || st[i].id == 'C5') && st[i].raw != '0') {
++            tr.style.cssText = "background-color:red !important;";
++          }
++            <% end %>
++          }
++        if (tb.rows.length == 1) {
++          var tr = tb.insertRow(-1);
++          tr.className = 'cbi-section-table-row';
++          var td = tr.insertCell(-1);
++          td.colSpan = 4;
++          td.innerHTML = '<em><br /><%:No Attrbute to display.%></em>';
++        }
++      }
++    }
++    xhr.send(formData)
++    //]]></script>
++</head>
++<body>
++  <div id="maincontainer">
++    <fieldset class="cbi-section">
++      <legend><%:S.M.A.R.T Attrbutes%>: /dev/<%=dev%></legend>
++      <table class="cbi-section-table" id="smart_attr_table">
++        <tr class="cbi-section-table-titles">
++          <% if dev:match("nvme") then %>
++          <!-- <th class="cbi-section-table-cell"><%:KEY%></th>
++            <th class="cbi-section-table-cell"><%:VALUE%></th> -->
++          <% else %>
++          <th class="cbi-section-table-cell"><%:ID%></th>
++          <th class="cbi-section-table-cell"><%:Attrbute%></th>
++          <th class="cbi-section-table-cell"><%:Flag%></th>
++          <th class="cbi-section-table-cell"><%:Value%></th>
++          <th class="cbi-section-table-cell"><%:Worst%></th>
++          <th class="cbi-section-table-cell"><%:Thresh%></th>
++          <th class="cbi-section-table-cell"><%:Type%></th>
++          <th class="cbi-section-table-cell"><%:Updated%></th>
++          <th class="cbi-section-table-cell"><%:Raw%></th>
++          <% end %>
++        </tr>
++        <tr class="cbi-section-table-row">
++          <td colspan="4"><em><br /><%:Collecting data...%></em></td>
++        </tr>
++      </table>
++    </fieldset>
++  </div>
++</body>
++</html>
+\ No newline at end of file
+diff --git a/applications/luci-app-diskman/po/pl/diskman.po b/applications/luci-app-diskman/po/pl/diskman.po
+new file mode 100644
+index 0000000000..e9627d4535
+--- /dev/null
++++ b/applications/luci-app-diskman/po/pl/diskman.po
+@@ -0,0 +1,514 @@
++msgid ""
++msgstr ""
++"Project-Id-Version: PACKAGE VERSION\n"
++"PO-Revision-Date: 2023-04-21 02:03+0000\n"
++"Last-Translator: lisaac <lisaac.cn@gmail.com>\n"
++"Language-Team: Polski (Polish) <https://hosted.weblate.org/projects/"
++"openwrt/luciapplicationsdiskman/pl/>\n"
++"Language: pl\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=UTF-8\n"
++"Content-Transfer-Encoding: 8bit\n"
++"Plural-Forms: nplurals=1; plural=0;\n"
++"X-Generator: Weblate 4.12.1-dev\n"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:5
++msgid "-- Please choose --"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:6
++msgid "-- custom --"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:95
++msgid "Active"
++msgstr "Aktywny"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:61
++msgid "Attrbute"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:58
++msgid "Back to Overview"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:19
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:104
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:244
++msgid "Btrfs"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:27
++msgid "Btrfs Info"
++msgstr "Informacja o Btrfs"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:314
++msgid "Btrfs Label"
++msgstr "Etykieta Btrfs"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:327
++msgid "Btrfs Member"
++msgstr "Członek Btrfs"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:318
++msgid "Btrfs Raid Level"
++msgstr "Poziom Raid Btrfs"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:62
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Cancel"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:72
++msgid "Collecting data..."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:110
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:129
++msgid "Create"
++msgstr "Utwórz"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:344
++msgid "Create Btrfs"
++msgstr "Utwórz Btrfs"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:295
++msgid "Create Raid"
++msgstr "Utwórz RAID"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:241
++msgid "Creation"
++msgstr "Kreator"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:30
++msgid "Data"
++msgstr "Data"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:121
++msgid "Default 2048 sector alignment, support +size{b,k,m,g,t} in End Sector"
++msgstr ""
++"Sektory wyrównywane są do wielokrotności 2048, sektor końcowy można podać "
++"jako rozmiar w postaci +size{b,k,m,g,t}"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:114
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:118
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:127
++msgid "Delete"
++msgstr "Usuń"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:184
++msgid "Destination Path (optional)"
++msgstr "Ścieżka docelowa (opcjonalnie)"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:120
++msgid "Device"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:28
++msgid "Device Info"
++msgstr "Informacja o urządzeniu"
++
++#: applications/luci-app-diskman/luasrc/controller/diskman.lua:24
++msgid "Disk Man"
++msgstr "Menadżer dysków"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:11
++msgid "DiskMan"
++msgstr "Menadżer dysków"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:34
++msgid "Disks"
++msgstr "Dyski"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:52
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:91
++msgid "Eject"
++msgstr "Wysuń"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:136
++msgid "End Sector"
++msgstr "Sektor końcowy"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:139
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:184
++msgid "File System"
++msgstr "System plików"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:62
++msgid "Flag"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:199
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Format"
++msgstr "Formatuj"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Format partation:"
++msgstr "Format partycji:"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:106
++msgid "Formatting.."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:34
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:160
++msgid "Free Space"
++msgstr "Wolna przestrzeń"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:46
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:59
++msgid "Health"
++msgstr "Kondycja"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:53
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:60
++msgid "ID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:320
++msgid "Invalid End Sector!"
++msgstr "Nieprawidłowy sektor końcowy！"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:301
++msgid "Invalid Start Sector!"
++msgstr "Nieprawidłowy sektor początkowy！"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:57
++msgid "KEY"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:36
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:106
++msgid "Label"
++msgstr "Etykieta"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:51
++msgid "Level"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:19
++msgid "Manage Btrfs"
++msgstr "Zarządzaj Btrfs"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:11
++msgid "Manage Disks over LuCI."
++msgstr "Zarządzaj dyskami przez LuCI."
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:29
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:94
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:107
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:52
++msgid "Members"
++msgstr "Członkowie"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:31
++msgid "Metadata"
++msgstr "Metadata"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:38
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:32
++msgid "Model"
++msgstr "Model urządzenia"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:210
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:214
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:224
++msgid "Mount"
++msgstr "Montuj"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:155
++msgid "Mount Options"
++msgstr "Opcje montowania"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:119
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:184
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:162
++msgid "Mount Point"
++msgstr "Punkt montowania"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:244
++msgid "Multiple Devices Btrfs Creation"
++msgstr "Kreator urządzeń Btrfs"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:124
++msgid "Name"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:279
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:285
++msgid "New"
++msgstr "Nowa"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:166
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:192
++msgid "New Snapshot"
++msgstr "Nowy obraz"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:43
++msgid "No Attrbute to display."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm:17
++msgid "One or more fields contain invalid values!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm:19
++msgid "One or more required fields have no value!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:56
++msgid "Otime"
++msgstr "Otime"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:17
++msgid "Partition Disk over LuCI."
++msgstr "Zarządzaj partycjami przez LuCI."
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:17
++msgid "Partition Management"
++msgstr "Menadżer partycji"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:43
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:92
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:36
++msgid "Partition Table"
++msgstr "Tablica partycji"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:352
++msgid "Partition not exists!"
++msgstr "Partycja nie istnieje!"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:121
++msgid "Partitions Info"
++msgstr "Informacja o partycjach"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:58
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:37
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:89
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:31
++msgid "Path"
++msgstr "Ścieżka"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:206
++msgid "Please input Source Path of snapshot, Source Path must start with '/'"
++msgstr ""
++"Proszę podać ścieżkę źródłową dla obrazu, ścieżka musi zaczynać się od '/'"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:133
++msgid "Please input Subvolume Path, Subvolume must start with '/'"
++msgstr ""
++"Proszę podać ścieżkę dla sub-wolumenu, sub-wolumen musi zaczynać się od '/'"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:103
++msgid "Please select file system!"
++msgstr "Proszę wybrać system plików!"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:243
++msgid "RAID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:243
++msgid "RAID Creation"
++msgstr "Kreator RAID"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:87
++msgid "RAID Devices"
++msgstr "Urządzenia RAID"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:90
++msgid "RAID mode"
++msgstr "Tryb RAID"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:255
++msgid "Raid Level"
++msgstr "Poziom RAID"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:278
++msgid "Raid Member"
++msgstr "Członek RAID"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:250
++msgid "Raid Name"
++msgstr "Nazwa RAID"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:68
++msgid "Raw"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:175
++msgid "Readonly"
++msgstr "Tylko do odczytu"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:89
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:276
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:348
++msgid "Remove"
++msgstr "Wysuń"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:20
++msgid "Rescan Disks"
++msgstr "Skanuj dyski"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:76
++msgid "Reset"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:56
++msgid "Rotation Rate"
++msgstr "Obroty"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:53
++msgid "S.M.A.R.T Attrbutes"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:44
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:55
++msgid "SATA Version"
++msgstr "Wersja SATA"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:35
++msgid "Sector Size"
++msgstr "Rozmiar sektora"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:39
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:33
++msgid "Serial Number"
++msgstr "Numer seryjny"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:75
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:82
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:86
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:93
++msgid "Set Default"
++msgstr "Ustaw domyślnie"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:32
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:40
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:91
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:34
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:155
++msgid "Size"
++msgstr "Rozmiar"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:67
++msgid "Skip"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:57
++msgid "Snapshots"
++msgstr "Obrazy"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:168
++msgid "Source Path"
++msgstr "Ścieżka źródłowa"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:125
++msgid "Start Sector"
++msgstr "Sektor początkowy"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:46
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:93
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:58
++msgid "Status"
++msgstr "Status"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:52
++msgid "SubVolumes"
++msgstr "Sub-wolumeny"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:71
++msgid "Submit"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:41
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:54
++msgid "Temp"
++msgstr "Temperatura"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:175
++msgid "The path where you want to store the snapshot"
++msgstr "Ścieżka w której chcesz przechowywać obraz"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:168
++msgid "The source path for create the snapshot"
++msgstr "Ścieżka źródłowa do utworzenia obrazu"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:65
++msgid "Thresh"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:54
++msgid "Top Level"
++msgstr "Top Level"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:157
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:66
++msgid "Type"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:28
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:55
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:105
++msgid "UUID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:217
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:228
++msgid "Umount"
++msgstr "Odmontuj"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:58
++msgid "Unsupported raid reject!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:42
++msgid "Update"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:67
++msgid "Updated"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:35
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:110
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:161
++msgid "Usage"
++msgstr "Wykorzystane"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:33
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:159
++msgid "Used"
++msgstr "Zajęte"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:58
++msgid "VALUE"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:63
++msgid "Value"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:74
++msgid ""
++"Warnning !! \\nTHIS WILL OVERWRITE EXISTING PARTITIONS!! \\nModify the "
++"partition table?"
++msgstr ""
++"Ostrzeżenie !! \n"
++"ISTNIEJĄCE PARTYCJE ZOSTANĄ NADPISANE!! \n"
++"Zmodyfikować tablicę partycji?"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:64
++msgid "Worst"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:63
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:99
++msgid "is in use! please unmount it first!"
++msgstr "aktualnie jest w użyciu, proszę najpierw odmontować！"
++
++#~ msgid "Partition NOT found!"
++#~ msgstr "Nie znaleziono partycji！"
++
++#~ msgid "Filesystem NOT support!"
++#~ msgstr "System plików nie jest obsługiwany！"
+diff --git a/applications/luci-app-diskman/po/templates/diskman.pot b/applications/luci-app-diskman/po/templates/diskman.pot
+new file mode 100644
+index 0000000000..4a503591b7
+--- /dev/null
++++ b/applications/luci-app-diskman/po/templates/diskman.pot
+@@ -0,0 +1,490 @@
++msgid ""
++msgstr "Content-Type: text/plain; charset=UTF-8"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:5
++msgid "-- Please choose --"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:6
++msgid "-- custom --"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:95
++msgid "Active"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:61
++msgid "Attrbute"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:58
++msgid "Back to Overview"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:19
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:104
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:244
++msgid "Btrfs"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:27
++msgid "Btrfs Info"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:314
++msgid "Btrfs Label"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:327
++msgid "Btrfs Member"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:318
++msgid "Btrfs Raid Level"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:62
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Cancel"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:72
++msgid "Collecting data..."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:110
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:129
++msgid "Create"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:344
++msgid "Create Btrfs"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:295
++msgid "Create Raid"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:241
++msgid "Creation"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:30
++msgid "Data"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:121
++msgid "Default 2048 sector alignment, support +size{b,k,m,g,t} in End Sector"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:114
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:118
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:127
++msgid "Delete"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:184
++msgid "Destination Path (optional)"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:120
++msgid "Device"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:28
++msgid "Device Info"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/controller/diskman.lua:24
++msgid "Disk Man"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:11
++msgid "DiskMan"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:34
++msgid "Disks"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:52
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:91
++msgid "Eject"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:136
++msgid "End Sector"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:139
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:184
++msgid "File System"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:62
++msgid "Flag"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:199
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Format"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Format partation:"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:106
++msgid "Formatting.."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:34
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:160
++msgid "Free Space"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:46
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:59
++msgid "Health"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:53
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:60
++msgid "ID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:320
++msgid "Invalid End Sector!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:301
++msgid "Invalid Start Sector!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:57
++msgid "KEY"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:36
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:106
++msgid "Label"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:51
++msgid "Level"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:19
++msgid "Manage Btrfs"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:11
++msgid "Manage Disks over LuCI."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:29
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:94
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:107
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:52
++msgid "Members"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:31
++msgid "Metadata"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:38
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:32
++msgid "Model"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:210
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:214
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:224
++msgid "Mount"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:155
++msgid "Mount Options"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:119
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:184
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:162
++msgid "Mount Point"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:244
++msgid "Multiple Devices Btrfs Creation"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:124
++msgid "Name"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:279
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:285
++msgid "New"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:166
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:192
++msgid "New Snapshot"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:43
++msgid "No Attrbute to display."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm:17
++msgid "One or more fields contain invalid values!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm:19
++msgid "One or more required fields have no value!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:56
++msgid "Otime"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:17
++msgid "Partition Disk over LuCI."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:17
++msgid "Partition Management"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:43
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:92
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:36
++msgid "Partition Table"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:352
++msgid "Partition not exists!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:121
++msgid "Partitions Info"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:58
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:37
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:89
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:31
++msgid "Path"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:206
++msgid "Please input Source Path of snapshot, Source Path must start with '/'"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:133
++msgid "Please input Subvolume Path, Subvolume must start with '/'"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:103
++msgid "Please select file system!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:243
++msgid "RAID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:243
++msgid "RAID Creation"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:87
++msgid "RAID Devices"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:90
++msgid "RAID mode"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:255
++msgid "Raid Level"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:278
++msgid "Raid Member"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:250
++msgid "Raid Name"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:68
++msgid "Raw"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:175
++msgid "Readonly"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:89
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:276
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:348
++msgid "Remove"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:20
++msgid "Rescan Disks"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:76
++msgid "Reset"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:56
++msgid "Rotation Rate"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:53
++msgid "S.M.A.R.T Attrbutes"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:44
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:55
++msgid "SATA Version"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:35
++msgid "Sector Size"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:39
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:33
++msgid "Serial Number"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:75
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:82
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:86
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:93
++msgid "Set Default"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:32
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:40
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:91
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:34
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:155
++msgid "Size"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:67
++msgid "Skip"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:57
++msgid "Snapshots"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:168
++msgid "Source Path"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:125
++msgid "Start Sector"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:46
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:93
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:58
++msgid "Status"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:52
++msgid "SubVolumes"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:71
++msgid "Submit"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:41
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:54
++msgid "Temp"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:175
++msgid "The path where you want to store the snapshot"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:168
++msgid "The source path for create the snapshot"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:65
++msgid "Thresh"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:54
++msgid "Top Level"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:157
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:66
++msgid "Type"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:28
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:55
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:105
++msgid "UUID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:217
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:228
++msgid "Umount"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:58
++msgid "Unsupported raid reject!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:42
++msgid "Update"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:67
++msgid "Updated"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:35
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:110
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:161
++msgid "Usage"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:33
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:159
++msgid "Used"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:58
++msgid "VALUE"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:63
++msgid "Value"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:74
++msgid ""
++"Warnning !! \\nTHIS WILL OVERWRITE EXISTING PARTITIONS!! \\nModify the "
++"partition table?"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:64
++msgid "Worst"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:63
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:99
++msgid "is in use! please unmount it first!"
++msgstr ""
+diff --git a/applications/luci-app-diskman/po/zh-cn/diskman.po b/applications/luci-app-diskman/po/zh-cn/diskman.po
+new file mode 100644
+index 0000000000..c8558f1a69
+--- /dev/null
++++ b/applications/luci-app-diskman/po/zh-cn/diskman.po
+@@ -0,0 +1,511 @@
++msgid ""
++msgstr ""
++"Project-Id-Version: PACKAGE VERSION\n"
++"PO-Revision-Date: 2023-04-21 02:03+0000\n"
++"Last-Translator: muink <hukk1996@gmail.com>\n"
++"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
++"openwrt/luciapplicationsdiskman/zh_Hans/>\n"
++"Language: zh_Hans\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=UTF-8\n"
++"Content-Transfer-Encoding: 8bit\n"
++"Plural-Forms: nplurals=1; plural=0;\n"
++"X-Generator: Weblate 4.12.1-dev\n"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:5
++msgid "-- Please choose --"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:6
++msgid "-- custom --"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:95
++msgid "Active"
++msgstr "活动"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:61
++msgid "Attrbute"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:58
++msgid "Back to Overview"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:19
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:104
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:244
++msgid "Btrfs"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:27
++msgid "Btrfs Info"
++msgstr "Btrfs 信息"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:314
++msgid "Btrfs Label"
++msgstr "Btrfs 卷标"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:327
++msgid "Btrfs Member"
++msgstr "Btrfs 阵列成员"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:318
++msgid "Btrfs Raid Level"
++msgstr "Btrfs Raid 级别"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:62
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Cancel"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:72
++msgid "Collecting data..."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:110
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:129
++msgid "Create"
++msgstr "创建"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:344
++msgid "Create Btrfs"
++msgstr "创建 Btrfs"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:295
++msgid "Create Raid"
++msgstr "创建 RAID"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:241
++msgid "Creation"
++msgstr "创建"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:30
++msgid "Data"
++msgstr "数据"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:121
++msgid "Default 2048 sector alignment, support +size{b,k,m,g,t} in End Sector"
++msgstr ""
++"默认2048扇区对齐，【中止扇区】支持 +容量{b,k,m,g,t} 格式，例：+500m +10g +1t"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:114
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:118
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:127
++msgid "Delete"
++msgstr "删除"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:184
++msgid "Destination Path (optional)"
++msgstr "目标目录（可选）"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:120
++msgid "Device"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:28
++msgid "Device Info"
++msgstr "设备信息"
++
++#: applications/luci-app-diskman/luasrc/controller/diskman.lua:24
++msgid "Disk Man"
++msgstr "磁盘管理"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:11
++msgid "DiskMan"
++msgstr "DiskMan 磁盘管理"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:34
++msgid "Disks"
++msgstr "磁盘"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:52
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:91
++msgid "Eject"
++msgstr "弹出"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:136
++msgid "End Sector"
++msgstr "中止扇区"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:139
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:184
++msgid "File System"
++msgstr "文件系统"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:62
++msgid "Flag"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:199
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Format"
++msgstr "格式化"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Format partation:"
++msgstr "格式化分区："
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:106
++msgid "Formatting.."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:34
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:160
++msgid "Free Space"
++msgstr "空闲空间"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:46
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:59
++msgid "Health"
++msgstr "健康"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:53
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:60
++msgid "ID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:320
++msgid "Invalid End Sector!"
++msgstr "无效的终止扇区！"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:301
++msgid "Invalid Start Sector!"
++msgstr "无效的起始扇区！"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:57
++msgid "KEY"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:36
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:106
++msgid "Label"
++msgstr "卷标"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:51
++msgid "Level"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:19
++msgid "Manage Btrfs"
++msgstr "Btrfs 管理"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:11
++msgid "Manage Disks over LuCI."
++msgstr "通过 LuCI 管理磁盘"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:29
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:94
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:107
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:52
++msgid "Members"
++msgstr "成员"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:31
++msgid "Metadata"
++msgstr "元数据"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:38
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:32
++msgid "Model"
++msgstr "型号"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:210
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:214
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:224
++msgid "Mount"
++msgstr "挂载"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:155
++msgid "Mount Options"
++msgstr "挂载选项"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:119
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:184
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:162
++msgid "Mount Point"
++msgstr "挂载点"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:244
++msgid "Multiple Devices Btrfs Creation"
++msgstr "Btrfs 阵列创建"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:124
++msgid "Name"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:279
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:285
++msgid "New"
++msgstr "新建"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:166
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:192
++msgid "New Snapshot"
++msgstr "新建快照"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:43
++msgid "No Attrbute to display."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm:17
++msgid "One or more fields contain invalid values!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm:19
++msgid "One or more required fields have no value!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:56
++msgid "Otime"
++msgstr "创建时间"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:17
++msgid "Partition Disk over LuCI."
++msgstr "通过LuCI分区磁盘。"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:17
++msgid "Partition Management"
++msgstr "分区管理"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:43
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:92
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:36
++msgid "Partition Table"
++msgstr "分区表"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:352
++msgid "Partition not exists!"
++msgstr "分区不存在！"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:121
++msgid "Partitions Info"
++msgstr "分区信息"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:58
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:37
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:89
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:31
++msgid "Path"
++msgstr "路径"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:206
++msgid "Please input Source Path of snapshot, Source Path must start with '/'"
++msgstr "请输入快照源路径，源路径必须以'/'开头"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:133
++msgid "Please input Subvolume Path, Subvolume must start with '/'"
++msgstr "请输入子卷路径，子卷路径必须以'/'开头"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:103
++msgid "Please select file system!"
++msgstr "请选择文件系统！"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:243
++msgid "RAID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:243
++msgid "RAID Creation"
++msgstr "RAID 创建"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:87
++msgid "RAID Devices"
++msgstr "RAID 设备"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:90
++msgid "RAID mode"
++msgstr "RAID 模式"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:255
++msgid "Raid Level"
++msgstr "RAID 级别"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:278
++msgid "Raid Member"
++msgstr "磁盘阵列成员"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:250
++msgid "Raid Name"
++msgstr "RAID 名称"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:68
++msgid "Raw"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:175
++msgid "Readonly"
++msgstr "只读"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:89
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:276
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:348
++msgid "Remove"
++msgstr "移除"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:20
++msgid "Rescan Disks"
++msgstr "重新扫描磁盘"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:76
++msgid "Reset"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:56
++msgid "Rotation Rate"
++msgstr "转速"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:53
++msgid "S.M.A.R.T Attrbutes"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:44
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:55
++msgid "SATA Version"
++msgstr "SATA 版本"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:35
++msgid "Sector Size"
++msgstr "扇区/物理扇区大小"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:39
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:33
++msgid "Serial Number"
++msgstr "序列号"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:75
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:82
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:86
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:93
++msgid "Set Default"
++msgstr "默认子卷"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:32
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:40
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:91
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:34
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:155
++msgid "Size"
++msgstr "容量"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:67
++msgid "Skip"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:57
++msgid "Snapshots"
++msgstr "快照"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:168
++msgid "Source Path"
++msgstr "源目录"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:125
++msgid "Start Sector"
++msgstr "起始扇区"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:46
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:93
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:58
++msgid "Status"
++msgstr "状态"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:52
++msgid "SubVolumes"
++msgstr "子卷"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:71
++msgid "Submit"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:41
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:54
++msgid "Temp"
++msgstr "温度"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:175
++msgid "The path where you want to store the snapshot"
++msgstr "存放快照数据目录"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:168
++msgid "The source path for create the snapshot"
++msgstr "创建快照的源数据目录"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:65
++msgid "Thresh"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:54
++msgid "Top Level"
++msgstr "父ID"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:157
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:66
++msgid "Type"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:28
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:55
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:105
++msgid "UUID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:217
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:228
++msgid "Umount"
++msgstr "卸载"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:58
++msgid "Unsupported raid reject!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:42
++msgid "Update"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:67
++msgid "Updated"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:35
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:110
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:161
++msgid "Usage"
++msgstr "用量"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:33
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:159
++msgid "Used"
++msgstr "已使用"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:58
++msgid "VALUE"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:63
++msgid "Value"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:74
++msgid ""
++"Warnning !! \\nTHIS WILL OVERWRITE EXISTING PARTITIONS!! \\nModify the "
++"partition table?"
++msgstr ""
++"警告！！\n"
++"此操作会覆盖现有分区\n"
++"确定修改分区表？"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:64
++msgid "Worst"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:63
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:99
++msgid "is in use! please unmount it first!"
++msgstr "正在被使用！请先卸载！"
++
++#~ msgid "Partition NOT found!"
++#~ msgstr "分区未找到！"
++
++#~ msgid "Filesystem NOT support!"
++#~ msgstr "文件系统不支持！"
+diff --git a/applications/luci-app-diskman/po/zh-tw/diskman.po b/applications/luci-app-diskman/po/zh-tw/diskman.po
+new file mode 100644
+index 0000000000..e145e397cb
+--- /dev/null
++++ b/applications/luci-app-diskman/po/zh-tw/diskman.po
+@@ -0,0 +1,512 @@
++msgid ""
++msgstr ""
++"Project-Id-Version: PACKAGE VERSION\n"
++"PO-Revision-Date: 2023-04-21 02:03+0000\n"
++"Last-Translator: muink <hukk1996@gmail.com>\n"
++"Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
++"openwrt/luciapplicationsdiskman/zh_Hant/>\n"
++"Language: zh_Hant\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=UTF-8\n"
++"Content-Transfer-Encoding: 8bit\n"
++"Plural-Forms: nplurals=1; plural=0;\n"
++"X-Generator: Weblate 4.12.1-dev\n"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:5
++msgid "-- Please choose --"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:6
++msgid "-- custom --"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:95
++msgid "Active"
++msgstr "活躍"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:61
++msgid "Attrbute"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:58
++msgid "Back to Overview"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:19
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:104
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:244
++msgid "Btrfs"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:27
++msgid "Btrfs Info"
++msgstr "Btrfs 信息"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:314
++msgid "Btrfs Label"
++msgstr "Btrfs 卷標"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:327
++msgid "Btrfs Member"
++msgstr "Btrfs 陣列成員"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:318
++msgid "Btrfs Raid Level"
++msgstr "Btrfs Raid 等級"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:62
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Cancel"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:72
++msgid "Collecting data..."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:110
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:129
++msgid "Create"
++msgstr "創建"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:344
++msgid "Create Btrfs"
++msgstr "創建 Btrfs"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:295
++msgid "Create Raid"
++msgstr "創建 RAID"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:241
++msgid "Creation"
++msgstr "創建"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:30
++msgid "Data"
++msgstr "數據"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:121
++msgid "Default 2048 sector alignment, support +size{b,k,m,g,t} in End Sector"
++msgstr ""
++"默認 2048 磁區對齊，【結束磁區】支持 +容量{b,k,m,g,t} 格式，例：+500m +10g "
++"+1t"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:114
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:118
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:127
++msgid "Delete"
++msgstr "刪除"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:184
++msgid "Destination Path (optional)"
++msgstr "目標目錄（可選）"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:120
++msgid "Device"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:28
++msgid "Device Info"
++msgstr "裝置信息"
++
++#: applications/luci-app-diskman/luasrc/controller/diskman.lua:24
++msgid "Disk Man"
++msgstr "硬碟管理"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:11
++msgid "DiskMan"
++msgstr "DiskMan 硬碟管理"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:34
++msgid "Disks"
++msgstr "硬碟"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:52
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:91
++msgid "Eject"
++msgstr "彈出"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:136
++msgid "End Sector"
++msgstr "結束磁區"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:139
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:184
++msgid "File System"
++msgstr "文件系統"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:62
++msgid "Flag"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:199
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Format"
++msgstr "格式化"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:132
++msgid "Format partation:"
++msgstr "格式化分割區："
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:106
++msgid "Formatting.."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:34
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:160
++msgid "Free Space"
++msgstr "空閒空間"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:46
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:59
++msgid "Health"
++msgstr "健康"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:53
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:60
++msgid "ID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:320
++msgid "Invalid End Sector!"
++msgstr "無效的結束磁區！"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:301
++msgid "Invalid Start Sector!"
++msgstr "無效的起始磁區！"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:57
++msgid "KEY"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:36
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:106
++msgid "Label"
++msgstr "卷標"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:51
++msgid "Level"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:19
++msgid "Manage Btrfs"
++msgstr "Btrfs 管理"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:11
++msgid "Manage Disks over LuCI."
++msgstr "通过 LuCI 管理硬碟"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:29
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:94
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:107
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:52
++msgid "Members"
++msgstr "成員"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:31
++msgid "Metadata"
++msgstr "元數據"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:38
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:32
++msgid "Model"
++msgstr "型號"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:210
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:214
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:224
++msgid "Mount"
++msgstr "掛載"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:155
++msgid "Mount Options"
++msgstr "掛載選項"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:119
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:184
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:162
++msgid "Mount Point"
++msgstr "掛載點"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:244
++msgid "Multiple Devices Btrfs Creation"
++msgstr "Btrfs 陣列創建"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:124
++msgid "Name"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:279
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:285
++msgid "New"
++msgstr "新建"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:166
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:192
++msgid "New Snapshot"
++msgstr "新建快照"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:43
++msgid "No Attrbute to display."
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm:17
++msgid "One or more fields contain invalid values!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xnullsection.htm:19
++msgid "One or more required fields have no value!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:56
++msgid "Otime"
++msgstr "創建時間"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:17
++msgid "Partition Disk over LuCI."
++msgstr "通過 LuCI 分割硬碟。"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:17
++msgid "Partition Management"
++msgstr "分割區管理"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:43
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:92
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:36
++msgid "Partition Table"
++msgstr "分割區表"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:352
++msgid "Partition not exists!"
++msgstr "分割區不存在！"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:121
++msgid "Partitions Info"
++msgstr "分割區信息"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:58
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:37
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:89
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:31
++msgid "Path"
++msgstr "路徑"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:206
++msgid "Please input Source Path of snapshot, Source Path must start with '/'"
++msgstr "請輸入快照源路径，源路径必須以'/'開頭"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:133
++msgid "Please input Subvolume Path, Subvolume must start with '/'"
++msgstr "請輸入子卷路径，子卷路径必須以'/'開頭"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:103
++msgid "Please select file system!"
++msgstr "請選擇文件系統！"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:243
++msgid "RAID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:243
++msgid "RAID Creation"
++msgstr "RAID 創建"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:87
++msgid "RAID Devices"
++msgstr "RAID 裝置"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:90
++msgid "RAID mode"
++msgstr "RAID 模式"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:255
++msgid "Raid Level"
++msgstr "RAID 等級"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:278
++msgid "Raid Member"
++msgstr "硬碟陣列成員"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:250
++msgid "Raid Name"
++msgstr "RAID 名稱"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:68
++msgid "Raw"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:175
++msgid "Readonly"
++msgstr "只讀"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:89
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:276
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:348
++msgid "Remove"
++msgstr "移除"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:20
++msgid "Rescan Disks"
++msgstr "重新掃描硬碟"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:76
++msgid "Reset"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:56
++msgid "Rotation Rate"
++msgstr "轉速"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:53
++msgid "S.M.A.R.T Attrbutes"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:44
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:55
++msgid "SATA Version"
++msgstr "SATA 版本"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:35
++msgid "Sector Size"
++msgstr "磁區/物理磁區大小"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:39
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:33
++msgid "Serial Number"
++msgstr "序列號"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:75
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:82
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:86
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:93
++msgid "Set Default"
++msgstr "默認子卷"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:32
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:40
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:91
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:34
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:155
++msgid "Size"
++msgstr "容量"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:67
++msgid "Skip"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:57
++msgid "Snapshots"
++msgstr "快照"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:168
++msgid "Source Path"
++msgstr "源目錄"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:125
++msgid "Start Sector"
++msgstr "起始磁區"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:46
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:93
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:58
++msgid "Status"
++msgstr "狀態"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:52
++msgid "SubVolumes"
++msgstr "子卷"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/cbi/xsimpleform.htm:71
++msgid "Submit"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:41
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:54
++msgid "Temp"
++msgstr "溫度"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:175
++msgid "The path where you want to store the snapshot"
++msgstr "存放快照的數據目錄"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:168
++msgid "The source path for create the snapshot"
++msgstr "創建快照的源數據目錄"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:65
++msgid "Thresh"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:54
++msgid "Top Level"
++msgstr "父 ID"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:157
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:66
++msgid "Type"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:28
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:55
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:105
++msgid "UUID"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:217
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:228
++msgid "Umount"
++msgstr "卸載"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:58
++msgid "Unsupported raid reject!"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:42
++msgid "Update"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:67
++msgid "Updated"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:35
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:110
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:161
++msgid "Usage"
++msgstr "用量"
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/btrfs.lua:33
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:159
++msgid "Used"
++msgstr "已使用"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:58
++msgid "VALUE"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:63
++msgid "Value"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/view/diskman/partition_info.htm:74
++msgid ""
++"Warnning !! \\nTHIS WILL OVERWRITE EXISTING PARTITIONS!! \\nModify the "
++"partition table?"
++msgstr ""
++"警告！！\n"
++"此操作会覆蓋現有分割區\n"
++"確定修改分割區表？"
++
++#: applications/luci-app-diskman/luasrc/view/diskman/smart_detail.htm:64
++msgid "Worst"
++msgstr ""
++
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/disks.lua:63
++#: applications/luci-app-diskman/luasrc/model/cbi/diskman/partition.lua:99
++msgid "is in use! please unmount it first!"
++msgstr "正在被使用！請先卸載！"
++
++#~ msgid "Partition NOT found!"
++#~ msgstr "分割區未找到！"
++
++#~ msgid "Filesystem NOT support!"
++#~ msgstr "文件系統不支持！"
+diff --git a/applications/luci-app-diskman/po/zh_Hans b/applications/luci-app-diskman/po/zh_Hans
+new file mode 100755
+index 0000000000..41451e4a19
+--- /dev/null
++++ b/applications/luci-app-diskman/po/zh_Hans
+@@ -0,0 +1 @@
++zh-cn
+\ No newline at end of file
+diff --git a/applications/luci-app-diskman/po/zh_Hant b/applications/luci-app-diskman/po/zh_Hant
+new file mode 100755
+index 0000000000..f6e591fd8a
+--- /dev/null
++++ b/applications/luci-app-diskman/po/zh_Hant
+@@ -0,0 +1 @@
++zh-tw
+\ No newline at end of file
+-- 
+2.39.2

@@ -1,0 +1,26 @@
+From db86b095367d5216da5c067cb904c02ebf7cbc9c Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Sun, 14 Jan 2024 18:05:45 -0500
+Subject: [PATCH] lcx: default config br-lan
+
+---
+ utils/lxc/patches/001-config-default-br-lan.patch | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+ create mode 100644 utils/lxc/patches/001-config-default-br-lan.patch
+
+diff --git a/utils/lxc/patches/001-config-default-br-lan.patch b/utils/lxc/patches/001-config-default-br-lan.patch
+new file mode 100644
+index 000000000..2130c4791
+--- /dev/null
++++ b/utils/lxc/patches/001-config-default-br-lan.patch
+@@ -0,0 +1,8 @@
++--- a/config/etc/default.conf.lxcbr
+++++ b/config/etc/default.conf.lxcbr
++@@ -1,4 +1,4 @@
++ lxc.net.0.type = veth
++-lxc.net.0.link = lxcbr0
+++lxc.net.0.link = br-lan
++ lxc.net.0.flags = up
++ lxc.net.0.hwaddr = 00:16:3e:xx:xx:xx
+-- 
+2.40.1

@@ -1,0 +1,31 @@
+From 618e656034746c374d0870640f65011e875dc6d4 Mon Sep 17 00:00:00 2001
+From: Marty Jones <mj8263788@gmail.com>
+Date: Mon, 26 Oct 2026 16:32:37 -0300
+Subject: [PATCH] htop: CPU show Frequency/Temperature
+
+Signed-off-by: Marty Jones <mj8263788@gmail.com>
+---
+ admin/htop/patches/08-cpu-frequency.patch | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 admin/htop/patches/08-cpu-frequency.patch
+
+diff --git a/admin/htop/patches/08-cpu-frequency.patch b/admin/htop/patches/08-cpu-frequency.patch
+new file mode 100644
+index 00000000000000..fafd061cda77bf
+--- /dev/null
++++ b/admin/htop/patches/08-cpu-frequency.patch
+@@ -0,0 +1,14 @@
++--- a/Settings.c
+++++ b/Settings.c
++@@ -935,9 +935,9 @@ Settings* Settings_new(const Machine* ho
++    this->showCPUSMTLabels = false;
++    this->showCPUUsage = true;
++    this->stickyFollow = true;
++-   this->showCPUFrequency = false;
+++   this->showCPUFrequency = true;
++    #ifdef BUILD_WITH_CPU_TEMP
++-   this->showCPUTemperature = false;
+++   this->showCPUTemperature = true;
++    this->degreeFahrenheit = false;
++    #endif
++    this->showCachedMemory = true;
