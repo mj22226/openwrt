@@ -42,6 +42,8 @@ HOST_CFLAGS += -I$(LINUX_DIR)/tools/include
 
 TARGET_LDFLAGS += $(INTL_LDFLAGS)
 
+TARGET_CFLAGS += -Wno-error=implicit-function-declaration
+
 MAKE_FLAGS = \
 	ARCH="$(LINUX_KARCH)" \
 	NO_LIBPERL=1 \
@@ -49,6 +51,7 @@ MAKE_FLAGS = \
 	NO_NEWT=1 \
 	NO_LZMA=1 \
 	NO_BACKTRACE=1 \
+	NO_LIBDW=1 \
 	NO_LIBNUMA=1 \
 	NO_SLANG=1 \
 	NO_GTK2=1 \

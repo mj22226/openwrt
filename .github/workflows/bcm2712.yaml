@@ -1,0 +1,89 @@
+name: Build bcm2712 RPi 5B
+on: [push]
+
+jobs:
+    build:
+        name: Build Raspberry Pi 5 images
+        runs-on: ubuntu-26.04-arm
+        steps:
+            - name: Setup Ubuntu
+              run: |
+                sudo apt update
+                sudo apt install -y subversion build-essential gettext python3-pyelftools python3-distutils-extra
+            - name: Setup Go
+              uses: actions/setup-go@main
+              with:
+                go-version: '1.27.4'
+            - name: Checkout
+              uses: actions/checkout@main
+            - name: Build
+              run: |
+                git clone https://github.com/mj22226/openwrt.git
+                # git clone https://github.com/mj22226/source.git openwrt
+                cp -rf .github/patches/*.patch openwrt/
+                cd openwrt
+                git pull
+                git checkout linux-6.18
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a
+                cp -rf 01-diskman.patch feeds/luci/
+                cp -rf 02-openvpn.patch feeds/luci/
+                cp -rf 03-dockerman.patch feeds/luci/
+                cp -rf 04-openvpn.patch feeds/packages/
+                cp -rf 05-cpu.patch feeds/packages/
+                cp -rf 06-lxc.patch feeds/packages/
+                cd feeds/luci
+                rm -rf applications/luci-app-dockerman
+                git apply 01-diskman.patch
+                git apply 02-openvpn.patch
+                git apply 03-dockerman.patch
+                cd -
+                cd  feeds/packages
+                rm -rf net/openvpn
+                git apply 04-openvpn.patch
+                git apply 05-cpu.patch
+                git apply 06-lxc.patch
+                cd -
+                sed -i "71s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "84s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "195s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "212s/'0'/'1'/" feeds/luci/applications/luci-app-statistics/root/etc/config/luci_statistics
+                sed -i "13s/'1'/'0'/" feeds/packages/utils/dockerd/files/etc/config/dockerd
+                sed -i 's/default n/default y/g' feeds/packages/utils/dockerd/Config.in
+                sed -i "4s/login/login -f root/" feeds/packages/utils/ttyd/files/ttyd.config
+                sed -i '38s/$/ +liburing/' feeds/packages/utils/lvm2/Makefile ; sed -i '111d' feeds/packages/utils/lvm2/Makefile
+                sed -i '58s/$/ -std=gnu17/' feeds/packages/net/vsftpd/Makefile
+                sed -i '65s/$/ -std=gnu17/' feeds/packages/net/vsftpd/Makefile
+                rm -f feeds/packages/libs/libpfring/patches/002-Fix-compilation-on-6.18.57.patch
+                ./scripts/feeds update -a
+                ./scripts/feeds install -a -f
+                rm -rf feeds/packages/net/nfs-kernel-server
+                wget https://github.com/mj22226/openwrt-arm64/releases/download/bcm2712-22.1.3/llvm-bpf-22.1.3.Linux-aarch64.tar.zst
+                tar -xvf llvm-bpf-22.1.3.Linux-aarch64.tar.zst
+                git apply 07-key.patch
+                cp .github/workflows/config.buildinfo .config
+                echo 'CONFIG_GOLANG_EXTERNAL_BOOTSTRAP_ROOT="/opt/hostedtoolcache/go/1.27.4/arm64/bin"' >> .config
+                make defconfig
+                make download -j32
+                mkdir -p files/www/repo
+                git apply 09-feeds-rpi5.patch
+                make -j$(nproc) 'IGNORE_ERRORS=n m'
+                # tar -czvf bin/targets/bcm27xx/bcm2712/logs.tar.gz logs
+                rm -rf bin/targets/bcm27xx/bcm2712/packages || true
+                echo "DATE=$(date +'%Y.%m.%d')" >> $GITHUB_ENV
+                echo "HASH=$(git log -1 --format="%H")" >> $GITHUB_ENV
+            - name: Delete tag
+              run: gh release delete bcm2712-6.18 --cleanup-tag || true
+              env:
+                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Create release
+              uses: ncipollo/release-action@main
+              with:
+                allowUpdates: true
+                commit: ${{ env.HASH }}
+                name: Raspberry Pi 5 v6.18 Firmware Images ${{ env.DATE }}
+                tag: bcm2712-6.18
+                replacesArtifacts: true
+                prerelease: true
+                token: "${{ secrets.GITHUB_TOKEN }}"
+                artifacts: openwrt/bin/targets/bcm27xx/bcm2712/*
